@@ -1,0 +1,75 @@
+实现目标：高速存储，数据安全，便于访问
+
+rtinfoserver:
+      一个类memcache但性能和安全性更优异的服务器
+      请将服务器配置为单进程模式使用
+mod_rt:
+      一个和rtinfoserver通信的apache2 module
+
+两者的通信协议大致如下：
+      |4bytes(长度)|4bytes(命令）｜...|
+具体协议我以后再补充，如果你是web应用，可以直接通过http访问apache即可。
+测试方法：
+      1,在build zevent完成后测试此应用。
+
+      2,安装Berkeley DB 4.7:注意这里我强调是4.7，因为它和以前版本如4.5有不少改变，较低版本可能会编译不能通过。
+      下载：http://www.oracle.com/technology/software/products/berkeley-db/index.html
+      $tar xzvf db-4.7.25.tar.gz
+      $./configure
+      $make
+      $make install
+
+      3,安装服务器，运行build.sh会完成编译和安装，安装路径在usr/bin下。
+
+      4,mod_rt apache module的安装，如果使用此module作为客户端进行测试，你需要
+      首先安装apache,建议手动安装，在configure的时候使用--enable-so选项。
+      编译安装module:
+                 $cd mod_rt
+                 ${APACHE2PATH}/bin/apxs -c -i mode_rtinfo.c Rio.c RT_Svr.c
+
+添加如下配置段到httpd.conf:
+
+LoadModule rtinfo_module modules/mod_rtinfo.so
+<Location /rtinfo>
+SetHandler rtinfo
+</Location> 
+
+<IfModule mod_rtinfo.c>
+RTSvc_Server_IP 192.168.1.137
+RTSvc_Server_Port 9977
+</IfModule>
+
+KeepAlive on
+MaxKeepAliveRequests 0
+KeepAliveTimeout 15
+
+<IfModule prefork.c>
+StartServers 32
+MinSpareServers 16
+MaxSpareServers 64
+ServerLimit 2048
+MaxClients 1024
+MaxRequestsPerChild 10000
+</IfModule>
+
+重新启动apache：
+${APACHE2PATH}/bin/apache2ctl stop
+${APACHE2PATH}/bin/apache2ctl start
+
+打开浏览器测试：
+插入数据：
+http://192.168.1.137:9999/rtinfo?k=zhoubug&c=1&v=good 
+获取数据：
+http://192.168.1.137:9999/rtinfo?k=zhoubugi&c=2
+另外你也可以用post 方法插入数据，这时整个post的content数据都将作为value值保存起来，目前最大为8kbytes.
+eg:
+POST /rtinfo?k=zhoubug&c=1 HTTP/1.1<CR><LF>
+Host: 192.168.1.137:9999<CR><LF>
+User-Agent: PHP/1.0<CR><LF>
+Connection: keep-alive<CR><LF>
+Content-Type: text/plain<CR><LF>
+Content-Length:20<CR><LF>
+<CR><LF>
+test
+
+如果你还对上面apache module的部分不理解 请自己google apache modlue开发方面的东西吧！

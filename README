@@ -1,0 +1,102 @@
+  A library & simple echo server,base on the fast and robust web server framework : apache httpd ,
+  epoll for linux; kqueue for bsd; poll for any.
+
+  Q: what & why?
+
+  A:
+  1, 提供开发服务器用动态库和一个echo示例(新增一个高性能BerkeleyDB存储应用服务例程).
+  1，抽取改造apache httpd的核心通信框架使其用于通用服务端开发，易于分析apache的服务器源码，学习其设计思路。
+  2, 演示多进程，线程池，同步策略（锁，条件变量等），管道,信号等等众多技术在后端服务器开发中的综合应用。
+
+  重点应用：
+  －－多进程+线程池使用epoll 的事件处理设计
+  －－记分板机制的使用
+  －－apr(apache runtime library)内存池的使用
+  －－apache中挂钩队列(hooks)的设计及应用，挂钩队列的设计使apache可以灵活开发各种扩展模块，在这里
+  演示其使用方法。
+  －－buckets and brigade的使用，结合内存池简洁高效的处理服务器中需要缓冲处理的各种
+  数据包括（memory,file,socket,pipe)
+  －－构建工具cmake的使用
+
+  编译安装:
+  ======服务器使用cmake构建，请首先安装========
+  ubuntu & debian 下：
+
+  $apt-get install cmake
+
+  该程序依赖于apr和apr-util,如果你尚未安装请执行如下安装:
+  ======安装apr========
+  $cd common
+  $tar xzvf apr-1.3.*.tar.gz 
+  $cd apr-1.3.*/
+  $./configure
+  $make install
+  =====安装apr-util=====
+  $cd common
+  $tar xzvf apr-util-1.3.*.tar.gz
+  $cd apr-util-1.3.*/
+  $./configure --with-apr=/usr/local/apr/
+  $make install
+  =====最后一步=========
+  $sudo ./build.sh
+
+  动态库和头文件会被安装在/usr/local/zevent目录下
+
+  配置说明：
+
+  #config.ini
+  [network]
+  port = 192.168.21.9:8889
+  protocol = protocol
+  [mpm_event]
+  StartServers = 4
+  ServerLimit = 64
+  MinSpareThreads = 32
+  MaxSpareThreads = 500
+  ThreadLimit = 2000
+  ThreadsPerChild = 16
+  MaxRequestsPerChild = 0 
+  [misc]
+  debug = 0
+  logfile = log.txt
+  
+
+      服务器使用了多进程，每个进程又对应一个线程池，以获得基于进程服务器的稳定性(如：子进程因为某个业务处理
+导致异常退出，服务器会自动根据繁忙情况自动启动新的子进程）
+
+  服务器的工作原理是，由主控制进程生成“StartServers”个子进程，每个子进程中包含固定的ThreadsPerChild 线程数，
+  各个线程独立地处理请求。MinSpareThreads和MaxSpareThreads设置了最少和最多的空闲线程数.
+
+  　　ThreadsPerChild是与性能相关最密切的指令。ThreadsPerChild的最大缺省值是64，如果负载较大，64也是不够的。
+  这时要显式使用 ThreadLimit指令，它的最大缺省值是20000.
+
+    　　这两行对应着ThreadsPerChild和ThreadLimit的限制数。最好在configure之前就把64改成所希望的值。注意，不要把这两个值
+  设得太高，超过系统的处理能力.
+
+  　  如果负载很大，现有的子进程数不能满足时，控制进程会派生新的子进程。默认最大的子进程总数是16，
+   加大时也需要显式声明ServerLimit（最大值是 20000）。
+
+      系统采用的是事件触发回调机制，工作线程是否可尽快回归到线程池由使用者决定，处理得当就会得到
+    很强的并发量和吞吐能力,可参加服务器中的处理方法。
+
+NEWS:2008-10-16 16:55:25
+    在apps文件夹内新增一个基于zevent开发的应用，使用Berkeley DB内存数据库，实现了一个类似memcache但
+支持数据持久保存，具有更好的安全性，强杀也可保证数据在重启时最大程度的恢复，可以应用在一些需要高速
+数据访问而memcache又不能满足数据安全性的地方。为刚好的满足现有互联网开发应用附带了一个结合此应用的
+apache module。详见apps/rtservice下README.
+
+
+
+=======================================bug report==================================================
+
+         (__)                                                                
+         (oo) 
+   /------\/ 
+  / |    ||   
+ *  /\---/\ 
+    ~~   ~~   
+msn:chinasihai@gmail.com
+mail:chinasihai@gmail.com
+zhoubug
+2008-07-30 11:17:47
+ 
