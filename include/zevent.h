@@ -56,6 +56,10 @@
 extern "C" {
 #endif
 
+/*
+ * * the ones you should need
+ * */
+
 ZEVENT_DECLARE(int) zevent_init(const char *inifile,apr_pool_t **pglobal);
 
 ZEVENT_DECLARE(int) zevent_run(apr_pool_t *pconf);
