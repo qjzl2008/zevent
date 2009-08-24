@@ -3,7 +3,7 @@ Changes with zevent
 
   *) changes:
      v1.2.0
-     fixing 
+     fixing 2009年 08月 24日 星期一 10:09:27 CST
      v1.1.6[2008-11-24 10:57:07]
      增加zevent_fini挂钩for父进程退出时相关资源的释放.
      增加zevent_init挂钩for一些需要在父进程启动时进行初始化工作的应用.
