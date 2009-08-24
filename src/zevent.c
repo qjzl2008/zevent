@@ -342,6 +342,10 @@ static void set_signals(void)
     sa.sa_handler = sig_term;
     if (sigaction(SIGTERM, &sa, NULL) < 0)
 	    zevent_log_error(APLOG_MARK,NULL,"sigaction(SIGTERM)");
+#ifdef ZEVENT_SIG_GRACEFUL_STOP                                                                           
+    if (sigaction(ZEVENT_SIG_GRACEFUL_STOP, &sa, NULL) < 0)              
+	    zevent_log_error(APLOG_MARK,NULL,"sigaction(" ZEVENT_SIG_GRACEFUL_STOP_STRING ")"); 
+#endif
 #ifdef SIGINT
     if (sigaction(SIGINT, &sa, NULL) < 0)
 	    zevent_log_error(APLOG_MARK,NULL,"sigaction(SIGINT)");
