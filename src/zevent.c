@@ -1703,6 +1703,7 @@ ZEVENT_DECLARE(int) zevent_run(apr_pool_t * p)
     ++zevent_my_generation;
     zevent_scoreboard_image->global->running_generation = zevent_my_generation;
 
+
     if (is_graceful) {
         /* wake up the children...time to die.  But we'll have more soon */
         zevent_pod_killpg(pod, zevent_daemons_limit, TRUE);
