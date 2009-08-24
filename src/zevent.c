@@ -1538,6 +1538,8 @@ ZEVENT_DECLARE(int) zevent_init(const char *inifile,apr_pool_t **pglobal)
 		return -1;
 	}
 	zevent_open_stderr_log(*pglobal);
+	if(worker_pre_init(*pglobal) != OK || worker_open_pod(*pglobal) != OK)
+		return -1;
 	return 0;
 }
 
@@ -1575,8 +1577,6 @@ ZEVENT_DECLARE(int) zevent_run(apr_pool_t * p)
     }
 
     pconf = p;
-    if(worker_pre_init(p) != OK || worker_open_pod(p) != OK)
-	    return -1;
     first_server_limit = server_limit;
     first_thread_limit = thread_limit;
 
