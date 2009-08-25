@@ -51,7 +51,7 @@ static int zevent_process_connection(conn_state_t *cs)
 			return -1;
 		}
 
-	//	zevent_log_error(APLOG_MARK,NULL,"recv:%d\n",len);
+		zevent_log_error(APLOG_MARK,NULL,"recv:%s\n",msg);
 
 		b = apr_bucket_heap_create(msg,len,NULL,cs->baout);
 		apr_bucket_free(msg);
