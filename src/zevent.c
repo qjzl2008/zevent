@@ -50,9 +50,7 @@ static int min_spare_threads = 0;
 static int max_spare_threads = 0;
 static int zevent_daemons_limit = 0;
 static int server_limit = DEFAULT_SERVER_LIMIT;
-static int first_server_limit = 0;
 static int thread_limit = DEFAULT_THREAD_LIMIT;
-static int first_thread_limit = 0;
 static int dying = 0;
 static int workers_may_exit = 0;
 static int start_thread_may_exit = 0;
@@ -1581,8 +1579,6 @@ ZEVENT_DECLARE(int) zevent_run(apr_pool_t * p)
     }
 
     pconf = p;
-    first_server_limit = server_limit;
-    first_thread_limit = thread_limit;
 
     if (!is_graceful) {
 
