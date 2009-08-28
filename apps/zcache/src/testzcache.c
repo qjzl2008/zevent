@@ -6,7 +6,7 @@
 #define SHARED_SIZE (32*1024*1024)
 #define SHARED_FILENAME "testshm.shm"
 #define MUTEX_FILENAME "testshm.mutex"
-#define TEST_NUM (100)
+#define TEST_NUM (10000)
 
 
 void func(char *str, void *arg)
@@ -45,10 +45,10 @@ int main(int argc,const char *argv[])
 	char key[64];
 	int klen ;
 
-	char data[32];
+	char data[4096];
 	int index=0;
 	int i,len;
-	for(i=0;i<TEST_NUM;++i)
+	for(i=0;i<1;++i)
 	{
 		memset(key,0,sizeof(key));
 		sprintf(key,"%05d",i);
@@ -67,18 +67,19 @@ int main(int argc,const char *argv[])
 		len = strlen(data)+1;
 
 		time_t expiry = time(NULL);
-		expiry += 1000;
+		expiry += 100000;
 		if(!zcache_store(&mc,(UCHAR*)key,klen, expiry,(void *)data,len))
 			printf("error store data key:%s\n",key);
+
+		void *pdata = zcache_retrieve(&mc,(UCHAR*)key,klen,&len);
+		printf("key:%s,newdata:%s\n",key,(const char *)pdata);
 	}
-	for(i=0;i<TEST_NUM;++i)
+	for(i=1;i<TEST_NUM;++i)
 	{
 		memset(key,0,sizeof(key));
 		sprintf(key,"%05d",i);
 		klen = strlen(key);
 
-		//memset(data,0,sizeof(data));
-		//sprintf(data,"%d-test data!",i);
 		memset(data,0,sizeof(data));
 		memset(data,'a',sizeof(data)-1);
 
@@ -90,13 +91,13 @@ int main(int argc,const char *argv[])
 		len = strlen(data)+1;
 
 		time_t expiry = time(NULL);
-		expiry += 1000;
+		expiry += 100000;
 		if(!zcache_store(&mc,(UCHAR*)key,klen, expiry,(void *)data,len))
 			printf("error store data key:%s\n",key);
 	}
 
 	printf("store data complete!\n");
-	zcache_status(&mc,p,func,NULL);
+	//zcache_status(&mc,p,func,NULL);
 
 	/*for(i=0;i<TEST_NUM; ++i)
 	{
@@ -108,7 +109,7 @@ int main(int argc,const char *argv[])
 	//	zcache_remove(&mc,(UCHAR*)key,klen);
 	}*/
 	///////////update///////////////
-	memset(key,0,sizeof(key));
+/*	memset(key,0,sizeof(key));
 	sprintf(key,"%05d",0);
 	klen = strlen(key);
 
@@ -120,12 +121,13 @@ int main(int argc,const char *argv[])
 	expiry += 1000;
 	if(!zcache_store(&mc,(UCHAR*)key,klen, expiry,(void *)data,len))
 		printf("error store data key:%s\n",key);
-
+*/
 	sprintf(key,"%05d",0);
 	klen = strlen(key);
 
 	void *pdata = zcache_retrieve(&mc,(UCHAR*)key,klen,&len);
 	printf("key:%s,newdata:%s\n",key,(const char *)pdata);
+	
 	////////////////////////////////////////////
 	zcache_status(&mc,p,func,NULL);
 
