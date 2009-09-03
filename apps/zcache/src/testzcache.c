@@ -130,7 +130,7 @@ int main(int argc,const char *argv[])
 	
 	////////////////////////////////////////////
 	zcache_status(&mc,p,func,NULL);
-	apr_sleep(apr_time_from_sec(50));
+//	apr_sleep(apr_time_from_sec(50));
 
 	zcache_kill(&mc);
 	return 0;
