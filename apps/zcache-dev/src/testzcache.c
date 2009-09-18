@@ -148,8 +148,6 @@ int main(int argc,const char *argv[])
 	sprintf(key,"%05d",0);
 	klen = strlen(key);
 
-	zcache_remove(&mc,(UCHAR*)key,klen);
-
 	memset(data,0,sizeof(data));
 	sprintf(data,"0-newtest data!");
 	len = strlen(data)+1;

@@ -888,6 +888,7 @@ static BOOL shmcb_insert_internal(
     SHMCBIndex *idx = NULL;
     unsigned int gap, new_pos, loop, new_offset;
     int need;
+    void *pvalue = NULL;
 
     /*ap_log_error(APLOG_MARK, APLOG_DEBUG, 0, s,
                  "entering shmcb_insert_internal, "
@@ -896,6 +897,15 @@ static BOOL shmcb_insert_internal(
 
     /* If there's entries to expire, ditch them first thing. */
     shmcb_expire_division(queue, cache);
+    //modify by zhousihai
+    int valuelen = 0;
+    pvalue = shmcb_lookup_internal(queue, cache, id, idlen, &valuelen);
+    if (pvalue)
+    {
+	    shmcb_remove_internal(queue, cache, id, idlen);
+    }
+    //end modify
+
     header = cache->header;
     gap = header->cache_data_size - shmcb_get_safe_uint(cache->pos_count);
     if (gap < nlen) {
