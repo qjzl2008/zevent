@@ -68,7 +68,7 @@ static BOOL shmcb_get_division(SHMCBHeader *, SHMCBQueue *, SHMCBCache *, unsign
 static SHMCBIndex *shmcb_get_index(const SHMCBQueue *, unsigned int);
 static unsigned int shmcb_expire_division( SHMCBQueue *, SHMCBCache *);
 static BOOL shmcb_insert_internal( SHMCBQueue *, SHMCBCache *, unsigned char *, unsigned int, void *, unsigned int, time_t);
-static void *shmcb_lookup_internal( SHMCBQueue *, SHMCBCache *, UCHAR *, unsigned int, int*);
+static void *shmcb_lookup_internal( SHMCBQueue *, SHMCBCache *, UCHAR *, unsigned int, int*,SHMCBIndex **);
 static BOOL shmcb_remove_internal( SHMCBQueue *, SHMCBCache *, UCHAR *, unsigned int);
 
 unsigned int zcache_shmcb_get_safe_uint(unsigned int *i)
@@ -571,7 +571,9 @@ static void *shmcb_retrieve(
 
     /* Get the session corresponding to the session_id or NULL if it
      * doesn't exist (or is flagged as "removed"). */
-    pdata = shmcb_lookup_internal(&queue, &cache, id, idlen, nlen);
+
+    SHMCBIndex *idx;
+    pdata = shmcb_lookup_internal(&queue, &cache, id, idlen, nlen,&idx);
     if (pdata)
         header->num_retrieves_hit++;
     else
@@ -899,15 +901,29 @@ static BOOL shmcb_insert_internal(
     shmcb_expire_division(queue, cache);
     //modify by zhousihai
     int valuelen = 0;
-    pvalue = shmcb_lookup_internal(queue, cache, id, idlen, &valuelen);
+    SHMCBIndex *retidx;
+    pvalue = shmcb_lookup_internal(queue, cache, id, idlen, &valuelen,&retidx);
     if (pvalue)
     {
-	    shmcb_remove_internal(queue, cache, id, idlen);
+
+	    if(valuelen < nlen)
+		    return FALSE;
+	    else
+	    {
+		    printf("hohooo\n");
+		    shmcb_cyclic_ntoc_memcpy(header->cache_data_size, cache->data,
+				    retidx->offset,pdata,nlen);
+
+		   // memcpy(pvalue,pdata,nlen);
+		    return TRUE;
+	    }
+	    //shmcb_remove_internal(queue, cache, id, idlen);
     }
     //end modify
 
     header = cache->header;
     gap = header->cache_data_size - shmcb_get_safe_uint(cache->pos_count);
+
     if (gap < nlen) {
 	    new_pos = shmcb_get_safe_uint(queue->first_pos);
 	    loop = 0;
@@ -916,6 +932,7 @@ static BOOL shmcb_insert_internal(
 		    new_pos = shmcb_cyclic_increment(header->index_num, new_pos, 1);
 		    loop += 1;
 		    idx = shmcb_get_index(queue, new_pos);
+
 		    //modify by zhousihai.keep old key-value
 		    if(idx->length > 0 && !idx->removed)
 		    {
@@ -956,6 +973,7 @@ static BOOL shmcb_insert_internal(
         return FALSE;
     }
     if (shmcb_get_safe_uint(queue->pos_count) == header->index_num) {
+	    printf("pos_count:%u,index_num:%u\n",*queue->pos_count,header->index_num);
         /*ap_log_error(APLOG_MARK, APLOG_ERR, 0, s,
                      "shmcb_insert_internal internal error");*/
         return FALSE;
@@ -1028,9 +1046,8 @@ static BOOL shmcb_insert_internal(
 static void *shmcb_lookup_internal(
      SHMCBQueue *queue,
     SHMCBCache *cache, UCHAR *id,
-    unsigned int idlen, int *len)
+    unsigned int idlen, int *len,SHMCBIndex **idx)
 {
-    SHMCBIndex *idx;
     SHMCBHeader *header;
     unsigned int curr_pos, loop, count;
 	unsigned int key;
@@ -1052,7 +1069,7 @@ static void *shmcb_lookup_internal(
         /*ap_log_error(APLOG_MARK, APLOG_DEBUG, 0, s,
                      "loop=%u, count=%u, curr_pos=%u",
                      loop, count, curr_pos);*/
-        idx = shmcb_get_index(queue, curr_pos);
+        (*idx) = shmcb_get_index(queue, curr_pos);
         /*ap_log_error(APLOG_MARK, APLOG_DEBUG, 0, s,
                      "idx->key=%u, key=%u, offset=%u",idx->key,key, shmcb_get_safe_uint(&(idx->offset)));*/
         /* Only look into the session further if;
@@ -1064,14 +1081,14 @@ static void *shmcb_lookup_internal(
          * scroll off the front anyway when the cache is full and
          * "rotating", the only real issue that remains is the
          * removal or disabling of forcibly killed sessions. */
-        if ((idx->key == key) && !idx->removed && (shmcb_get_safe_time(&(idx->expires)) > now)) 
+        if (((*idx)->key == key) && !(*idx)->removed && (shmcb_get_safe_time(&((*idx)->expires)) > now)) 
         {
             /*ap_log_error(APLOG_MARK, APLOG_DEBUG, 0, s,
                          "at index %u, found possible session match",
                          curr_pos);*/
             
-            pdata = malloc(idx->length);
-            *len = idx->length;
+            pdata = malloc((*idx)->length);
+            *len = (*idx)->length;
             if (pdata == NULL) {
                 /*ap_log_error(APLOG_MARK, APLOG_ERR, 0, s,
                     "scach2_lookup_session_id internal error");*/
@@ -1079,8 +1096,8 @@ static void *shmcb_lookup_internal(
             }
             shmcb_cyclic_cton_memcpy(header->cache_data_size,
                                      pdata, cache->data,
-                                     shmcb_get_safe_uint(&(idx->offset)),
-                                     idx->length);
+                                     shmcb_get_safe_uint(&((*idx)->offset)),
+                                     (*idx)->length);
             /*ap_log_error(APLOG_MARK, APLOG_DEBUG, 0, s,
                 "a match!");*/
             return pdata;

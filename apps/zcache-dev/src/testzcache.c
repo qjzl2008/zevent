@@ -34,7 +34,7 @@ int main(int argc,const char *argv[])
         mc.nStorageMode = ZCACHE_SCMODE_SHMCB;
 	mc.nMutexMech = APR_LOCK_DEFAULT;
 	mc.szMutexFile = MUTEX_FILENAME;
-	mc.idx_nums_perdivision = 1024;
+	mc.idx_nums_perdivision = 100;
 	mc.division_nums = 256;
 
   //    apr_shm_t *shm = NULL; 
@@ -78,7 +78,7 @@ int main(int argc,const char *argv[])
 		void *pdata = zcache_retrieve(&mc,(UCHAR*)key,klen,&len);
 		printf("key:%s,data:%s\n",key,(const char *)pdata);
 	}
-	for(i=1;i<TEST_NUM;++i)
+/*	for(i=1;i<TEST_NUM;++i)
 	{
 		memset(key,0,sizeof(key));
 		sprintf(key,"%05d",i);
@@ -102,11 +102,11 @@ int main(int argc,const char *argv[])
 			//break;
 		}
 	}
-
+*/
 	printf("store data complete!\n");
 	//zcache_status(&mc,p,func,NULL);
 
-	for(i=0;i<TEST_NUM; ++i)
+/*	for(i=0;i<TEST_NUM; ++i)
 	{
 		sprintf(key,"%05d",i);
 		klen = strlen(key);
@@ -114,9 +114,9 @@ int main(int argc,const char *argv[])
 //		void *pdata = zcache_retrieve(&mc,(UCHAR*)key,klen,&len);
 //		printf("key:%s,data:%s\n",key,(const char *)pdata);
 		zcache_remove(&mc,(UCHAR*)key,klen);
-	}
+	}*/
 
-	for(i=1;i<TEST_NUM;++i)
+/*	for(i=1;i<TEST_NUM;++i)
 	{
 		memset(key,0,sizeof(key));
 		sprintf(key,"%05d",i);
@@ -140,7 +140,7 @@ int main(int argc,const char *argv[])
 			//break;
 		}
 	}
-
+*/
 	printf("restore data complete!\n");
 
 	///////////update///////////////
