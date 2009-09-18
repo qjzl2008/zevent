@@ -899,9 +899,6 @@ static BOOL shmcb_insert_internal(
     header = cache->header;
     gap = header->cache_data_size - shmcb_get_safe_uint(cache->pos_count);
     if (gap < nlen) {
-	    printf("used:%u,gap:%u,nlen:%u\n",shmcb_get_safe_uint(cache->pos_count),gap,nlen);
-	    /*modify*/
-	    return FALSE;
 	    new_pos = shmcb_get_safe_uint(queue->first_pos);
 	    loop = 0;
 	    need = (int) nlen - (int) gap;
@@ -909,6 +906,11 @@ static BOOL shmcb_insert_internal(
 		    new_pos = shmcb_cyclic_increment(header->index_num, new_pos, 1);
 		    loop += 1;
 		    idx = shmcb_get_index(queue, new_pos);
+		    //modify by zhousihai.keep old key-value
+		    if(idx->length > 0 && !idx->removed)
+		    {
+			    return FALSE;
+		    }
 		    need = (int) nlen - (int) gap -
 			    shmcb_cyclic_space(header->cache_data_size,
 					    shmcb_get_safe_uint(cache->first_pos),
