@@ -69,9 +69,11 @@ int main(int argc,const char *argv[])
 		len = strlen(data)+1;
 
 		time_t expiry = time(NULL);
-		expiry += 100000;
+		expiry += 10000;
 		if(!zcache_store(&mc,(UCHAR*)key,klen, expiry,(void *)data,len))
 			printf("error store data key:%s\n",key);
+
+//		apr_sleep(apr_time_from_sec(1));
 
 		void *pdata = zcache_retrieve(&mc,(UCHAR*)key,klen,&len);
 		printf("key:%s,newdata:%s\n",key,(const char *)pdata);
