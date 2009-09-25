@@ -63,6 +63,9 @@ CONN_DECLARE_NONSTD(int *) conn_pool_acquire(apr_pool_t*, conn_svr_cfg*);
 /* release a connection acquired with ap_dbd_open */
 CONN_DECLARE_NONSTD(void) conn_pool_release(conn_svr_cfg*, int *);
 
+/* remove a connection*/
+CONN_DECLARE_NONSTD(void) conn_pool_remove(conn_svr_cfg*, int *);
+
 /*fini*/
 CONN_DECLARE_NONSTD(apr_status_t) conn_pool_fini(apr_pool_t *pool, conn_svr_cfg *s);
 

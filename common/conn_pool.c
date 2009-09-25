@@ -138,7 +138,20 @@ CONN_DECLARE_NONSTD(void) conn_pool_release(conn_svr_cfg *s, int *con)
 	apr_reslist_release(svr->connpool, con);
 }
 #else
-CONN_DECLARE_NONSTD(void) conn_pool_release(server_rec *s, int *con)
+CONN_DECLARE_NONSTD(void) conn_pool_release(conn_svr_cfg *s, int *con)
+{
+	con = NULL;
+}
+#endif
+
+#if APR_HAS_THREADS
+CONN_DECLARE_NONSTD(void) conn_pool_remove(conn_svr_cfg *s, int *con)
+{
+	conn_svr_cfg *svr = s;
+	apr_reslist_invalidate(svr->connpool, con);
+}
+#else
+CONN_DECLARE_NONSTD(void) conn_pool_remove(conn_svr_cfg *s, int *con)
 {
 	con = NULL;
 }
@@ -163,10 +176,11 @@ CONN_DECLARE_NONSTD(int *) conn_pool_acquire(apr_pool_t *pool, conn_svr_cfg *s)
 		//            "Failed to acquire DBD connection from pool!");
 		return NULL;
 	}
+	/* Keep the connectoin alive */  
 	return rec;
 }
 #else
-CONN_DECLARE_NONSTD(int *) conn_pool_acquire(apr_pool_t *pool, server_rec *s)
+CONN_DECLARE_NONSTD(int *) conn_pool_acquire(apr_pool_t *pool, conn_svr_cfg *s)
 {
 	return NULL;
 }
