@@ -44,28 +44,20 @@ static int zevent_process_connection(conn_state_t *cs)
 		if (msg == NULL) {
 			return -1;
 		}
-
-		char recvbuf[4096]={'\0'};
-		apr_size_t recvlen = 4096;
-		rv = apr_socket_recv(cs->pfd->desc.s,recvbuf,&recvlen);
+		rv = apr_socket_recv(cs->pfd->desc.s,msg,&len);
 		if(rv != APR_SUCCESS)
 		{
 			zevent_log_error(APLOG_MARK,NULL,"close socket!");
 			return -1;
 		}
 
-		zevent_log_error(APLOG_MARK,NULL,"recv:%s",recvbuf);
-
-		sprintf(msg,"<?xml version=\"1.0\" encoding=\"UTF-8\"?> \
-				<cross-domain-policy>\
-				<allow-access-from domain= \"*\" to-ports = \"*\" />\
-				</cross-domain-policy>\
-				");
+		zevent_log_error(APLOG_MARK,NULL,"recv:%s",msg);
 
 		b = apr_bucket_heap_create(msg,len,NULL,cs->baout);
 		apr_bucket_free(msg);
 		APR_BRIGADE_INSERT_TAIL(cs->bbout,b);
 		cs->pfd->reqevents |= APR_POLLOUT;
+		
 	}
 	else {
 		if(cs->bbout){
