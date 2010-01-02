@@ -18,6 +18,66 @@
 
 static apr_file_t *logfile = NULL;
 
+static void log_child_errfn(apr_pool_t *pool, apr_status_t err,
+                            const char *description)
+{
+    zevent_log_error(APLOG_MARK, NULL,"%s",
+			description);
+}
+
+static int log_child(apr_pool_t *p, const char *progname,
+                     apr_file_t **fpin, int dummy_stderr)
+{
+    /* Child process code for 'ErrorLog "|..."';
+     * may want a common framework for this, since I expect it will
+     * be common for other foo-loggers to want this sort of thing...
+     */
+    apr_status_t rc;
+    apr_procattr_t *procattr;
+    apr_proc_t *procnew;
+    apr_file_t *outfile, *errfile;
+
+    if (((rc = apr_procattr_create(&procattr, p)) == APR_SUCCESS)
+        && ((rc = apr_procattr_cmdtype_set(procattr,
+                                           APR_SHELLCMD_ENV)) == APR_SUCCESS)
+        && ((rc = apr_procattr_io_set(procattr,
+                                      APR_FULL_BLOCK,
+                                      APR_NO_PIPE,
+                                      APR_NO_PIPE)) == APR_SUCCESS)
+        && ((rc = apr_procattr_error_check_set(procattr, 1)) == APR_SUCCESS)
+        && ((rc = apr_procattr_child_errfn_set(procattr, log_child_errfn)) 
+                == APR_SUCCESS)) {
+        char **args;
+        const char *pname;
+
+        apr_tokenize_to_argv(progname, &args, p);
+        pname = apr_pstrdup(p, args[0]);
+        procnew = (apr_proc_t *)apr_pcalloc(p, sizeof(*procnew));
+
+        if ((rc = apr_file_open_stdout(&outfile, p)) == APR_SUCCESS) {
+            rc = apr_procattr_child_out_set(procattr, outfile, NULL);
+            if (dummy_stderr)
+                rc = apr_procattr_child_err_set(procattr, outfile, NULL);
+            else if ((rc = apr_file_open_stderr(&errfile, p)) == APR_SUCCESS)
+                rc = apr_procattr_child_err_set(procattr, errfile, NULL);
+        }
+
+        rc = apr_proc_create(procnew, pname, (const char * const *)args,
+                             NULL, procattr, p);
+
+        if (rc == APR_SUCCESS) {
+            apr_pool_note_subprocess(p, procnew, APR_KILL_AFTER_TIMEOUT);
+            (*fpin) = procnew->in;
+            /* read handle to pipe not kept open, so no need to call
+             * close_handle_in_child()
+             */
+        }
+    }
+
+    return rc;
+}
+
+
 ZEVENT_DECLARE(apr_status_t) zevent_open_log(apr_pool_t *p,const char *filename)
 {
 	apr_status_t rc;
@@ -25,10 +85,27 @@ ZEVENT_DECLARE(apr_status_t) zevent_open_log(apr_pool_t *p,const char *filename)
 		return APR_EBADPATH;
 	}
 
-	if ((rc = apr_file_open(&logfile, filename,
-					APR_APPEND | APR_WRITE | APR_CREATE | APR_LARGEFILE,
-					APR_OS_DEFAULT, p)) != APR_SUCCESS) {
-		return rc;
+	if (*filename == '|') {
+		int is_main = 1;
+
+		/* Spawn a new child logger.  If this is the main server,
+		 * the new child must use a dummy stderr since the current
+		 * stderr might be a pipe to the old logger.  Otherwise, the
+		 * child inherits the parents stderr. */
+		rc = log_child(p, filename + 1, &logfile, is_main);
+		if (rc != APR_SUCCESS) {
+			zevent_log_error(APLOG_MARK, NULL,
+					"Couldn't start ErrorLog process");
+			return DONE;
+		}
+	}
+	else{
+
+		if ((rc = apr_file_open(&logfile, filename,
+						APR_APPEND | APR_WRITE | APR_CREATE | APR_LARGEFILE,
+						APR_OS_DEFAULT, p)) != APR_SUCCESS) {
+			return rc;
+		}
 	}
 
 	return rc;

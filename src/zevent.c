@@ -1483,7 +1483,14 @@ static int worker_pre_init(apr_pool_t * p)
     one_process = iniparser_getint(d,"misc:debug",0);
     log = (char*)iniparser_getstring(d,"misc:logfile",NULL);
     if(log)
-	    zevent_replace_stderr_log(p,log);
+    {
+	    if(APR_SUCCESS != zevent_open_log(p,log))
+	    { 
+		 zevent_log_error(APLOG_MARK,NULL,"zevent_open_log file:%s failed!",log);
+		 return -1;
+	    }
+//	    zevent_replace_stderr_log(p,log);
+    }
 
     mpm_state = ZEVENT_MPMQ_STARTING;
 
