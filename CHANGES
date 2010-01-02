@@ -2,6 +2,7 @@
 Changes with zevent
 
   *) changes:
+     修改log功能，支持cronolog等工具切割日志.
      v1.2.0
      fixing 2009年 08月 24日 星期一 10:09:27 CST
      v1.1.6[2008-11-24 10:57:07]
