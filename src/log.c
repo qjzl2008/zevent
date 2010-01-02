@@ -214,6 +214,7 @@ ZEVENT_DECLARE(void) zevent_log_error(const char *file, int line, apr_pool_t *p,
 
 ZEVENT_DECLARE(void) zevent_log_close()
 {
-	apr_file_close(logfile);
+	if(logfile)
+		apr_file_close(logfile);
 }
 
