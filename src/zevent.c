@@ -1482,7 +1482,7 @@ static int worker_pre_init(apr_pool_t * p)
 
     one_process = iniparser_getint(d,"misc:debug",0);
     log = (char*)iniparser_getstring(d,"misc:logfile",NULL);
-    if(log)
+    if(log && !one_process)
     {
 	    if(APR_SUCCESS != zevent_open_log(p,log))
 	    { 
