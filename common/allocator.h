@@ -73,7 +73,7 @@ void allocator_free(allocator_t *allocator,
 void allocator_max_free_set(allocator_t *allocator,
                                              size_t size);
 
-#include "thread_mutex.h"
+//#include "thread_mutex.h"
 
 #if HAS_THREADS
 
