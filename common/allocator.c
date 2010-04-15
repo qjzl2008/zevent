@@ -351,7 +351,7 @@ memnode_t * allocator_alloc(allocator_t *allocator,
     return in_allocator_alloc(allocator, size);
 }
 
-void mem_allocator_free(allocator_t *allocator,
+void allocator_free(allocator_t *allocator,
                                      memnode_t *node)
 {
     in_allocator_free(allocator, node);
