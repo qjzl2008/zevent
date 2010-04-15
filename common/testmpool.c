@@ -1,4 +1,7 @@
 #include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <errno.h>
 #include "allocator.h"
 
 int main(void)
@@ -15,5 +18,6 @@ int main(void)
 	}
 
 	allocator_destroy(pallocator);
+
 	return 0;
 }
