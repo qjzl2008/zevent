@@ -1,6 +1,7 @@
 #ifndef MEM_ALLOCATOR_H
 #define MEM_ALLOCATOR_H
 
+#include <stddef.h>
 #undef HAS_THREADS
 
 /**
@@ -57,7 +58,7 @@ void allocator_destroy(allocator_t *allocator);
  *        memnode structure)
  */
 memnode_t * allocator_alloc(allocator_t *allocator,
-                                                 size_t size);
+		                  size_t size);
 
 /**
  * Free a list of blocks of mem, giving them back to the allocator.
