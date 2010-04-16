@@ -16,7 +16,6 @@ extern "C" {
  * @ingroup mutex 
  * @{
  */
-#include "allocator.h"
 
 /** Opaque thread-local mutex structure */
 typedef struct thread_mutex_t thread_mutex_t;
@@ -36,14 +35,12 @@ typedef struct thread_mutex_t thread_mutex_t;
  *           THREAD_MUTEX_NESTED    enable nested (recursive) locks.
  *           THREAD_MUTEX_UNNESTED  disable nested locks (non-recursive).
  * </PRE>
- * @param pool the pool from which to allocate the mutex.
  * @warning Be cautious in using THREAD_MUTEX_DEFAULT.  While this is the
  * most optimial mutex based on a given platform's performance charateristics,
  * it will behave as either a nested or an unnested lock.
  */
 int thread_mutex_create(thread_mutex_t **mutex,
-                                                  unsigned int flags,
-                                                  allocator_t *allocator);
+                                                  unsigned int flags);
 /**
  * Acquire the lock for the given mutex. If the mutex is already locked,
  * the current thread will be put to sleep until the lock becomes available.
