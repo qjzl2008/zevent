@@ -1,6 +1,7 @@
-#include "arch_thread_mutex.h"
+#include <stdlib.h>
 
-#if HAS_THREADS
+#include "thread_mutex.h"
+#include "arch_thread_mutex.h"
 
 int thread_mutex_create(thread_mutex_t *new_mutex,
                                                   unsigned int flags)
@@ -74,4 +75,3 @@ int thread_mutex_destroy(thread_mutex_t *mutex)
     return rv;
 }
 
-#endif /* HAS_THREADS */

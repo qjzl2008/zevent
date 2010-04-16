@@ -10,7 +10,6 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#if HAS_THREADS
 /**
  * @defgroup thread_mutex Thread Mutex Routines
  * @ingroup mutex 
@@ -39,7 +38,7 @@ typedef struct thread_mutex_t thread_mutex_t;
  * most optimial mutex based on a given platform's performance charateristics,
  * it will behave as either a nested or an unnested lock.
  */
-int thread_mutex_create(thread_mutex_t **mutex,
+int thread_mutex_create(thread_mutex_t *mutex,
                                                   unsigned int flags);
 /**
  * Acquire the lock for the given mutex. If the mutex is already locked,
@@ -69,12 +68,11 @@ int thread_mutex_unlock(thread_mutex_t *mutex);
  */
 int thread_mutex_destroy(thread_mutex_t *mutex);
 
-#endif /* HAS_THREADS */
 
 /** @} */
 
 #ifdef __cplusplus
 }
 #endif
+#endif
 
-#endif  /* ! THREAD_MUTEX_H */

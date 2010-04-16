@@ -1,8 +1,6 @@
 #ifndef THREAD_MUTEX_H
 #define THREAD_MUTEX_H
 
-#include "allocator.h"
-
 typedef enum thread_mutex_type {
     thread_mutex_critical_section,
     thread_mutex_unnested_event,
@@ -14,7 +12,6 @@ typedef enum thread_mutex_type {
  * is used for NT nexted mutexes providing optimal performance.
  */
 struct thread_mutex_t {
-    allocator_t       *allocator;
     thread_mutex_type type;
     HANDLE            handle;
     CRITICAL_SECTION  section;

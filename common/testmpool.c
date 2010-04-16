@@ -15,6 +15,7 @@ int main(void)
 		char buf[1024] = {0};
 		memcpy(mnode->first_avail,buf,sizeof(buf));
 		allocator_free(pallocator,mnode);
+		break;
 	}
 
 	allocator_destroy(pallocator);
