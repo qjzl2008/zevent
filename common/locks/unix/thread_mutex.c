@@ -2,28 +2,14 @@
 
 #if HAS_THREADS
 
-static int thread_mutex_cleanup(void *data)
+int thread_mutex_create(thread_mutex_t *new_mutex,
+                                                  unsigned int flags)
 {
-    thread_mutex_t *mutex = data;
-    apr_status_t rv;
-
-    rv = pthread_mutex_destroy(&mutex->mutex);
-    return rv;
-} 
-
-int thread_mutex_create(thread_mutex_t **mutex,
-                                                  unsigned int flags,
-                                                  allocator_t *allocator)
-{
-    thread_mutex_t *new_mutex;
     int rv;
     
-    //here
-    new_mutex = apr_pcalloc(pool, sizeof(apr_thread_mutex_t));
-    new_mutex->pool = pool;
+    new_mutex = (thread_mutex_t *)malloc(sizeof(thread_mutex_t));
 
-#ifdef HAVE_PTHREAD_MUTEX_RECURSIVE
-    if (flags & APR_THREAD_MUTEX_NESTED) {
+    if (flags & THREAD_MUTEX_NESTED) {
         pthread_mutexattr_t mattr;
         
         rv = pthread_mutexattr_init(&mattr);
@@ -39,72 +25,53 @@ int thread_mutex_create(thread_mutex_t **mutex,
         
         pthread_mutexattr_destroy(&mattr);
     } else
-#endif
         rv = pthread_mutex_init(&new_mutex->mutex, NULL);
 
     if (rv) {
-#ifdef HAVE_ZOS_PTHREADS
-        rv = errno;
-#endif
         return rv;
     }
 
-    apr_pool_cleanup_register(new_mutex->pool,
-                              new_mutex, thread_mutex_cleanup,
-                              apr_pool_cleanup_null);
-
-    *mutex = new_mutex;
-    return APR_SUCCESS;
+    return 0;
 }
 
-APR_DECLARE(apr_status_t) apr_thread_mutex_lock(apr_thread_mutex_t *mutex)
+int thread_mutex_lock(thread_mutex_t *mutex)
 {
-    apr_status_t rv;
+    int rv;
 
     rv = pthread_mutex_lock(&mutex->mutex);
-#ifdef HAVE_ZOS_PTHREADS
-    if (rv) {
-        rv = errno;
-    }
-#endif
     
     return rv;
 }
 
-APR_DECLARE(apr_status_t) apr_thread_mutex_trylock(apr_thread_mutex_t *mutex)
+int thread_mutex_trylock(thread_mutex_t *mutex)
 {
-    apr_status_t rv;
+    int rv;
 
     rv = pthread_mutex_trylock(&mutex->mutex);
     if (rv) {
-#ifdef HAVE_ZOS_PTHREADS
-        rv = errno;
-#endif
-        return (rv == EBUSY) ? APR_EBUSY : rv;
+        return (rv == EBUSY) ? EBUSY : rv;
     }
 
-    return APR_SUCCESS;
+    return 0;
 }
 
-APR_DECLARE(apr_status_t) apr_thread_mutex_unlock(apr_thread_mutex_t *mutex)
+int thread_mutex_unlock(thread_mutex_t *mutex)
 {
-    apr_status_t status;
+    int status;
 
     status = pthread_mutex_unlock(&mutex->mutex);
-#ifdef HAVE_ZOS_PTHREADS
-    if (status) {
-        status = errno;
-    }
-#endif
 
     return status;
 }
 
-APR_DECLARE(apr_status_t) apr_thread_mutex_destroy(apr_thread_mutex_t *mutex)
+int thread_mutex_destroy(thread_mutex_t *mutex)
 {
-    return apr_pool_cleanup_run(mutex->pool, mutex, thread_mutex_cleanup);
-}
+    int rv;
 
-APR_POOL_IMPLEMENT_ACCESSOR(thread_mutex)
+    rv = pthread_mutex_destroy(&mutex->mutex);
+
+    free(mutex);
+    return rv;
+}
 
 #endif /* HAS_THREADS */
