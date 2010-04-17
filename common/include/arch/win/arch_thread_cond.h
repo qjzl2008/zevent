@@ -1,5 +1,5 @@
-#ifndef THREAD_COND_H
-#define THREAD_COND_H
+#ifndef WIN_THREAD_COND_H
+#define WIN_THREAD_COND_H
 
 #include "thread_cond.h"
 

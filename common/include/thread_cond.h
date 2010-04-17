@@ -6,7 +6,6 @@
  * @brief Condition Variable Routines
  */
 
-#include "allocator.h"
 #include "thread_mutex.h"
 
 #ifdef __cplusplus
@@ -36,8 +35,7 @@ typedef struct thread_cond_t thread_cond_t;
  * @param cond the memory address where the newly created condition variable
  *        will be stored.
  */
-int thread_cond_create(thread_cond_t **cond,
-                                                 allocator_t *allocator);
+int thread_cond_create(thread_cond_t **cond);
 
 /**
  * Put the active calling thread to sleep until signaled to wake up. Each

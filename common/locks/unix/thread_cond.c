@@ -1,5 +1,8 @@
 #if HAS_THREADS
 
+#include <stdlib.h>
+#include <errno.h>
+#include "thread_cond.h"
 #include "arch_thread_mutex.h"
 #include "arch_thread_cond.h"
 
@@ -8,7 +11,7 @@ int thread_cond_create(thread_cond_t **cond)
     thread_cond_t *new_cond;
     int rv;
 
-    new_cond = malloc(sizeof(apr_thread_cond_t));
+    new_cond = malloc(sizeof(thread_cond_t));
 
     if ((rv = pthread_cond_init(&new_cond->cond, NULL))) {
         return rv;
