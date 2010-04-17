@@ -31,16 +31,16 @@ typedef struct reslist_t reslist_t;
  * @param resource opaque resource
  * @param param flags
  */
-typedef int (*reslist_constructor)(void **resource, void *params,
-                                                allocator_t *allocator);
+typedef int (*reslist_constructor)(void **resource, void *params
+                                                /*,allocator_t *allocator*/);
 
 /* Generic destructor called by resource list when it needs to destroy a
  * resource.
  * @param resource opaque resource
  * @param param flags
  */
-typedef int (*reslist_destructor)(void *resource, void *params,
-                                               allocator_t *allocator);
+typedef int (*reslist_destructor)(void *resource, void *params
+                                               /*,allocator_t *allocator*/);
 
 /**
  * Create a new resource list with the following parameters:
