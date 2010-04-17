@@ -1,47 +1,28 @@
-/* Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-#ifndef APR_THREAD_COND_H
-#define APR_THREAD_COND_H
+#ifndef THREAD_COND_H
+#define THREAD_COND_H
 
 /**
- * @file apr_thread_cond.h
- * @brief APR Condition Variable Routines
+ * @file thread_cond.h
+ * @brief Condition Variable Routines
  */
 
-#include "apr.h"
-#include "apr_pools.h"
-#include "apr_errno.h"
-#include "apr_time.h"
-#include "apr_thread_mutex.h"
+#include "allocator.h"
+#include "thread_mutex.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-#if APR_HAS_THREADS || defined(DOXYGEN)
+#if HAS_THREADS
 
 /**
- * @defgroup apr_thread_cond Condition Variable Routines
- * @ingroup APR 
+ * @defgroup thread_cond Condition Variable Routines
+ * @ingroup 
  * @{
  */
 
 /** Opaque structure for thread condition variables */
-typedef struct apr_thread_cond_t apr_thread_cond_t;
+typedef struct thread_cond_t thread_cond_t;
 
 /**
  * Note: destroying a condition variable (or likewise, destroying or
@@ -54,10 +35,9 @@ typedef struct apr_thread_cond_t apr_thread_cond_t;
  * and schedule threads in a single process.
  * @param cond the memory address where the newly created condition variable
  *        will be stored.
- * @param pool the pool from which to allocate the condition.
  */
-APR_DECLARE(apr_status_t) apr_thread_cond_create(apr_thread_cond_t **cond,
-                                                 apr_pool_t *pool);
+int thread_cond_create(thread_cond_t **cond,
+                                                 allocator_t *allocator);
 
 /**
  * Put the active calling thread to sleep until signaled to wake up. Each
@@ -74,8 +54,8 @@ APR_DECLARE(apr_status_t) apr_thread_cond_create(apr_thread_cond_t **cond,
  * a condition variable, the caller should test whether the condition is already
  * met.
  */
-APR_DECLARE(apr_status_t) apr_thread_cond_wait(apr_thread_cond_t *cond,
-                                               apr_thread_mutex_t *mutex);
+int thread_cond_wait(thread_cond_t *cond,
+                                               thread_mutex_t *mutex);
 
 /**
  * Put the active calling thread to sleep until signaled to wake up or
@@ -90,12 +70,12 @@ APR_DECLARE(apr_status_t) apr_thread_cond_wait(apr_thread_cond_t *cond,
  *        returning from this function.
  * @param timeout The amount of time in microseconds to wait. This is 
  *        a maximum, not a minimum. If the condition is signaled, we 
- *        will wake up before this time, otherwise the error APR_TIMEUP
+ *        will wake up before this time, otherwise the error TIMEUP
  *        is returned.
  */
-APR_DECLARE(apr_status_t) apr_thread_cond_timedwait(apr_thread_cond_t *cond,
-                                                    apr_thread_mutex_t *mutex,
-                                                    apr_interval_time_t timeout);
+int thread_cond_timedwait(thread_cond_t *cond,
+                                                    thread_mutex_t *mutex,
+                                                    long long timeout);
 
 /**
  * Signals a single thread, if one exists, that is blocking on the given
@@ -105,7 +85,7 @@ APR_DECLARE(apr_status_t) apr_thread_cond_timedwait(apr_thread_cond_t *cond,
  * @param cond the condition variable on which to produce the signal.
  * @remark If no threads are waiting on the condition variable, nothing happens.
  */
-APR_DECLARE(apr_status_t) apr_thread_cond_signal(apr_thread_cond_t *cond);
+int thread_cond_signal(thread_cond_t *cond);
 
 /**
  * Signals all threads blocking on the given condition variable.
@@ -114,21 +94,15 @@ APR_DECLARE(apr_status_t) apr_thread_cond_signal(apr_thread_cond_t *cond);
  * @param cond the condition variable on which to produce the broadcast.
  * @remark If no threads are waiting on the condition variable, nothing happens.
  */
-APR_DECLARE(apr_status_t) apr_thread_cond_broadcast(apr_thread_cond_t *cond);
+int thread_cond_broadcast(thread_cond_t *cond);
 
 /**
  * Destroy the condition variable and free the associated memory.
  * @param cond the condition variable to destroy.
  */
-APR_DECLARE(apr_status_t) apr_thread_cond_destroy(apr_thread_cond_t *cond);
+int thread_cond_destroy(thread_cond_t *cond);
 
-/**
- * Get the pool used by this thread_cond.
- * @return apr_pool_t the pool
- */
-APR_POOL_DECLARE_ACCESSOR(thread_cond);
-
-#endif /* APR_HAS_THREADS */
+#endif /* HAS_THREADS */
 
 /** @} */
 
@@ -136,4 +110,4 @@ APR_POOL_DECLARE_ACCESSOR(thread_cond);
 }
 #endif
 
-#endif  /* ! APR_THREAD_COND_H */
+#endif  /* ! THREAD_COND_H */
