@@ -38,7 +38,7 @@ typedef struct thread_mutex_t thread_mutex_t;
  * most optimial mutex based on a given platform's performance charateristics,
  * it will behave as either a nested or an unnested lock.
  */
-int thread_mutex_create(thread_mutex_t *mutex,
+int thread_mutex_create(thread_mutex_t **mutex,
                                                   unsigned int flags);
 /**
  * Acquire the lock for the given mutex. If the mutex is already locked,

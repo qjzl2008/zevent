@@ -2,7 +2,7 @@
 #define MEM_ALLOCATOR_H
 
 #include <stddef.h>
-#undef HAS_THREADS
+#include "thread_mutex.h"
 
 /**
  * @file allocator.h
@@ -12,6 +12,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 
 typedef struct allocator_t allocator_t;
 

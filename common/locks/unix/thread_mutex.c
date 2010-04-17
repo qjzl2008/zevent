@@ -4,12 +4,12 @@
 #include "thread_mutex.h"
 #include "arch_thread_mutex.h"
 
-int thread_mutex_create(thread_mutex_t *new_mutex,
+int thread_mutex_create(thread_mutex_t **new_mutex,
                                                   unsigned int flags)
 {
     int rv;
     
-    new_mutex = (thread_mutex_t *)malloc(sizeof(thread_mutex_t));
+    *new_mutex = (thread_mutex_t *)malloc(sizeof(thread_mutex_t));
 
     /*
     if (flags & THREAD_MUTEX_NESTED) {
@@ -28,7 +28,7 @@ int thread_mutex_create(thread_mutex_t *new_mutex,
         
         pthread_mutexattr_destroy(&mattr);
     } else*/
-        rv = pthread_mutex_init(&new_mutex->mutex, NULL);
+        rv = pthread_mutex_init(&(*new_mutex)->mutex, NULL);
 
     if (rv) {
         return rv;
