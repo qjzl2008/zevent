@@ -1,5 +1,5 @@
-#ifndef THREAD_MUTEX_H
-#define THREAD_MUTEX_H
+#ifndef WIN_THREAD_MUTEX_H
+#define WIN_THREAD_MUTEX_H
 
 #include <windows.h>
 

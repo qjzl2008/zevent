@@ -1,17 +1,18 @@
-#include "arch_thread_mutex.h"
 #include "thread_mutex.h"
+#include "arch_thread_mutex.h"
 
-int thread_mutex_create(thread_mutex_t *mutex,
+
+int thread_mutex_create(thread_mutex_t **mutex,
                                                   unsigned int flags)
 {
-    mutex = (thread_mutex_t *)malloc(sizeof(*mutex));
+    (*mutex) = (thread_mutex_t *)malloc(sizeof(thread_mutex_t));
 
     if (flags & THREAD_MUTEX_UNNESTED) {
         /* Use an auto-reset signaled event, ready to accept one
          * waiting thread.
          */
-        mutex->type = thread_mutex_unnested_event;
-        mutex->handle = CreateEvent(NULL, FALSE, TRUE, NULL);
+        (*mutex)->type = thread_mutex_unnested_event;
+        (*mutex)->handle = CreateEvent(NULL, FALSE, TRUE, NULL);
     }
     else {
         /* Critical Sections are terrific, performance-wise, on NT.
@@ -71,10 +72,10 @@ int thread_mutex_unlock(thread_mutex_t *mutex)
     return 0;
 }
 
-int apr_thread_mutex_destroy(apr_thread_mutex_t *mutex)
+int thread_mutex_destroy(thread_mutex_t *mutex)
 {
 	if (mutex->type == thread_mutex_critical_section) {
-		lock->type = -1;
+		mutex->type = -1;
 		DeleteCriticalSection(&mutex->section);
 	}
 	else {
@@ -82,6 +83,7 @@ int apr_thread_mutex_destroy(apr_thread_mutex_t *mutex)
 			return -1;
 		}
 	}
+	free(mutex);
 	return 0;
 
 }
