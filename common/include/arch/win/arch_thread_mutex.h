@@ -1,6 +1,8 @@
 #ifndef THREAD_MUTEX_H
 #define THREAD_MUTEX_H
 
+#include <windows.h>
+
 typedef enum thread_mutex_type {
     thread_mutex_critical_section,
     thread_mutex_unnested_event,
