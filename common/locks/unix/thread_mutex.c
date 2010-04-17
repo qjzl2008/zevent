@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <errno.h>
 
 #include "thread_mutex.h"
 #include "arch_thread_mutex.h"
@@ -10,6 +11,7 @@ int thread_mutex_create(thread_mutex_t *new_mutex,
     
     new_mutex = (thread_mutex_t *)malloc(sizeof(thread_mutex_t));
 
+    /*
     if (flags & THREAD_MUTEX_NESTED) {
         pthread_mutexattr_t mattr;
         
@@ -25,7 +27,7 @@ int thread_mutex_create(thread_mutex_t *new_mutex,
         rv = pthread_mutex_init(&new_mutex->mutex, &mattr);
         
         pthread_mutexattr_destroy(&mattr);
-    } else
+    } else*/
         rv = pthread_mutex_init(&new_mutex->mutex, NULL);
 
     if (rv) {
