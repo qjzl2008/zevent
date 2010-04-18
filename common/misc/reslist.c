@@ -278,8 +278,8 @@ int reslist_create(reslist_t **reslist,
     rl->destructor = de;
     rl->params = params;
 
-    //RING_INIT(&rl->avail_list, res_t, link);
-    //RING_INIT(&rl->free_list, res_t, link);
+    RING_INIT(&rl->avail_list, res_t, link);
+    RING_INIT(&rl->free_list, res_t, link);
 
     rv = thread_mutex_create(&rl->listlock, THREAD_MUTEX_DEFAULT);
     if (rv != 0) {

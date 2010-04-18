@@ -1,6 +1,8 @@
 #ifndef RING_H
 #define RING_H
 
+#include <stddef.h>
+
 /**
  * @file ring.h
  * @brief Rings
@@ -129,6 +131,12 @@
  * @param elem The name of the element struct
  * @param link The name of the RING_ENTRY in the element struct
  */
+#define OFFSET(p_type,field) \
+	        ((long) (((char *) (&(((p_type)NULL)->field))) - ((char *) NULL)))
+
+#define OFFSETOF(s_type,field) OFFSET(s_type*,field)
+
+
 #define RING_SENTINEL(hp, elem, link)				\
     (struct elem *)((char *)(&(hp)->next) - OFFSETOF(struct elem, link))
 
