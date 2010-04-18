@@ -6,12 +6,15 @@
 
 static int res_construct(void **res, void *params)    
 {    
+	printf("cons\n");
 	*res = malloc(sizeof(int));
 	return 0;    
 }    
 
 static int res_destruct(void *res, void *params)    
 {    
+
+	printf("des\n");
 	free(res);    
 	return 0;    
 }    
@@ -28,7 +31,7 @@ int main(void)
 			res_destruct,
 			NULL
 			/*,allocator_t *allocator*/);
-//	reslist_destory(reslist);
+	reslist_destroy(reslist);
 
 	return 0;
 }
