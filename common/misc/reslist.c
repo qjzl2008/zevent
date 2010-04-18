@@ -3,9 +3,9 @@
 #include <stdlib.h>
 
 #include "reslist.h"
+#include "ring.h"
 #include "thread_mutex.h"
 #include "thread_cond.h"
-#include "ring.h"
 //#include "allocator.h"
 
 #if HAS_THREADS
