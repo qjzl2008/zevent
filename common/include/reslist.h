@@ -1,8 +1,6 @@
 #ifndef RESLIST_H
 #define RESLIST_H
 
-#include "allocator.h"
-
 /** 
  * @file reslist.h
  * @brief Resource List Routines
@@ -62,8 +60,8 @@ int reslist_create(reslist_t **reslist,
                                              long long ttl,
                                              reslist_constructor con,
                                              reslist_destructor de,
-                                             void *params,
-                                             allocator_t *allocator);
+                                             void *params
+                                             /*,allocator_t *allocator*/);
 
 /**
  * Destroy the given resource list and all resources controlled by

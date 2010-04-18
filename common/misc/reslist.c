@@ -1,4 +1,6 @@
 #include <assert.h>
+#include <sys/time.h>
+#include <stdlib.h>
 
 #include "reslist.h"
 #include "thread_mutex.h"
@@ -104,6 +106,7 @@ static res_t *get_container(reslist_t *reslist)
 {
     res_t *res;
 
+    
     if (!RING_EMPTY(&reslist->free_list, res_t, link)) {
         res = RING_FIRST(&reslist->free_list);
         RING_REMOVE(res, link);
@@ -111,6 +114,7 @@ static res_t *get_container(reslist_t *reslist)
     else
 	    //fix me may be use allocator
         res = malloc(sizeof(*res));
+	
     return res;
 }
 
@@ -266,7 +270,6 @@ int reslist_create(reslist_t **reslist,
     }
 
     rl = malloc(sizeof(*rl));
-    rl->pool = pool;
     rl->min = min;
     rl->smax = smax;
     rl->hmax = hmax;
@@ -275,8 +278,8 @@ int reslist_create(reslist_t **reslist,
     rl->destructor = de;
     rl->params = params;
 
-    RING_INIT(&rl->avail_list, res_t, link);
-    RING_INIT(&rl->free_list, res_t, link);
+    //RING_INIT(&rl->avail_list, res_t, link);
+    //RING_INIT(&rl->free_list, res_t, link);
 
     rv = thread_mutex_create(&rl->listlock, THREAD_MUTEX_DEFAULT);
     if (rv != 0) {
