@@ -39,6 +39,8 @@ extern "C"{
 #include <my_global.h>
 #include <mysql.h>
 
+#include "thread_mutex.h"
+
 /************ svr cfg: manage db connection pool ****************/
 
 typedef struct svr_cfg {
@@ -49,9 +51,8 @@ typedef struct svr_cfg {
 	char charset[64];
 	int port;
 
-	apr_thread_mutex_t *mutex;
-	apr_pool_t *pool;
-	apr_reslist_t *dbpool;
+	thread_mutex_t *mutex;
+	reslist_t *dbpool;
 	int nmin;
 	int nkeep;
 	int nmax;
@@ -71,12 +72,12 @@ MYSQL_DECLARE_NONSTD(MYSQL*) mysql_pool_acquire(svr_cfg*);
 MYSQL_DECLARE_NONSTD(void) mysql_pool_release(svr_cfg*, MYSQL*);
 
 /*fini*/
-MYSQL_DECLARE_NONSTD(apr_status_t) mysql_pool_fini(svr_cfg *s);
+MYSQL_DECLARE_NONSTD(int) mysql_pool_fini(svr_cfg *s);
 
 /*sql op function*/
 MYSQL_DECLARE_NONSTD(int) mysql_pool_query(svr_cfg *s,
 		const char *sql,
-		apr_size_t len,
+		size_t len,
 		MYSQL_RES **rs);
 
 MYSQL_DECLARE_NONSTD(int) mysql_pool_exec(svr_cfg *s,

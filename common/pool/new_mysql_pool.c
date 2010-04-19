@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "reslist.h"
-#include "mysql_pool.h"
+#include "new_mysql_pool.h"
 
 static int mysql_pool_construct(void **db, void *params)
 {
@@ -43,12 +43,14 @@ static int mysql_pool_cleanup(void *svr)
 	return 0;
 }
 
+#define USEC_PER_SEC (long long)(1000000)
+#define time_from_sec(sec) ((long long)(sec) * USEC_PER_SEC)
 static int mysql_pool_setup(svr_cfg *svr)
 {
 	int rv;
 
 	rv = reslist_create(&svr->dbpool, svr->nmin, svr->nkeep, svr->nmax,
-			apr_time_from_sec(svr->exptime),
+			time_from_sec(svr->exptime),
 			mysql_pool_construct, mysql_pool_destruct, svr);
 
 	if (rv == 0) {
@@ -56,7 +58,7 @@ static int mysql_pool_setup(svr_cfg *svr)
                 reslist_timeout_set(svr->dbpool,timeout);
 	}
 	else {
-		svr->pool = NULL;
+		rv = -1;
 	}
 
 	return rv;
@@ -65,6 +67,7 @@ static int mysql_pool_setup(svr_cfg *svr)
 int mysql_pool_init(svr_cfg *s)
 {
 	svr_cfg *svr = s;
+	svr->dbpool = NULL;
 	int rv;
 
 	rv = mysql_pool_setup(svr);
@@ -127,7 +130,7 @@ MYSQL_DECLARE_NONSTD(MYSQL*) mysql_pool_acquire(svr_cfg *s)
 	int rv2;
 
 	if (!svr->dbpool) {
-		if (mysql_pool_setup_lock(pool, s) != 0) {
+		if (mysql_pool_setup_lock(s) != 0) {
 			return NULL;
 		}
 	}
@@ -153,7 +156,7 @@ MYSQL_DECLARE_NONSTD(MYSQL*) mysql_pool_acquire(server_rec *s)
 }
 #endif
 
-apr_status_t mysql_pool_fini(svr_cfg *s)
+int mysql_pool_fini(svr_cfg *s)
 {
 	svr_cfg *svr = s;
 	int rv;
@@ -169,7 +172,7 @@ int mysql_pool_query(svr_cfg *s,
 {
 	svr_cfg *svr = s;
 	MYSQL *mysql = NULL;
-	mysql = mysql_pool_acquire(pool,svr);
+	mysql = mysql_pool_acquire(svr);
 	if(!mysql)
 		return -1;
 	if(mysql_real_query(mysql,sql,len)==0)
@@ -192,7 +195,7 @@ int mysql_pool_exec(svr_cfg *s,
 {
 	svr_cfg *svr = s;
 	MYSQL *mysql = NULL;
-	mysql = mysql_pool_acquire(pool,svr);
+	mysql = mysql_pool_acquire(svr);
 	if(!mysql)
 		return -1;
 	if(mysql_real_query(mysql,sql,len)==0)

@@ -72,6 +72,7 @@ static int conn_pool_setup(conn_svr_cfg *svr)
 int conn_pool_init(conn_svr_cfg *s)
 {
 	conn_svr_cfg *svr = s;
+	svr->connpool = NULL;
 	int rv;
 
 	rv = conn_pool_setup(svr);

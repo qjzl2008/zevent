@@ -159,6 +159,9 @@ static int reslist_cleanup(void *data_)
     int rv = 0;
     reslist_t *rl = data_;
     res_t *res;
+    
+    if(!rl)
+	    return rv;
 
     thread_mutex_lock(rl->listlock);
 
@@ -180,6 +183,9 @@ static int reslist_cleanup(void *data_)
     thread_mutex_unlock(rl->listlock);
     thread_mutex_destroy(rl->listlock);
     thread_cond_destroy(rl->avail);
+
+    free(rl);
+    rl = NULL;
 
     return rv;
 }
