@@ -34,6 +34,7 @@ extern "C"{
 
 
 #include <reslist.h>
+#include "thread_mutex.h"
 
 /************ svr cfg: manage connection pool ****************/
 
@@ -64,7 +65,7 @@ CONN_DECLARE_NONSTD(void) conn_pool_release(conn_svr_cfg*, int *);
 CONN_DECLARE_NONSTD(void) conn_pool_remove(conn_svr_cfg*, int *);
 
 /*fini*/
-CONN_DECLARE_NONSTD(apr_status_t) conn_pool_fini(conn_svr_cfg *s);
+CONN_DECLARE_NONSTD(int) conn_pool_fini(conn_svr_cfg *s);
 
 #ifdef __cplusplus
 }

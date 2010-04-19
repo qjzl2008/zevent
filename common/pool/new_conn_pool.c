@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <arpa/inet.h> 
+#include <strings.h>
 #include "reslist.h"
 #include "new_conn_pool.h"
 
@@ -24,7 +25,7 @@ static int conn_pool_construct(void **con, void *params)
 
 	*con = sockfd;
 
-	return APR_SUCCESS;
+	return 0;
 }
 
 static int conn_pool_destruct(void *con, void *params)
@@ -33,7 +34,7 @@ static int conn_pool_destruct(void *con, void *params)
 	close(*sockfd);
 	free(sockfd);
 	sockfd = NULL;
-	return APR_SUCCESS;
+	return 0;
 }
 
 static int conn_pool_cleanup(void *svr)
@@ -47,12 +48,14 @@ static int conn_pool_cleanup(void *svr)
 	return 0;
 }
 
+#define USEC_PER_SEC (long long)(1000000)
+#define time_from_sec(sec) ((long long)(sec) * USEC_PER_SEC)
 static int conn_pool_setup(conn_svr_cfg *svr)
 {
 	int rv;
 
 	rv = reslist_create(&svr->connpool, svr->nmin, svr->nkeep, svr->nmax,
-			apr_time_from_sec(svr->exptime),
+			time_from_sec(svr->exptime),
 			conn_pool_construct, conn_pool_destruct, svr);
 
 	if (rv == 0) {
@@ -161,7 +164,7 @@ CONN_DECLARE_NONSTD(int *) conn_pool_acquire(conn_svr_cfg *s)
 }
 #endif
 
-apr_status_t conn_pool_fini(conn_svr_cfg *s)
+int conn_pool_fini(conn_svr_cfg *s)
 {
 	conn_svr_cfg *svr = s;
 	int rv;
