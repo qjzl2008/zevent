@@ -5,6 +5,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testmutex", "testmutex\test
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testcond", "testcond\testcond.vcproj", "{7B5F8994-2529-4148-AD91-4875168B8467}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testmempool", "testmempool\testmempool.vcproj", "{4AB11CC9-5965-411B-AED2-B4923CAC7AF6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -19,6 +21,10 @@ Global
 		{7B5F8994-2529-4148-AD91-4875168B8467}.Debug|Win32.Build.0 = Debug|Win32
 		{7B5F8994-2529-4148-AD91-4875168B8467}.Release|Win32.ActiveCfg = Release|Win32
 		{7B5F8994-2529-4148-AD91-4875168B8467}.Release|Win32.Build.0 = Release|Win32
+		{4AB11CC9-5965-411B-AED2-B4923CAC7AF6}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4AB11CC9-5965-411B-AED2-B4923CAC7AF6}.Debug|Win32.Build.0 = Debug|Win32
+		{4AB11CC9-5965-411B-AED2-B4923CAC7AF6}.Release|Win32.ActiveCfg = Release|Win32
+		{4AB11CC9-5965-411B-AED2-B4923CAC7AF6}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
