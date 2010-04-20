@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "thread_mutex.h"
 #include "thread_cond.h"
 #include "queue.h"
@@ -41,6 +42,8 @@ int queue_destroy(queue_t *queue)
     thread_cond_destroy(queue->not_full);
     thread_mutex_destroy(queue->one_big_mutex);
 
+    free(queue->data);
+    free(queue);
     return 0;
 }
 

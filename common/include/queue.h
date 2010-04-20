@@ -16,7 +16,7 @@ typedef struct queue_t queue_t;
 
 typedef enum {
 	QUEUE_EINTR = 1,
-	QUEUE_AGAIN,
+	QUEUE_EAGAIN,
 	QUEUE_EOF,
 }QUEUE_ERROR_TYPE;
 
