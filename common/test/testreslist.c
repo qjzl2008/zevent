@@ -36,6 +36,7 @@ int main(void)
 	void *res = NULL;
 	reslist_acquire(reslist,&res);
 	printf("res:%d\n",*(int *)(res));
+
 	reslist_release(reslist,res);
 	reslist_destroy(reslist);
 
