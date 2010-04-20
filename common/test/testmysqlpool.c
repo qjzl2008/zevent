@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
-#include "new_mysql_pool.h"
+#include "mysql_pool.h"
 
 int main(void)
 {

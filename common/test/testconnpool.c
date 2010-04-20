@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
-#include "new_conn_pool.h"
+#include "conn_pool.h"
 
 int main(void)
 {
