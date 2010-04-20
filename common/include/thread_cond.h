@@ -14,6 +14,10 @@ extern "C" {
 
 #if HAS_THREADS
 
+typedef enum{
+	COND_ETIMEUP = 1
+}COND_ERR_TYPE;
+
 /**
  * @defgroup thread_cond Condition Variable Routines
  * @ingroup 

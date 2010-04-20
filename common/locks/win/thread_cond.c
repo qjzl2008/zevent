@@ -64,8 +64,7 @@ static int _thread_cond_timedwait(thread_cond_t *cond,
         }
         else if (res != WAIT_OBJECT_0) {
             cond->num_waiting--;
-            //rv = APR_TIMEUP;
-	    rv = 0;
+            rv = COND_ETIMEUP;
             break;
         }
 

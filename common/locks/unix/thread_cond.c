@@ -53,7 +53,7 @@ int thread_cond_timedwait(thread_cond_t *cond,
 
     rv = pthread_cond_timedwait(&cond->cond, &mutex->mutex, &abstime);
     if (ETIMEDOUT == rv) {
-        return rv;
+        return COND_ETIMEUP;
     }
     return rv;
 }
