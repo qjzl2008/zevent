@@ -99,6 +99,14 @@ int queue_interrupt_all(queue_t *queue);
  */
 int queue_term(queue_t *queue);
 
+
+/**
+ * destroy the queue
+ *
+ * @param queue the queue
+ */
+int queue_destroy(queue_t *queue);
+
 #ifdef __cplusplus
 }
 #endif
