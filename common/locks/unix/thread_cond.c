@@ -13,6 +13,8 @@ int thread_cond_create(thread_cond_t **cond)
 
     new_cond = malloc(sizeof(thread_cond_t));
 
+	memset(new_cond,0,sizeof(thread_cond_t));
+
     if ((rv = pthread_cond_init(&new_cond->cond, NULL))) {
         return rv;
     }

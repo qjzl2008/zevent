@@ -7,6 +7,8 @@ int thread_mutex_create(thread_mutex_t **mutex,
 {
     (*mutex) = (thread_mutex_t *)malloc(sizeof(thread_mutex_t));
 
+	memset(*mutex,0,sizeof(thread_mutex_t));
+
     if (flags & THREAD_MUTEX_UNNESTED) {
         /* Use an auto-reset signaled event, ready to accept one
          * waiting thread.

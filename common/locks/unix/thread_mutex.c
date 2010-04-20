@@ -10,6 +10,7 @@ int thread_mutex_create(thread_mutex_t **new_mutex,
     int rv;
     
     *new_mutex = (thread_mutex_t *)malloc(sizeof(thread_mutex_t));
+	memset(*new_mutex,0,sizeof(thread_mutex_t));
 
     /*
     if (flags & THREAD_MUTEX_NESTED) {

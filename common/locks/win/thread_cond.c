@@ -11,7 +11,7 @@ int thread_cond_create(thread_cond_t **cond)
     if (cv == NULL) {
         return -1;
     }
-
+    memset(cv,0,sizeof(thread_cond_t));
     cv->semaphore = CreateSemaphore(NULL, 0, LONG_MAX, NULL);
     if (cv->semaphore == NULL) {
         return -1;
