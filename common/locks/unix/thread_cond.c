@@ -1,6 +1,7 @@
 #if HAS_THREADS
 
 #include <stdlib.h>
+#include <string.h>
 #include <errno.h>
 #include "thread_cond.h"
 #include "arch_thread_mutex.h"
