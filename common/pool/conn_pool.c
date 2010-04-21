@@ -1,22 +1,31 @@
-#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
+#ifdef WIN32
+#include <WinSock2.h>
+#else
 #include <arpa/inet.h> 
-#include <strings.h>
+#endif
+//#include <strings.h>
 #include "reslist.h"
 #include "conn_pool.h"
 
 static int conn_pool_construct(void **con, void *params)
 {
 	conn_svr_cfg *svr = (conn_svr_cfg*) params;
+#ifdef WIN32
+	SOCKET *sockfd = (SOCKET *)malloc(sizeof(SOCKET));
+#else
 	int *sockfd = (int *)malloc(sizeof(int));
-
+#endif
 	struct sockaddr_in serv_addr;    
 	*sockfd = socket(AF_INET, SOCK_STREAM, 0);    
 	if (*sockfd < 0)    
 		return -1;    
-	bzero((char *) &serv_addr, sizeof(serv_addr));    
+
+	memset(&serv_addr,0,sizeof(serv_addr));
+
+	//bzero((char *) &serv_addr, sizeof(serv_addr));    
 	serv_addr.sin_family = AF_INET;    
 	serv_addr.sin_port = htons(svr->port);    
 	serv_addr.sin_addr.s_addr = inet_addr(svr->host);    
@@ -30,8 +39,14 @@ static int conn_pool_construct(void **con, void *params)
 
 static int conn_pool_destruct(void *con, void *params)
 {
+#ifdef WIN32
+	SOCKET *sockfd = (SOCKET *)con;
+	closesocket(*sockfd);
+#else
 	int *sockfd = (int *)con;
 	close(*sockfd);
+#endif
+	
 	free(sockfd);
 	sockfd = NULL;
 	return 0;
@@ -71,9 +86,10 @@ static int conn_pool_setup(conn_svr_cfg *svr)
 
 int conn_pool_init(conn_svr_cfg *s)
 {
+	int rv;
+
 	conn_svr_cfg *svr = s;
 	svr->connpool = NULL;
-	int rv;
 
 	rv = conn_pool_setup(svr);
 	if (rv == 0) {

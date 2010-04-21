@@ -33,7 +33,7 @@ extern "C"{
 #define DEFAULT_TIMEOUT 3000/*ms*/
 
 
-#include <reslist.h>
+#include "reslist.h"
 #include "thread_mutex.h"
 
 /************ svr cfg: manage connection pool ****************/
