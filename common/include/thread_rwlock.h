@@ -12,6 +12,10 @@ extern "C" {
 
 #if HAS_THREADS
 
+typedef enum{
+	RWLOCK_TIMEOUT = 1
+}rwlock_err_type;
+
 /**
  * @defgroup thread_rwlock Reader/Writer Lock Routines
  * @{
