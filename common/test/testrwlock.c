@@ -8,7 +8,9 @@ int main(void)
 {
 	int rv;
 	thread_rwlock_t *thread_rwlock = NULL;
-	rv=thread_rwlock_create(&thread_rwlock);
+	rv = thread_rwlock_create(&thread_rwlock);
+        rv = thread_rwlock_wrlock(rwlock);
+        rv = thread_rwlock_unlock(rwlock);
 	thread_rwlock_destroy(thread_rwlock);
 	return 0;
 }
