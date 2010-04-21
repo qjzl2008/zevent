@@ -1,5 +1,9 @@
 #include <assert.h>
+#ifdef WIN32
+#include <Windows.h>
+#else
 #include <sys/time.h>
+#endif
 #include <stdlib.h>
 
 #include "reslist.h"
@@ -58,7 +62,7 @@ static res_t *pop_resource(reslist_t *reslist)
 }
 
 #ifdef WIN32
-#define DELTA_EPOCH_IN_USEC   (long long)(11644473600000000);
+#define DELTA_EPOCH_IN_USEC   (long long)(11644473600000000)
 static void FileTimeToTime(long long *result, FILETIME *input)
 {
     /* Convert FILETIME one 64 bit number so we can work with it. */
@@ -75,7 +79,7 @@ static long long time_now(void)
     LONGLONG ltime = 0;
     FILETIME time;
     GetSystemTimeAsFileTime(&time);
-    FileTimeToAprTime(&ltime, &time);
+    FileTimeToTime(&ltime, &time);
     return ltime; 
 }
 #else
@@ -150,7 +154,6 @@ static int create_resource(reslist_t *reslist, res_t **ret_res)
 static int destroy_resource(reslist_t *reslist, res_t *res)
 {
     int rv = reslist->destructor(res->opaque, reslist->params);
-    free(res);
     return rv;
 }
 
@@ -276,6 +279,7 @@ int reslist_create(reslist_t **reslist,
     }
 
     rl = malloc(sizeof(*rl));
+	memset(rl,0,sizeof(*rl));
     rl->min = min;
     rl->smax = smax;
     rl->hmax = hmax;

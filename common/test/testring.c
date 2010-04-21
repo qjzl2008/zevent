@@ -16,8 +16,9 @@ typedef struct res_ring_t res_ring_t;
 int main(void)
 {
 	res_ring_t avail_list;
-	RING_INIT(&avail_list,res_t,link);
 	res_t res;
+
+	RING_INIT(&avail_list,res_t,link);
 	RING_INSERT_HEAD( &avail_list,  &res, res_t , link );
 	return 0;
 }
