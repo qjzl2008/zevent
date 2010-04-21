@@ -11,7 +11,7 @@ int main(void)
 	void *tmp = NULL;
 
 	queue_t *queue = NULL;
-	queue_create(&queue,10);
+	rv = queue_create(&queue,10);
 	data = (int *)malloc(sizeof(int));
 	*data = 100;
 	queue_push(queue,data);
