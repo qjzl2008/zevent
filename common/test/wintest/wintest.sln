@@ -15,6 +15,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testconnpool", "testconnpoo
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testqueue", "testqueue\testqueue.vcproj", "{0E51C06D-10F1-4DA7-8FE0-B599D4B74BD0}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testrwlock", "testrwlock\testrwlock.vcproj", "{808E30A4-2331-41F0-8937-6C67510CCCB4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -49,6 +51,10 @@ Global
 		{0E51C06D-10F1-4DA7-8FE0-B599D4B74BD0}.Debug|Win32.Build.0 = Debug|Win32
 		{0E51C06D-10F1-4DA7-8FE0-B599D4B74BD0}.Release|Win32.ActiveCfg = Release|Win32
 		{0E51C06D-10F1-4DA7-8FE0-B599D4B74BD0}.Release|Win32.Build.0 = Release|Win32
+		{808E30A4-2331-41F0-8937-6C67510CCCB4}.Debug|Win32.ActiveCfg = Debug|Win32
+		{808E30A4-2331-41F0-8937-6C67510CCCB4}.Debug|Win32.Build.0 = Debug|Win32
+		{808E30A4-2331-41F0-8937-6C67510CCCB4}.Release|Win32.ActiveCfg = Release|Win32
+		{808E30A4-2331-41F0-8937-6C67510CCCB4}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
