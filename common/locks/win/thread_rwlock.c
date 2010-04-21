@@ -126,6 +126,8 @@ int thread_rwlock_destroy(thread_rwlock_t *rwlock)
 
     if (! CloseHandle(rwlock->write_mutex))
         return -1;
+
+    free(rwlock);
     
     return 0;
 

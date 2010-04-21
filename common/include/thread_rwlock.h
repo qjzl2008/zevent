@@ -13,7 +13,8 @@ extern "C" {
 #if HAS_THREADS
 
 typedef enum{
-	RWLOCK_TIMEOUT = 1
+        RWLOCK_EBUSY = 1,
+	RWLOCK_TIMEOUT = 2
 }rwlock_err_type;
 
 /**
@@ -53,8 +54,7 @@ int thread_rwlock_rdlock(thread_rwlock_t *rwlock);
  * Attempt to acquire the shared-read lock on the given read-write lock. This
  * is the same as thread_rwlock_rdlock(), only that the function fails
  * if there is another thread holding the write lock, or if there are any
- * write threads blocking on the lock. If the function fails for this case,
- * RWLOCK_EBUSY will be returned.
+ * write threads blocking on the lock. 
  * @param rwlock the rwlock on which to attempt the shared read.
  */
 int thread_rwlock_tryrdlock(thread_rwlock_t *rwlock);
@@ -72,9 +72,6 @@ int thread_rwlock_wrlock(thread_rwlock_t *rwlock);
  * Attempt to acquire the exclusive-write lock on the given read-write lock. 
  * This is the same as thread_rwlock_wrlock(), only that the function fails
  * if there is any other thread holding the lock (for reading or writing),
- * in which case the function will return RWLOCK_EBUSY. Note: it is important
- *  to determine if the return
- * value was RWLOCK_EBUSY, for portability reasons.
  * @param rwlock the rwlock on which to attempt the exclusive write.
  */
 int thread_rwlock_trywrlock(thread_rwlock_t *rwlock);

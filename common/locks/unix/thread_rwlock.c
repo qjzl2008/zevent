@@ -1,3 +1,5 @@
+#include <stdlib.h>
+#include <errno.h>
 #include "arch_thread_rwlock.h"
 
 #if HAS_THREADS
