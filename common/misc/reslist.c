@@ -3,6 +3,7 @@
 #include <Windows.h>
 #else
 #include <sys/time.h>
+#include <string.h>
 #endif
 #include <stdlib.h>
 

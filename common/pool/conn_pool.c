@@ -5,6 +5,7 @@
 #include <WinSock2.h>
 #else
 #include <arpa/inet.h> 
+#include <string.h>
 #endif
 //#include <strings.h>
 #include "reslist.h"
