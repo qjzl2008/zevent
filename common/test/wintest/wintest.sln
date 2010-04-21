@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testmempool", "testmempool\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testring", "testring\testring.vcproj", "{AE19F212-96E1-405F-958F-5F6D6CC3BCD1}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testreslist", "testreslist\testreslist.vcproj", "{3C4C7B72-7FD6-467D-B544-CBBB3137DEAF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -31,6 +33,10 @@ Global
 		{AE19F212-96E1-405F-958F-5F6D6CC3BCD1}.Debug|Win32.Build.0 = Debug|Win32
 		{AE19F212-96E1-405F-958F-5F6D6CC3BCD1}.Release|Win32.ActiveCfg = Release|Win32
 		{AE19F212-96E1-405F-958F-5F6D6CC3BCD1}.Release|Win32.Build.0 = Release|Win32
+		{3C4C7B72-7FD6-467D-B544-CBBB3137DEAF}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3C4C7B72-7FD6-467D-B544-CBBB3137DEAF}.Debug|Win32.Build.0 = Debug|Win32
+		{3C4C7B72-7FD6-467D-B544-CBBB3137DEAF}.Release|Win32.ActiveCfg = Release|Win32
+		{3C4C7B72-7FD6-467D-B544-CBBB3137DEAF}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
