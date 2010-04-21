@@ -17,6 +17,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testqueue", "testqueue\test
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testrwlock", "testrwlock\testrwlock.vcproj", "{808E30A4-2331-41F0-8937-6C67510CCCB4}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testmysqlpool", "testmysqlpool\testmysqlpool.vcproj", "{D855EEBA-A00F-442E-B6C8-8351EDB669C7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -55,6 +57,10 @@ Global
 		{808E30A4-2331-41F0-8937-6C67510CCCB4}.Debug|Win32.Build.0 = Debug|Win32
 		{808E30A4-2331-41F0-8937-6C67510CCCB4}.Release|Win32.ActiveCfg = Release|Win32
 		{808E30A4-2331-41F0-8937-6C67510CCCB4}.Release|Win32.Build.0 = Release|Win32
+		{D855EEBA-A00F-442E-B6C8-8351EDB669C7}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D855EEBA-A00F-442E-B6C8-8351EDB669C7}.Debug|Win32.Build.0 = Debug|Win32
+		{D855EEBA-A00F-442E-B6C8-8351EDB669C7}.Release|Win32.ActiveCfg = Release|Win32
+		{D855EEBA-A00F-442E-B6C8-8351EDB669C7}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
