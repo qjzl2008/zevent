@@ -58,11 +58,11 @@ CONN_DECLARE_NONSTD(int) conn_pool_init(conn_svr_cfg *s);
 /* acquire a connection that MUST be explicitly closed.
  * Returns NULL on error
  */
-CONN_DECLARE_NONSTD(int *) conn_pool_acquire(conn_svr_cfg*);
-CONN_DECLARE_NONSTD(void) conn_pool_release(conn_svr_cfg*, int *);
+CONN_DECLARE_NONSTD(void *) conn_pool_acquire(conn_svr_cfg*);
+CONN_DECLARE_NONSTD(void) conn_pool_release(conn_svr_cfg*, void *);
 
 /* remove a connection*/
-CONN_DECLARE_NONSTD(void) conn_pool_remove(conn_svr_cfg*, int *);
+CONN_DECLARE_NONSTD(void) conn_pool_remove(conn_svr_cfg*, void *);
 
 /*fini*/
 CONN_DECLARE_NONSTD(int) conn_pool_fini(conn_svr_cfg *s);

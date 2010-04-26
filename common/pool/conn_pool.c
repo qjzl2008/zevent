@@ -131,20 +131,20 @@ static int conn_pool_setup_lock(conn_svr_cfg *s)
 }
 
 #if HAS_THREADS
-CONN_DECLARE_NONSTD(void) conn_pool_release(conn_svr_cfg *s, int *con)
+CONN_DECLARE_NONSTD(void) conn_pool_release(conn_svr_cfg *s, void *con)
 {
 	conn_svr_cfg *svr = s;
 	reslist_release(svr->connpool, con);
 }
 #else
-CONN_DECLARE_NONSTD(void) conn_pool_release(conn_svr_cfg *s, int *con)
+CONN_DECLARE_NONSTD(void) conn_pool_release(conn_svr_cfg *s, void *con)
 {
 	con = NULL;
 }
 #endif
 
 #if HAS_THREADS
-CONN_DECLARE_NONSTD(void) conn_pool_remove(conn_svr_cfg *s, int *con)
+CONN_DECLARE_NONSTD(void) conn_pool_remove(conn_svr_cfg *s, void *con)
 {
 	conn_svr_cfg *svr = s;
 	reslist_invalidate(svr->connpool, con);
@@ -157,9 +157,9 @@ CONN_DECLARE_NONSTD(void) conn_pool_remove(conn_svr_cfg *s, int *con)
 #endif
 
 #if HAS_THREADS
-CONN_DECLARE_NONSTD(int *) conn_pool_acquire(conn_svr_cfg *s)
+CONN_DECLARE_NONSTD(void *) conn_pool_acquire(conn_svr_cfg *s)
 {
-	int *rec = NULL;
+	void *rec = NULL;
 	conn_svr_cfg *svr = s;
 	int rv = 0;
 
@@ -176,7 +176,7 @@ CONN_DECLARE_NONSTD(int *) conn_pool_acquire(conn_svr_cfg *s)
 	return rec;
 }
 #else
-CONN_DECLARE_NONSTD(int *) conn_pool_acquire(conn_svr_cfg *s)
+CONN_DECLARE_NONSTD(void *) conn_pool_acquire(conn_svr_cfg *s)
 {
 	return NULL;
 }
