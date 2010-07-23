@@ -52,10 +52,13 @@ hash_t *hash_make_custom(hashfunc_t hashfunc,freefunc_t freefunc)
 {
 	hash_t *ht;
 	ht = hash_make();
+
 	if(hashfunc)
 		ht->hash_func = hashfunc;
 	if(freefunc)
 		ht->free_func = freefunc;
+
+	return ht;
 }
 
 /*
