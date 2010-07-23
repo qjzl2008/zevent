@@ -22,10 +22,10 @@ struct hash_t{
 	unsigned int count,max;
 	hashfunc_t hash_func;
 	freefunc_t free_func;
-	hash_endtry_t *free;
+	hash_entry_t *free;
 };
 
-#define INITAL_MAX (15) //2^n-1;
+#define INITIAL_MAX (15) //2^n-1;
 
 static hash_entry_t **alloc_array(hash_t *ht,unsigned int max)
 {
@@ -61,7 +61,8 @@ hash_t *hash_make_custom(hashfunc_t hashfunc,freefunc_t freefunc)
 /*
  * hash iteration functions
  */
-hash_index_t *hash_next(hash_index_t hi)
+
+hash_index_t* hash_next(hash_index_t *hi)
 {
 	hi->this = hi->next;
 	while(!hi->this){
@@ -223,8 +224,8 @@ void hash_clear(hash_t *ht)
 
 static void free_he(hash_t *ht,hash_entry_t *he)
 {
-	ht->free_func(he->key);
-	ht->free_func(he->val);
+	ht->free_func((void *)he->key);
+	ht->free_func((void *)he->val);
 	free(he);
 }
 
@@ -263,7 +264,7 @@ int hash_do(hash_do_callback_fn_t *comp,void *rec,const hash_t *ht)
 		/* scan table*/
 		do{
 			rv = (*comp)(rec,hi->this->key,hi->this->klen,hi->this->val);
-		}while(rv >= 0 && (hi = hash_next(hi))i);
+		}while(rv >= 0 && (hi = hash_next(hi)));
 
 		if(rv == 0){
 			dorv = 0;

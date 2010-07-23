@@ -21,7 +21,7 @@ void freefunc_default(void *memory);
 
 unsigned int hashfunc_default(const char *key,int *klen);
 
-hash_ti* hash_make(void);
+hash_t* hash_make(void);
 
 hash_t* hash_make_custom(hashfunc_t hashfunc,freefunc_t freefunc);
 

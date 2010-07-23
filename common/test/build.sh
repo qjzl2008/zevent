@@ -13,3 +13,5 @@ gcc -g -DHAS_THREADS testmysqlpool.c ../locks/unix/thread_mutex.c ../locks/unix/
 gcc -g -DHAS_THREADS testqueue.c ../locks/unix/thread_mutex.c ../locks/unix/thread_cond.c ../misc/queue.c -I../include/ -I../include/arch/unix -lpthread
 
 gcc -g -DHAS_THREADS testrwlock.c ../locks/unix/thread_rwlock.c -I../include/ -I../include/arch/unix -lpthread
+
+gcc -g -DHAS_THREADS testhash.c ../misc/hash.c -I../include/ -I../include/arch/unix 
