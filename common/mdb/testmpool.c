@@ -14,6 +14,7 @@ int main(void)
 	mpool_stat(mp);
 	pgno_t pgno;
 	void *page = mpool_new(mp,&pgno);
+	memset(page,0,4096);
 	const char *str = "abcd";
 	if(page)
 	{
