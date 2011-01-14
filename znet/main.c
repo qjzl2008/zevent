@@ -25,8 +25,8 @@ int main()
 	while(1)
 	{
 		delay.tv_sec = 0;
-		delay.tv_usec = 50000;//50ms
-//		select(0,NULL,NULL,NULL,&delay); 
+		delay.tv_usec = 10000;//10ms
+		select(0,NULL,NULL,NULL,&delay); 
 		rv = ns_recvmsg(ns,&msg,&len);
 		if(rv == 0)
 		{
