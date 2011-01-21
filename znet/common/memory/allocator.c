@@ -6,10 +6,10 @@
  * Magic numbers
  */
 
-#define MIN_ALLOC 256//8192
-#define MAX_INDEX   20
+#define MIN_ALLOC 512//8192
+#define MAX_INDEX   80
 
-#define BOUNDARY_INDEX 7//12
+#define BOUNDARY_INDEX 8//12
 #define BOUNDARY_SIZE (1 << BOUNDARY_INDEX)
 
 /*
