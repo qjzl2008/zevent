@@ -16,8 +16,8 @@ int main(void)
 
 	while(1)
 	{
-		memnode_t *mnode = allocator_alloc(pallocator,4096);
 		char buf[1024] = {0};
+		memnode_t *mnode = allocator_alloc(pallocator,sizeof(buf));
 		memcpy(mnode->first_avail,buf,sizeof(buf));
 		allocator_free(pallocator,mnode);
 		break;
