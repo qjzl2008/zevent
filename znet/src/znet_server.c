@@ -33,6 +33,7 @@ net_connection_cb(int sd, short type, void *arg)
         else
 	{
 		//error
+		printf("Failed to accept new connection (%s).\n", strerror(errno));   
 		return;
 	}
     }
@@ -130,9 +131,9 @@ static void* start_threads(void *arg)
 
 static int default_process_func(uint8_t *buf,uint32_t len,uint32_t *off)
 {
-	if(len < 512)
+	if(len < 10)
 		return -1;
-	*off = 512;
+	*off = 10;
 	return 0;
 }
 

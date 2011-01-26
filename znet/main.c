@@ -26,13 +26,13 @@ int main()
 	{
 		delay.tv_sec = 0;
 		delay.tv_usec = 10000;//10ms
-		select(0,NULL,NULL,NULL,&delay); 
+		//select(0,NULL,NULL,NULL,&delay); 
 		rv = ns_recvmsg(ns,&msg,&len);
 		if(rv == 0)
 		{
 			memcpy(buf,(char *)msg,len);
 			++count;
-			printf("count:%d\n",count);
+			//printf("count:%d,%u\n",count,time(NULL));
 			ns_free(ns,msg);
 		}
 	}
