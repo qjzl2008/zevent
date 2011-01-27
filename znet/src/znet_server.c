@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <pthread.h>
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -224,7 +225,10 @@ int ns_stop_daemon(net_server_t *ns)
 
 int ns_sendmsg(net_server_t *ns,uint32_t id,void *msg,uint32_t len)
 {
-
+	struct peer *p = NULL;
+	thread_mutex_lock(ns->ptbl_mutex);
+	p = ptbl_find(ns->ptbl,&id);
+	thread_mutex_unlock(ns->ptbl_mutex);
 }
 
 int ns_recvmsg(net_server_t *ns,void **msg,uint32_t *len)
@@ -257,6 +261,5 @@ int ns_disconnect(net_server_t *ns,uint32_t id)
 {
 
 }
-
 
 

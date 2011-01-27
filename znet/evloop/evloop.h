@@ -52,7 +52,7 @@ int fdev_new(struct fdev *ev, int fd, uint16_t flags, evloop_cb_t cb,
 int fdev_del(struct fdev *ev);
 int fdev_enable(struct fdev *ev, uint16_t flags);
 int fdev_disable(struct fdev *ev, uint16_t flags);
-int fdev_mod(struct fdev *ev,uint16_t flags);
+int fdev_reenable(struct fdev *ev,uint16_t flags);
 
 void evtimer_init(struct timeout *, evloop_cb_t, void *);
 int evtimer_add(struct timeout *, struct timespec *);

@@ -87,7 +87,7 @@ static void peer_read_cb(const ev_state_t *ev)
 	uint32_t off = 0;
 	if(p->ns->func && p->recvbuf.off > 0)
 	{
-		while(rv = p->ns->func(p->recvbuf.buf,p->recvbuf.off,&off) == 0)
+		while((rv = p->ns->func(p->recvbuf.buf,p->recvbuf.off,&off)) == 0)
 		{
 			if(off > p->recvbuf.off)
 			{
@@ -101,6 +101,7 @@ static void peer_read_cb(const ev_state_t *ev)
 			msg->buf = (uint8_t *)mmalloc(p->ns->allocator,off);
 			bcopy(p->recvbuf.buf,msg->buf,off);
 			msg->len = off;
+			msg->peer_id = p->id;
 
 			
 			thread_mutex_lock(p->ns->recv_mutex);
@@ -116,7 +117,7 @@ static void peer_read_cb(const ev_state_t *ev)
 		peer_kill(p);
 	else
 	{
-		fdev_mod(&p->ioev,EV_READ);
+		fdev_reenable(&p->ioev,EV_READ);
 	}
 }
 
@@ -124,7 +125,7 @@ static void peer_write_cb(const ev_state_t *ev)
 {
 	struct peer *p = (struct peer *)ev->arg;
 	//EPOLLONESHOT所以需要修改
-	fdev_mod(&p->ioev,EV_WRITE);
+	fdev_reenable(&p->ioev,EV_WRITE);
 }
 
 int peer_io_process(const ev_state_t *ev)

@@ -74,13 +74,13 @@ fdev_disable(struct fdev *ev, uint16_t flags)
     return err;
 }
 
-
-int fdev_mod(struct fdev *ev,uint16_t flags)
+//for EPOLLONESHOT
+int fdev_reenable(struct fdev *ev,uint16_t flags)
 {
 	struct epoll_event epev;
 	int err = 0;
 	epev.data.ptr = ev;
-	ev->flags = flags;
+	ev->flags |= flags;
 	epev.events =
 		((ev->flags & EV_READ) ? EPOLLIN : 0) |
 		((ev->flags & EV_WRITE) ? EPOLLOUT : 0) /*| EPOLLET*/ |  EPOLLONESHOT;
