@@ -95,14 +95,12 @@ static void peer_read_cb(const ev_state_t *ev)
 				return;
 			}
 			
-			
 			struct msg_t *msg = (struct msg_t *)mmalloc(p->ns->allocator,
 					sizeof(struct msg_t));
 			msg->buf = (uint8_t *)mmalloc(p->ns->allocator,off);
 			bcopy(p->recvbuf.buf,msg->buf,off);
 			msg->len = off;
 			msg->peer_id = p->id;
-
 			
 			thread_mutex_lock(p->ns->recv_mutex);
 			BTPDQ_INSERT_TAIL(&p->ns->recv_queue, msg, msg_entry);  
