@@ -14,7 +14,7 @@ struct ev_state_t{
 struct msg_t {
 	uint32_t peer_id;
 	uint32_t len;
-	char *buf;
+	uint8_t *buf;
         BTPDQ_ENTRY(msg_t) msg_entry;
 };
 

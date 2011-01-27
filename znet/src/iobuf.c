@@ -88,7 +88,7 @@ iobuf_print(allocator_t *allocator,struct iobuf *iob, const char *fmt, ...)
     if (!iobuf_accommodate(allocator,iob, np + 1))
         return 0;
     va_start(ap, fmt);
-    vsnprintf(iob->buf + iob->off, np + 1, fmt, ap);
+    vsnprintf((char *)(iob->buf + iob->off), np + 1, fmt, ap);
     va_end(ap);
     iob->off += np;
     return 1;

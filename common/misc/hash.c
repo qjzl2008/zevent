@@ -128,7 +128,7 @@ unsigned int hashfunc_default(const char *char_key,int *klen)
 	const unsigned char *p;
 	int i;
 
-	if(*klen = HASH_KEY_STRING){
+	if(*klen == HASH_KEY_STRING){
 		for(p = key; *p ; p ++)
 		{
 			hash = hash * 33 + *p;
