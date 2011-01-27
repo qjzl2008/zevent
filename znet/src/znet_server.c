@@ -223,15 +223,17 @@ int ns_stop_daemon(net_server_t *ns)
 	free(ns);
 }
 
-int ns_sendmsg(net_server_t *ns,uint32_t id,void *msg,uint32_t len)
+int ns_sendmsg(net_server_t *ns,uint32_t peer_id,void *msg,uint32_t len)
 {
 	struct peer *p = NULL;
 	thread_mutex_lock(ns->ptbl_mutex);
-	p = ptbl_find(ns->ptbl,&id);
+	p = ptbl_find(ns->ptbl,&peer_id);
 	thread_mutex_unlock(ns->ptbl_mutex);
+
+	return 0;
 }
 
-int ns_recvmsg(net_server_t *ns,void **msg,uint32_t *len)
+int ns_recvmsg(net_server_t *ns,void **msg,uint32_t *len,uint32_t *peer_id)
 {
 	struct msg_t *message;
 	thread_mutex_lock(ns->recv_mutex);
@@ -243,6 +245,7 @@ int ns_recvmsg(net_server_t *ns,void **msg,uint32_t *len)
 	{
 		*msg = message->buf;
 		*len = message->len;
+		*peer_id = message->peer_id;
 		mfree(ns->allocator,message);
 		return 0;
 	}
