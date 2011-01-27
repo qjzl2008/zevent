@@ -226,9 +226,33 @@ int ns_stop_daemon(net_server_t *ns)
 int ns_sendmsg(net_server_t *ns,uint32_t peer_id,void *msg,uint32_t len)
 {
 	struct peer *p = NULL;
+	struct msg_t *message = NULL;
+	int enable_write = 0;
+
 	thread_mutex_lock(ns->ptbl_mutex);
 	p = ptbl_find(ns->ptbl,&peer_id);
 	thread_mutex_unlock(ns->ptbl_mutex);
+	if(!p)
+	{
+		return -1;
+	}
+	message = (struct msg_t *)mmalloc(p->allocator,
+			sizeof(struct msg_t));
+	message->buf = (uint8_t *)mmalloc(p->allocator,len);
+	bcopy((char *)msg,message->buf,len);
+	message->len = len;
+	message->peer_id = p->id;
+
+	thread_mutex_lock(p->sq_mutex);
+	if (BTPDQ_EMPTY(&p->send_queue)) {  
+		enable_write = 1;
+	}
+	BTPDQ_INSERT_TAIL(&p->send_queue, message, msg_entry);  
+	if(enable_write)
+	{
+		fdev_reenable(&p->ioev,EV_WRITE);
+	}
+	thread_mutex_unlock(p->sq_mutex);
 
 	return 0;
 }
