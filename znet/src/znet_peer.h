@@ -31,7 +31,7 @@ struct peer {
     long t_wantwrite;
 
     HTBL_ENTRY(chain);
-    uint16_t flags;
+    volatile uint16_t flags;
     uint32_t id;
 };
 

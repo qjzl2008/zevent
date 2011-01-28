@@ -75,12 +75,12 @@ fdev_disable(struct fdev *ev, uint16_t flags)
 }
 
 //for EPOLLONESHOT
-int fdev_reenable(struct fdev *ev,uint16_t flags)
+int fdev_mod(struct fdev *ev,uint16_t flags)
 {
 	struct epoll_event epev;
 	int err = 0;
 	epev.data.ptr = ev;
-	ev->flags |= flags;
+	ev->flags = flags;
 	epev.events =
 		((ev->flags & EV_READ) ? EPOLLIN : 0) |
 		((ev->flags & EV_WRITE) ? EPOLLOUT : 0) /*| EPOLLET*/ |  EPOLLONESHOT;
@@ -124,13 +124,16 @@ evloop(int *endgame)
         }
         for (i = 0; i < nev; i++) {
             struct fdev *ev = m_evs[i].data.ptr;
+	    short type = 0;
             if ((m_valid[i] &&
                     ev->flags & EV_READ &&
                     m_evs[i].events & (EPOLLIN|EPOLLERR|EPOLLHUP)))
-                ev->cb(ev->fd, EV_READ, ev->arg);
+		    type |= EV_READ;
+                //ev->cb(ev->fd, EV_READ, ev->arg);
             if ((m_valid[i] && ev->flags & EV_WRITE &&
                     m_evs[i].events & (EPOLLOUT|EPOLLERR|EPOLLHUP)))
-                ev->cb(ev->fd, EV_WRITE, ev->arg);
+		    type |= EV_WRITE;
+            ev->cb(ev->fd, type, ev->arg);
             if (m_valid[i])
                 ev->index = -1;
         }

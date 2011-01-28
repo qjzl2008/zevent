@@ -244,14 +244,18 @@ int ns_sendmsg(net_server_t *ns,uint32_t peer_id,void *msg,uint32_t len)
 	message->peer_id = p->id;
 
 	thread_mutex_lock(p->sq_mutex);
-	if (BTPDQ_EMPTY(&p->send_queue)) {  
+
+	if (p->sendbuf.off <=0 && BTPDQ_EMPTY(&p->send_queue)) {  
 		enable_write = 1;
 	}
+
 	BTPDQ_INSERT_TAIL(&p->send_queue, message, msg_entry);  
 	if(enable_write)
 	{
-		fdev_reenable(&p->ioev,EV_WRITE);
+		uint16_t flags = EV_WRITE;
+		fdev_mod(&p->ioev,flags);
 	}
+
 	thread_mutex_unlock(p->sq_mutex);
 
 	return 0;

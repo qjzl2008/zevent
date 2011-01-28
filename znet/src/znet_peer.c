@@ -7,6 +7,7 @@
 #include "common/include/allocator.h"
 
 #define BUF_SIZE (4096)
+#define MAX_SENDBUF (1452)
 
 static void net_io_cb(int sd, short type, void *arg)
 {	
@@ -58,6 +59,9 @@ static void peer_read_cb(const ev_state_t *ev)
 	int need_kill = 0;
 	char buf[BUF_SIZE];
 	struct peer *p = (struct peer *)ev->arg;
+	if(p->flags & EV_READ)
+		return;
+	p->flags |= EV_READ;
 
 	rv = read(p->sd,buf,BUF_SIZE);
 	while((rv > 0) || (rv < 0 && errno == EINTR))
@@ -115,15 +119,69 @@ static void peer_read_cb(const ev_state_t *ev)
 		peer_kill(p);
 	else
 	{
-		fdev_reenable(&p->ioev,EV_READ);
+		fdev_mod(&p->ioev,EV_READ);
+		p->flags &= ~EV_READ;
 	}
 }
 
 static void peer_write_cb(const ev_state_t *ev)
 {
+	int rv;
 	struct peer *p = (struct peer *)ev->arg;
+	if(p->flags & EV_WRITE)
+		return;
+	p->flags |= EV_WRITE;
+
+	struct msg_t *msg = NULL,*next = NULL;
+
+	thread_mutex_lock(p->sq_mutex);
+	msg = BTPDQ_FIRST(&p->send_queue);
+	//拼包
+	while(msg && p->sendbuf.off < MAX_SENDBUF){
+		next = BTPDQ_NEXT(msg,msg_entry);
+		BTPDQ_REMOVE(&p->send_queue,msg,msg_entry);
+
+		iobuf_write(p->allocator,&p->sendbuf,msg->buf,msg->len);
+		mfree(p->allocator,msg->buf);
+		mfree(p->allocator,msg);
+		msg = next;
+	}
+	thread_mutex_unlock(p->sq_mutex);
+
+	if(p->sendbuf.off <= 0)
+		return;
+	rv = write(p->sd,p->sendbuf.buf,p->sendbuf.off);
+	while((rv >= 0) || (rv < 0 && errno == EINTR))
+	{
+		if(rv > 0)
+			iobuf_consumed(&p->sendbuf,rv);
+		if(p->sendbuf.off <= 0)
+			break;
+		rv = write(p->sd,p->sendbuf.buf,p->sendbuf.off);
+	}
+	if(rv < 0 && errno != EAGAIN)
+	{
+		peer_kill(p);
+		return;
+	}
+
+	p->flags &=~EV_WRITE;
+
 	//EPOLLONESHOT所以需要修改
-	fdev_reenable(&p->ioev,EV_WRITE);
+	//此处需谨慎啊 不可多次加入EV_READ
+	thread_mutex_lock(p->sq_mutex);
+	uint16_t flags = (p->flags & EV_READ) ? 0:EV_READ;
+	if(!BTPDQ_EMPTY(&p->send_queue) || p->sendbuf.off > 0)
+	{
+		flags |= EV_WRITE;
+	}
+	if(flags > 0)
+	{
+		fdev_mod(&p->ioev,flags);
+	}
+	thread_mutex_unlock(p->sq_mutex);
+
+	return;
 }
 
 int peer_io_process(const ev_state_t *ev)
