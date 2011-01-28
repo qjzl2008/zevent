@@ -66,7 +66,6 @@ static void peer_read_cb(const ev_state_t *ev)
 	char buf[BUF_SIZE];
 	struct peer *p = (struct peer *)ev->arg;
 
-	printf("read cb\n");
 	rv = thread_mutex_trylock(p->recv_mutex);
 	if(rv!=0)
 	{
@@ -140,7 +139,6 @@ static void peer_write_cb(const ev_state_t *ev)
 	int rv;
 	struct peer *p = (struct peer *)ev->arg;
 
-	printf("write cb\n");
 	rv = thread_mutex_trylock(p->send_mutex);
 	if(rv!=0)
 	{
