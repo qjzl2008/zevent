@@ -94,11 +94,6 @@ static void peer_read_cb(const ev_state_t *ev)
 		peer_kill(p);
 		return;
 	}
-	if(rv<0)
-	{
-		printf("rv:-1,EAGAIN\n");
-	}
-	
 
 	uint32_t off = 0;
 	if(p->ns->func && p->recvbuf.off > 0)
@@ -128,25 +123,6 @@ static void peer_read_cb(const ev_state_t *ev)
 	}
 	if(need_kill)
 		peer_kill(p);
-	/*
-	else
-	{
-		//EPOLLONESHOT所以需要修改
-		thread_mutex_lock(p->sq_mutex);
-		uint16_t flags = EV_READ;
-		if(!BTPDQ_EMPTY(&p->send_queue) || p->sendbuf.off > 0)
-		{
-			if(!(p->flags & EV_WRITE))
-				flags |= EV_WRITE;
-		}
-		if(flags > 0)
-		{
-			printf("flags:%d\n",flags);
-			fdev_mod(&p->ioev,flags);
-		}
-		thread_mutex_unlock(p->sq_mutex);
-
-	}*/
 
 	p->flags &= ~EV_READ;
 }
@@ -182,7 +158,6 @@ static void peer_write_cb(const ev_state_t *ev)
 
 	if(p->sendbuf.off <= 0)
 	{
-		printf("off<=0\n");
 	        p->flags &=~EV_WRITE;
 		return;
 	}
@@ -201,16 +176,10 @@ static void peer_write_cb(const ev_state_t *ev)
 		return;
 	}
 
-	//EPOLLONESHOT所以需要修改
-	//此处需谨慎啊 不可多次加入EV_READ
 	thread_mutex_lock(p->sq_mutex);
 	if(BTPDQ_EMPTY(&p->send_queue) && p->sendbuf.off <= 0)
 	{
-		printf("disable write\n");
 		fdev_disable(&p->ioev,EV_WRITE);
-		//flags |= EV_WRITE;
-		//printf("flags:%d\n",flags);
-		//fdev_mod(&p->ioev,flags);
 	}
 	thread_mutex_unlock(p->sq_mutex);
 

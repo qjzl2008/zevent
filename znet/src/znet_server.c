@@ -252,7 +252,6 @@ int ns_sendmsg(net_server_t *ns,uint32_t peer_id,void *msg,uint32_t len)
 	BTPDQ_INSERT_TAIL(&p->send_queue, message, msg_entry);  
 	if(enable_write)
 	{
-		printf("enable write\n");
 		fdev_enable(&p->ioev,EV_WRITE);
 	}
 
