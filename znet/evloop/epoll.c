@@ -40,11 +40,8 @@ fdev_enable(struct fdev *ev, uint16_t flags)
     if (sf != ev->flags) {
         epev.data.ptr = ev;
         epev.events =
-            (((ev->flags & EV_READ) || (ev->flags & EV_ACCEPT)) ? EPOLLIN : 0) |
-            ((ev->flags & EV_WRITE) ? EPOLLOUT : 0) /*| EPOLLET*/;
-
-	if(!(ev->flags & EV_ACCEPT))
-		epev.events |= EPOLLONESHOT;
+            ((ev->flags & EV_READ) ? EPOLLIN : 0) |
+            ((ev->flags & EV_WRITE) ? EPOLLOUT : 0) | EPOLLET;
 
         if (sf == 0)
             err = epoll_ctl(m_epfd, EPOLL_CTL_ADD, ev->fd, &epev);
@@ -65,7 +62,7 @@ fdev_disable(struct fdev *ev, uint16_t flags)
         epev.data.ptr = ev;
         epev.events =
             ((ev->flags & EV_READ) ? EPOLLIN : 0) |
-            ((ev->flags & EV_WRITE) ? EPOLLOUT : 0);
+            ((ev->flags & EV_WRITE) ? EPOLLOUT : 0) | EPOLLET;
         if (ev->flags == 0)
             err = epoll_ctl(m_epfd, EPOLL_CTL_DEL, ev->fd, &epev);
         else

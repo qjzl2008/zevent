@@ -102,7 +102,7 @@ static int start_listen(net_server_t *ns,const ns_arg_t *ns_arg)
 	rv = listen(fd,100);
 	set_nonblocking(fd);
 	ns->fd = fd;
-	fdev_new(&ns->ev,fd,EV_ACCEPT | EV_READ,net_connection_cb,ns);
+	fdev_new(&ns->ev,fd,EV_READ,net_connection_cb,ns);
 	return 0;
 }
 
@@ -252,10 +252,8 @@ int ns_sendmsg(net_server_t *ns,uint32_t peer_id,void *msg,uint32_t len)
 	BTPDQ_INSERT_TAIL(&p->send_queue, message, msg_entry);  
 	if(enable_write)
 	{
-
-	        uint16_t flags = (p->flags & EV_READ) ? 0:EV_READ;
-		flags |= (p->flags & EV_WRITE) ? 0:EV_WRITE;
-		fdev_mod(&p->ioev,flags);
+		printf("enable write\n");
+		fdev_enable(&p->ioev,EV_WRITE);
 	}
 
 	thread_mutex_unlock(p->sq_mutex);

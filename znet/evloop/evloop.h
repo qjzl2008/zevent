@@ -9,7 +9,6 @@
 #define EV_READ    1//0x01
 #define EV_WRITE   2//0x02
 #define EV_TIMEOUT 4//0x04
-#define EV_ACCEPT  8//0x08
 
 typedef void (*evloop_cb_t)(int fd, short type, void *arg);
 

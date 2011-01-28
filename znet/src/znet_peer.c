@@ -13,6 +13,7 @@
 static void net_io_cb(int sd, short type, void *arg)
 {	
 	struct peer *p = (struct peer *)arg;
+
 	ev_state_t *ev = (ev_state_t *)mmalloc(p->ns->allocator,
 			sizeof(ev_state_t));
 	ev->fd = sd;
@@ -74,8 +75,8 @@ static void peer_read_cb(const ev_state_t *ev)
 	{
 		if(rv > 0)
 			iobuf_write(p->allocator,&p->recvbuf,buf,rv);
-		if(rv == BUF_SIZE)//分段处理
-			break;
+		/*if(rv == BUF_SIZE)//分段处理
+			break;*/
 		rv = read(p->sd,buf,BUF_SIZE);
 	}
 	if(rv == 0)
@@ -92,6 +93,10 @@ static void peer_read_cb(const ev_state_t *ev)
 	{
 		peer_kill(p);
 		return;
+	}
+	if(rv<0)
+	{
+		printf("rv:-1,EAGAIN\n");
 	}
 	
 
@@ -121,9 +126,9 @@ static void peer_read_cb(const ev_state_t *ev)
 			
 		}
 	}
-	//EPOLLONESHOT所以需要修改
 	if(need_kill)
 		peer_kill(p);
+	/*
 	else
 	{
 		//EPOLLONESHOT所以需要修改
@@ -136,12 +141,14 @@ static void peer_read_cb(const ev_state_t *ev)
 		}
 		if(flags > 0)
 		{
+			printf("flags:%d\n",flags);
 			fdev_mod(&p->ioev,flags);
 		}
 		thread_mutex_unlock(p->sq_mutex);
 
-		p->flags &= ~EV_READ;
-	}
+	}*/
+
+	p->flags &= ~EV_READ;
 }
 
 static void peer_write_cb(const ev_state_t *ev)
@@ -174,7 +181,11 @@ static void peer_write_cb(const ev_state_t *ev)
 	thread_mutex_unlock(p->sq_mutex);
 
 	if(p->sendbuf.off <= 0)
+	{
+		printf("off<=0\n");
+	        p->flags &=~EV_WRITE;
 		return;
+	}
 	rv = write(p->sd,p->sendbuf.buf,p->sendbuf.off);
 	while((rv >= 0) || (rv < 0 && errno == EINTR))
 	{
@@ -190,21 +201,20 @@ static void peer_write_cb(const ev_state_t *ev)
 		return;
 	}
 
-	p->flags &=~EV_WRITE;
-
 	//EPOLLONESHOT所以需要修改
 	//此处需谨慎啊 不可多次加入EV_READ
 	thread_mutex_lock(p->sq_mutex);
-	uint16_t flags = (p->flags & EV_READ) ? 0:EV_READ;
-	if(!BTPDQ_EMPTY(&p->send_queue) || p->sendbuf.off > 0)
+	if(BTPDQ_EMPTY(&p->send_queue) && p->sendbuf.off <= 0)
 	{
-		flags |= EV_WRITE;
-	}
-	if(flags > 0)
-	{
-		fdev_mod(&p->ioev,flags);
+		printf("disable write\n");
+		fdev_disable(&p->ioev,EV_WRITE);
+		//flags |= EV_WRITE;
+		//printf("flags:%d\n",flags);
+		//fdev_mod(&p->ioev,flags);
 	}
 	thread_mutex_unlock(p->sq_mutex);
+
+	p->flags &=~EV_WRITE;
 
 	return;
 }
