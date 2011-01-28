@@ -50,6 +50,10 @@ int peer_create_in(int fd,struct sockaddr_in addr,struct net_server_t *ns)
 	ptbl_insert(ns->ptbl,p);
 	ns->npeers++;
 	thread_mutex_unlock(ns->ptbl_mutex);
+
+
+	thread_mutex_create(&(p->send_mutex),0);
+	thread_mutex_create(&(p->recv_mutex),0);
 	
 	fdev_new(&p->ioev,fd,EV_READ,net_io_cb,p);
 	return 0;
@@ -63,20 +67,24 @@ static void peer_read_cb(const ev_state_t *ev)
 	struct peer *p = (struct peer *)ev->arg;
 
 	printf("read cb\n");
-	if(p->flags & EV_READ)
+	rv = thread_mutex_trylock(p->recv_mutex);
+	if(rv!=0)
 	{
-		printf("read herer\n");
 		return;
 	}
-	p->flags |= EV_READ;
 
 	rv = read(p->sd,buf,BUF_SIZE);
 	while((rv > 0) || (rv < 0 && errno == EINTR))
 	{
 		if(rv > 0)
 			iobuf_write(p->allocator,&p->recvbuf,buf,rv);
-		/*if(rv == BUF_SIZE)//分段处理
-			break;*/
+		if(rv == BUF_SIZE)//分段处理,防止饥饿
+		{
+			//看似奇怪的处理,对于ET模式的需要
+			fdev_disable(&p->ioev,EV_READ);
+			fdev_enable(&p->ioev,EV_READ);
+			break;
+		}
 		rv = read(p->sd,buf,BUF_SIZE);
 	}
 	if(rv == 0)
@@ -105,7 +113,7 @@ static void peer_read_cb(const ev_state_t *ev)
 				peer_kill(p);
 				return;
 			}
-			
+
 			struct msg_t *msg = (struct msg_t *)mmalloc(p->ns->allocator,
 					sizeof(struct msg_t));
 			msg->buf = (uint8_t *)mmalloc(p->ns->allocator,off);
@@ -124,7 +132,7 @@ static void peer_read_cb(const ev_state_t *ev)
 	if(need_kill)
 		peer_kill(p);
 
-	p->flags &= ~EV_READ;
+	thread_mutex_unlock(p->recv_mutex);
 }
 
 static void peer_write_cb(const ev_state_t *ev)
@@ -133,18 +141,17 @@ static void peer_write_cb(const ev_state_t *ev)
 	struct peer *p = (struct peer *)ev->arg;
 
 	printf("write cb\n");
-	if(p->flags & EV_WRITE)
+	rv = thread_mutex_trylock(p->send_mutex);
+	if(rv!=0)
 	{
-		printf("write herer\n");
 		return;
 	}
-	p->flags |= EV_WRITE;
 
 	struct msg_t *msg = NULL,*next = NULL;
 
 	thread_mutex_lock(p->sq_mutex);
 	msg = BTPDQ_FIRST(&p->send_queue);
-	//拼包
+	//拼包,分批防止饥饿
 	while(msg && p->sendbuf.off < MAX_SENDBUF){
 		next = BTPDQ_NEXT(msg,msg_entry);
 		BTPDQ_REMOVE(&p->send_queue,msg,msg_entry);
@@ -158,7 +165,8 @@ static void peer_write_cb(const ev_state_t *ev)
 
 	if(p->sendbuf.off <= 0)
 	{
-	        p->flags &=~EV_WRITE;
+		fdev_disable(&p->ioev,EV_WRITE);
+		thread_mutex_unlock(p->send_mutex);
 		return;
 	}
 	rv = write(p->sd,p->sendbuf.buf,p->sendbuf.off);
@@ -181,9 +189,15 @@ static void peer_write_cb(const ev_state_t *ev)
 	{
 		fdev_disable(&p->ioev,EV_WRITE);
 	}
-	thread_mutex_unlock(p->sq_mutex);
+	else
+	{
+		//看似奇怪的处理,对于ET模式的需要
+		fdev_disable(&p->ioev,EV_WRITE);
+		fdev_enable(&p->ioev,EV_WRITE);
+	}
 
-	p->flags &=~EV_WRITE;
+	thread_mutex_unlock(p->sq_mutex);
+	thread_mutex_unlock(p->send_mutex);
 
 	return;
 }
@@ -212,6 +226,9 @@ int peer_kill(struct peer *p)
 	//free send queue
 	thread_mutex_destroy(p->mpool_mutex);
 	thread_mutex_destroy(p->sq_mutex);
+
+	thread_mutex_destroy(p->send_mutex);
+	thread_mutex_destroy(p->recv_mutex);
 	allocator_destroy(p->allocator);
 
 	thread_mutex_lock(p->ns->ptbl_mutex);

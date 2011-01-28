@@ -18,7 +18,9 @@ struct peer {
     struct thread_mutex_t *sq_mutex;
 
     struct iobuf sendbuf;
+    struct thread_mutex_t *send_mutex;
     struct iobuf recvbuf;
+    struct thread_mutex_t *recv_mutex;
 
     struct allocator_t *allocator;
     struct thread_mutex_t *mpool_mutex;
