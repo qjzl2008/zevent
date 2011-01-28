@@ -60,7 +60,9 @@ static void peer_read_cb(const ev_state_t *ev)
 	char buf[BUF_SIZE];
 	struct peer *p = (struct peer *)ev->arg;
 	if(p->flags & EV_READ)
+	{
 		return;
+	}
 	p->flags |= EV_READ;
 
 	rv = read(p->sd,buf,BUF_SIZE);
