@@ -15,7 +15,7 @@ class connector(threading.Thread):
 		n = 0;
 		while(True):
 			count = 0
-			while(count < 10):
+			while(count < 20):
 				self.sock.send("teststring")
 			        rstr = self.sock.recv(10)
 				#print 'received: ',rstr
@@ -31,7 +31,7 @@ class connector(threading.Thread):
 if __name__ == '__main__':
     cnlist = []
     i = 0
-    while i<100:
+    while i<1:
         cn = connector(i)
         cn.start()
         cnlist.append(cn)

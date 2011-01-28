@@ -124,16 +124,13 @@ evloop(int *endgame)
         }
         for (i = 0; i < nev; i++) {
             struct fdev *ev = m_evs[i].data.ptr;
-	    short type = 0;
             if ((m_valid[i] &&
                     ev->flags & EV_READ &&
                     m_evs[i].events & (EPOLLIN|EPOLLERR|EPOLLHUP)))
-		    type |= EV_READ;
-                //ev->cb(ev->fd, EV_READ, ev->arg);
+                ev->cb(ev->fd, EV_READ, ev->arg);
             if ((m_valid[i] && ev->flags & EV_WRITE &&
                     m_evs[i].events & (EPOLLOUT|EPOLLERR|EPOLLHUP)))
-		    type |= EV_WRITE;
-            ev->cb(ev->fd, type, ev->arg);
+                ev->cb(ev->fd, EV_WRITE, ev->arg);
             if (m_valid[i])
                 ev->index = -1;
         }

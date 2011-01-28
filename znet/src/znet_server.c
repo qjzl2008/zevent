@@ -254,7 +254,7 @@ int ns_sendmsg(net_server_t *ns,uint32_t peer_id,void *msg,uint32_t len)
 	{
 
 	        uint16_t flags = (p->flags & EV_READ) ? 0:EV_READ;
-		flags |= EV_WRITE;
+		flags |= (p->flags & EV_WRITE) ? 0:EV_WRITE;
 		fdev_mod(&p->ioev,flags);
 	}
 

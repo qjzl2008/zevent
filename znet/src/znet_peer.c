@@ -1,4 +1,5 @@
 #include <unistd.h>
+#include <stdio.h>
 #include <errno.h>
 #include <string.h>
 #include "queue.h"
@@ -61,6 +62,7 @@ static void peer_read_cb(const ev_state_t *ev)
 	struct peer *p = (struct peer *)ev->arg;
 	if(p->flags & EV_READ)
 	{
+		printf("read here\n");
 		return;
 	}
 	p->flags |= EV_READ;
@@ -89,6 +91,7 @@ static void peer_read_cb(const ev_state_t *ev)
 		peer_kill(p);
 		return;
 	}
+	
 
 	uint32_t off = 0;
 	if(p->ns->func && p->recvbuf.off > 0)
@@ -121,7 +124,20 @@ static void peer_read_cb(const ev_state_t *ev)
 		peer_kill(p);
 	else
 	{
-		fdev_mod(&p->ioev,EV_READ);
+		//EPOLLONESHOT所以需要修改
+		thread_mutex_lock(p->sq_mutex);
+		uint16_t flags = EV_READ;
+		if(!BTPDQ_EMPTY(&p->send_queue) || p->sendbuf.off > 0)
+		{
+			if(!(p->flags & EV_WRITE))
+				flags |= EV_WRITE;
+		}
+		if(flags > 0)
+		{
+			fdev_mod(&p->ioev,flags);
+		}
+		thread_mutex_unlock(p->sq_mutex);
+
 		p->flags &= ~EV_READ;
 	}
 }
@@ -131,7 +147,10 @@ static void peer_write_cb(const ev_state_t *ev)
 	int rv;
 	struct peer *p = (struct peer *)ev->arg;
 	if(p->flags & EV_WRITE)
+	{
+		printf("write here\n");
 		return;
+	}
 	p->flags |= EV_WRITE;
 
 	struct msg_t *msg = NULL,*next = NULL;
