@@ -60,9 +60,11 @@ static void peer_read_cb(const ev_state_t *ev)
 	int need_kill = 0;
 	char buf[BUF_SIZE];
 	struct peer *p = (struct peer *)ev->arg;
+
+	printf("read cb\n");
 	if(p->flags & EV_READ)
 	{
-		printf("read here\n");
+		printf("read herer\n");
 		return;
 	}
 	p->flags |= EV_READ;
@@ -146,9 +148,11 @@ static void peer_write_cb(const ev_state_t *ev)
 {
 	int rv;
 	struct peer *p = (struct peer *)ev->arg;
+
+	printf("write cb\n");
 	if(p->flags & EV_WRITE)
 	{
-		printf("write here\n");
+		printf("write herer\n");
 		return;
 	}
 	p->flags |= EV_WRITE;

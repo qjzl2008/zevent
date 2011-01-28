@@ -12,7 +12,7 @@ int main()
 	sinfo.func = NULL;
 	strcpy(sinfo.ip,"127.0.0.1");
 	sinfo.port = 8899;
-	sinfo.nworkers = 6;
+	sinfo.nworkers = 1;
 	ns_start_daemon(&ns,&sinfo);
 	void *msg;uint32_t len;
 	char buf[256];
