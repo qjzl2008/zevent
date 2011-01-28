@@ -31,7 +31,7 @@ class connector(threading.Thread):
 if __name__ == '__main__':
     cnlist = []
     i = 0
-    while i<10:
+    while i<100:
         cn = connector(i)
         cn.start()
         cnlist.append(cn)
