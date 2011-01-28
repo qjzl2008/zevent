@@ -15,7 +15,7 @@ class connector(threading.Thread):
 		n = 0;
 		while(True):
 			count = 0
-			while(count < 10):
+			while(count < 30):
 				self.sock.send("0123456789")
 			        rstr = self.sock.recv(10)
 				#print rstr
