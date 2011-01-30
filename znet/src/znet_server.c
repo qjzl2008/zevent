@@ -132,10 +132,16 @@ static void* start_threads(void *arg)
 
 static int default_process_func(uint8_t *buf,uint32_t len,uint32_t *off)
 {
-	if(len < 10)
+	uint32_t msg_len = dec_be32(buf);
+	if(len < msg_len)
+	{
 		return -1;
-	*off = 10;
-	return 0;
+	}
+	else
+	{
+		*off = msg_len;
+		return 0;
+	}
 }
 
 //server interface
