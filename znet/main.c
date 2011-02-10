@@ -38,8 +38,6 @@ int main()
 			//printf("count:%d,%u\n",count,time(NULL));
 			ns_free(ns,msg);
 		}
-		if(count > 100000)
-			break;
 	}
 	ns_stop_daemon(ns);
 	return 0;
