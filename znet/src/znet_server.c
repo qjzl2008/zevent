@@ -138,7 +138,7 @@ int ns_start_daemon(net_server_t **ns,const ns_arg_t *ns_arg)
 
         (*ns)->allocator = allocator;
 
-	if (((*ns)->ptbl = ptbl_create(33, id_eq, id_hash)) == NULL)
+	if (((*ns)->ptbl = ptbl_create(3, id_eq, id_hash)) == NULL)
 	{
 		free(*ns);
 		return -1;
