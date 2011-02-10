@@ -4,15 +4,8 @@
 #include <stdint.h>
 #include "mqueue.h"
 
-typedef struct ev_state_t ev_state_t;
-struct ev_state_t{
-	int fd;
-	short ev_type;
-	void *arg;
-};
-
 struct msg_t {
-	uint32_t peer_id;
+	uint64_t peer_id;
 	uint32_t len;
 	uint8_t *buf;
         BTPDQ_ENTRY(msg_t) msg_entry;

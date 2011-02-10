@@ -125,13 +125,13 @@ bin2hex(const uint8_t *bin, char *hex, size_t bsize)
 
 int id_eq(const void *k1, const void *k2)
 {
-	return *(uint32_t *)k1 == *(uint32_t *)k2;
+	return *(uint64_t *)k1 == *(uint64_t *)k2;
 }
 
-uint32_t
+uint64_t
 id_hash(const void *k)                                                                    
 {
-	return *(uint32_t *)k;
+	return *(uint64_t *)k;
 }
 
 int

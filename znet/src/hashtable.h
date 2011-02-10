@@ -14,7 +14,7 @@ struct htbl_iter {
 
 struct _htbl *_htbl_create(float ratio,
     int (*equal)(const void *, const void *),
-    uint32_t (*hash)(const void *), size_t keyoff, size_t chainoff);
+    uint64_t (*hash)(const void *), size_t keyoff, size_t chainoff);
 void _htbl_free(struct _htbl *tbl);
 void _htbl_insert(struct _htbl *tbl, struct _any *o);
 struct _any *_htbl_remove(struct _htbl *tbl, const void *key);
@@ -31,7 +31,7 @@ struct _any *_htbl_iter_del(struct htbl_iter *it);
 #define HTBL_TYPE(name, type, ktype, kname, cname) \
 __attribute__((always_inline)) static inline struct name * \
 name##_create(float ratio, int (*equal)(const void *, const void *), \
-    uint32_t (*hash)(const void *)) \
+    uint64_t (*hash)(const void *)) \
 { \
     return (struct name *) \
         _htbl_create(ratio, equal, hash, offsetof(struct type, kname), \

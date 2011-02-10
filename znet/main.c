@@ -12,7 +12,7 @@ int main()
 	sinfo.func = NULL;
 	strcpy(sinfo.ip,"127.0.0.1");
 	sinfo.port = 8899;
-	sinfo.nworkers = 6;
+	sinfo.max_peers = 1000;
 	ns_start_daemon(&ns,&sinfo);
 	void *msg;uint32_t len;
 	char buf[256];
@@ -21,7 +21,7 @@ int main()
 
 
 	struct timeval delay;
-	uint32_t peer_id;
+	uint64_t peer_id;
 
 	while(1)
 	{
@@ -33,10 +33,13 @@ int main()
 		{
 			memcpy(buf,(char *)msg,len);
 			ns_sendmsg(ns,peer_id,buf,len);
+			//ns_disconnect(ns,peer_id);
 			++count;
 			//printf("count:%d,%u\n",count,time(NULL));
 			ns_free(ns,msg);
 		}
+		if(count > 100000)
+			break;
 	}
 	ns_stop_daemon(ns);
 	return 0;

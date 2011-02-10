@@ -18,6 +18,7 @@ struct net_server_t {
     unsigned long long uploaded, downloaded;
 
     unsigned npeers;
+    unsigned max_peers;
 
     struct ptbl *ptbl;//peer hash table
     struct thread_mutex_t *ptbl_mutex;
@@ -25,12 +26,8 @@ struct net_server_t {
     struct msg_tq recv_queue;
     struct thread_mutex_t *recv_mutex;
 
-    queue_t *fd_queue;//epoll事件队列
-
     pthread_t td_start;
     pthread_t td_evloop;
-    pthread_t td_workers[MAX_WORKERS];
-    int nworkers;
 
     data_process_fp func;
 

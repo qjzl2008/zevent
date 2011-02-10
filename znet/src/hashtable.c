@@ -5,7 +5,7 @@
 
 struct _htbl {
     int (*eq)(const void *, const void *);
-    uint32_t (*hash)(const void *);
+    uint64_t (*hash)(const void *);
     struct _any **buckets;
     size_t buckcnt;
     size_t size;
@@ -19,7 +19,7 @@ struct _htbl {
 
 struct _htbl *
 _htbl_create(float ratio, int (*eq)(const void *, const void *),
-    uint32_t (*hash)(const void *), size_t keyoff, size_t chainoff)
+    uint64_t (*hash)(const void *), size_t keyoff, size_t chainoff)
 {
     struct _htbl *tbl = calloc(1, sizeof(*tbl));
     if (tbl == NULL)

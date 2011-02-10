@@ -1,4 +1,6 @@
 #include <unistd.h>
+#include <time.h>
+#include <limits.h>
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
@@ -10,17 +12,29 @@
 #define BUF_SIZE (4096)
 #define MAX_SENDBUF (1452)
 
-static void net_io_cb(int sd, short type, void *arg)
-{	
-	struct peer *p = (struct peer *)arg;
-
-	ev_state_t *ev = (ev_state_t *)mmalloc(p->ns->allocator,
-			sizeof(ev_state_t));
-	ev->fd = sd;
-	ev->ev_type = type;
-	ev->arg = arg;
-	
-	queue_push(p->ns->fd_queue,ev);
+static void net_io_cb(int sd, short type, void *arg);
+/**
+ *这里我们假设服务器从退出到重新启动时间间隔超过1s，否则下面的生成方法
+ *需要修改
+ */
+static int gen_peerid(struct net_server_t *ns,uint64_t *peer_id)
+{
+	static time_t tm_last;
+	static uint32_t fudge;
+	time_t tm_now = time(NULL);
+	if(tm_last != tm_now)
+	{
+		fudge = 0;
+		tm_last = tm_now;
+	}
+	else
+	{
+		if(fudge >= UINT_MAX - 1)
+			return -1;
+		++fudge;
+	}
+	*peer_id = ((uint64_t)tm_now)<<32 | fudge;
+	return 0;
 }
 
 int peer_create_in(int fd,struct sockaddr_in addr,struct net_server_t *ns)
@@ -32,7 +46,9 @@ int peer_create_in(int fd,struct sockaddr_in addr,struct net_server_t *ns)
 	struct peer *p = (struct peer *)mmalloc(ns->allocator,sizeof(struct peer));
 	memset(p,0,sizeof(struct peer));
 	p->sd = fd;
-	p->id = fd;
+	gen_peerid(ns,&p->id);
+	p->refcount = 0;
+	p->status = PEER_CONNECTED;
 	p->ns = ns;
 	p->addr = addr;
 	p->allocator = allocator;
@@ -51,26 +67,15 @@ int peer_create_in(int fd,struct sockaddr_in addr,struct net_server_t *ns)
 	ns->npeers++;
 	thread_mutex_unlock(ns->ptbl_mutex);
 
-
-	thread_mutex_create(&(p->send_mutex),0);
-	thread_mutex_create(&(p->recv_mutex),0);
-	
 	fdev_new(&p->ioev,fd,EV_READ,net_io_cb,p);
 	return 0;
 }
 
-static void peer_read_cb(const ev_state_t *ev)
+static int peer_read_cb(struct peer *p)
 {
 	ssize_t rv;
 	int need_kill = 0;
 	char buf[BUF_SIZE];
-	struct peer *p = (struct peer *)ev->arg;
-
-	rv = thread_mutex_trylock(p->recv_mutex);
-	if(rv!=0)
-	{
-		return;
-	}
 
 	rv = read(p->sd,buf,BUF_SIZE);
 	while((rv > 0) || (rv < 0 && errno == EINTR))
@@ -79,9 +84,6 @@ static void peer_read_cb(const ev_state_t *ev)
 			iobuf_write(p->allocator,&p->recvbuf,buf,rv);
 		if(rv == BUF_SIZE)//分段处理,防止饥饿
 		{
-			//看似奇怪的处理,对于ET模式的需要
-			fdev_disable(&p->ioev,EV_READ);
-			fdev_enable(&p->ioev,EV_READ);
 			break;
 		}
 		rv = read(p->sd,buf,BUF_SIZE);
@@ -90,16 +92,14 @@ static void peer_read_cb(const ev_state_t *ev)
 	{
 		if(p->recvbuf.off <=0)
 		{
-			peer_kill(p);
-			return;
+			return -1;
 		}
 		else
 			need_kill = 1;
 	}
 	if(rv < 0 && errno != EAGAIN)
 	{
-		peer_kill(p);
-		return;
+		return -1;
 	}
 
 	uint32_t off = 0;
@@ -109,8 +109,7 @@ static void peer_read_cb(const ev_state_t *ev)
 		{
 			if(off > p->recvbuf.off)
 			{
-				peer_kill(p);
-				return;
+				return -1;
 			}
 
 			struct msg_t *msg = (struct msg_t *)mmalloc(p->ns->allocator,
@@ -129,21 +128,15 @@ static void peer_read_cb(const ev_state_t *ev)
 		}
 	}
 	if(need_kill)
-		peer_kill(p);
-
-	thread_mutex_unlock(p->recv_mutex);
+	{
+		return -1;
+	}
+	return 0;
 }
 
-static void peer_write_cb(const ev_state_t *ev)
+static int peer_write_cb(struct peer *p)
 {
 	int rv;
-	struct peer *p = (struct peer *)ev->arg;
-
-	rv = thread_mutex_trylock(p->send_mutex);
-	if(rv!=0)
-	{
-		return;
-	}
 
 	struct msg_t *msg = NULL,*next = NULL;
 
@@ -164,8 +157,7 @@ static void peer_write_cb(const ev_state_t *ev)
 	if(p->sendbuf.off <= 0)
 	{
 		fdev_disable(&p->ioev,EV_WRITE);
-		thread_mutex_unlock(p->send_mutex);
-		return;
+		return 0;
 	}
 	rv = write(p->sd,p->sendbuf.buf,p->sendbuf.off);
 	while((rv >= 0) || (rv < 0 && errno == EINTR))
@@ -178,8 +170,7 @@ static void peer_write_cb(const ev_state_t *ev)
 	}
 	if(rv < 0 && errno != EAGAIN)
 	{
-		peer_kill(p);
-		return;
+		return -1;
 	}
 
 	thread_mutex_lock(p->sq_mutex);
@@ -187,53 +178,71 @@ static void peer_write_cb(const ev_state_t *ev)
 	{
 		fdev_disable(&p->ioev,EV_WRITE);
 	}
-	else
-	{
-		//看似奇怪的处理,对于ET模式的需要
-		fdev_disable(&p->ioev,EV_WRITE);
-		fdev_enable(&p->ioev,EV_WRITE);
-	}
-
 	thread_mutex_unlock(p->sq_mutex);
-	thread_mutex_unlock(p->send_mutex);
-
-	return;
-}
-
-int peer_io_process(const ev_state_t *ev)
-{
-	switch(ev->ev_type) {
-		case EV_READ:
-			peer_read_cb(ev);
-			break;
-		case EV_WRITE:
-			peer_write_cb(ev);
-			break;
-		default:
-			return -1;
-	}
 	return 0;
 }
 
+static void net_io_cb(int sd, short type, void *arg)
+{	
+	int rv = 0;
+	struct peer *p = (struct peer *)arg;
+
+	switch(type) {
+		case EV_READ:
+			rv = peer_read_cb(p);
+			break;
+		case EV_WRITE:
+			rv = peer_write_cb(p);
+			break;
+		default:
+			break;
+	}
+	if(rv < 0)
+	{
+		peer_kill(p);
+	}
+}
+
+
 int peer_kill(struct peer *p)
 {
-	fdev_del(&p->ioev);
-	close(p->sd);
-	iobuf_free(p->allocator,&p->recvbuf);
-	iobuf_free(p->allocator,&p->sendbuf);
-	//free send queue
-	thread_mutex_destroy(p->mpool_mutex);
-	thread_mutex_destroy(p->sq_mutex);
+	if(__sync_bool_compare_and_swap(&p->status,PEER_CONNECTED,PEER_DISCONNECTED))
+	{
+		printf("ref:%d,close peer id:%llu,peer:%p,ns:%p\n",p->refcount,p->id,p,p->ns);
+		close(p->sd);
+		fdev_del(&p->ioev);
+	}
 
-	thread_mutex_destroy(p->send_mutex);
-	thread_mutex_destroy(p->recv_mutex);
-	allocator_destroy(p->allocator);
+	if(__sync_bool_compare_and_swap(&p->refcount,0,1))
+	{
+		printf("free peer id:%llu\n",p->id);
+		iobuf_free(p->allocator,&p->recvbuf);
+		iobuf_free(p->allocator,&p->sendbuf);
+		//free send queue
+		struct msg_t *msg = NULL,*next = NULL;
+		thread_mutex_lock(p->sq_mutex);
+		msg = BTPDQ_FIRST(&p->send_queue);
+		while(msg){
+			next = BTPDQ_NEXT(msg,msg_entry);
+			BTPDQ_REMOVE(&p->send_queue,msg,msg_entry);
 
-	thread_mutex_lock(p->ns->ptbl_mutex);
-	ptbl_remove(p->ns->ptbl,&p->id);
-	p->ns->npeers--;
-	thread_mutex_unlock(p->ns->ptbl_mutex);
-	
-	mfree(p->ns->allocator,p);
+			mfree(p->allocator,msg->buf);
+			mfree(p->allocator,msg);
+			msg = next;
+		}
+		thread_mutex_unlock(p->sq_mutex);
+
+		thread_mutex_destroy(p->mpool_mutex);
+		thread_mutex_destroy(p->sq_mutex);
+
+		allocator_destroy(p->allocator);
+
+		mfree(p->ns->allocator,p);
+
+		thread_mutex_lock(p->ns->ptbl_mutex);
+		ptbl_remove(p->ns->ptbl,&p->id);
+		p->ns->npeers--;
+		thread_mutex_unlock(p->ns->ptbl_mutex);
+	}
 	return 0;
 }

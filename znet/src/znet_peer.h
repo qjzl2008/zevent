@@ -8,6 +8,11 @@
 #include "evloop/evloop.h"
 #include "iobuf.h"
 
+enum {
+	PEER_DISCONNECTED = 0,
+	PEER_CONNECTED = 1
+};
+
 struct peer {
     int sd;
     struct net_server_t *ns;
@@ -18,9 +23,7 @@ struct peer {
     struct thread_mutex_t *sq_mutex;
 
     struct iobuf sendbuf;
-    struct thread_mutex_t *send_mutex;
     struct iobuf recvbuf;
-    struct thread_mutex_t *recv_mutex;
 
     struct allocator_t *allocator;
     struct thread_mutex_t *mpool_mutex;
@@ -33,14 +36,14 @@ struct peer {
     long t_wantwrite;
 
     HTBL_ENTRY(chain);
-    volatile uint16_t flags;
-    uint32_t id;
+    volatile uint16_t status;
+    uint64_t id;
+    volatile uint32_t refcount;
 };
 
-HTBL_TYPE(ptbl, peer, uint32_t, id, chain);
+HTBL_TYPE(ptbl, peer, uint64_t, id, chain);
 
 int peer_create_in(int fd,struct sockaddr_in addr,struct net_server_t *ns);
 int peer_kill(struct peer *p);
-int peer_io_process(const ev_state_t *ev);
 
 #endif

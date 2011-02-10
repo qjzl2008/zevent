@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdio.h>
 
 #include "evloop.h"
 
@@ -41,7 +42,7 @@ fdev_enable(struct fdev *ev, uint16_t flags)
         epev.data.ptr = ev;
         epev.events =
             ((ev->flags & EV_READ) ? EPOLLIN : 0) |
-            ((ev->flags & EV_WRITE) ? EPOLLOUT : 0) | EPOLLET;
+            ((ev->flags & EV_WRITE) ? EPOLLOUT : 0)/* | EPOLLET*/;
 
         if (sf == 0)
             err = epoll_ctl(m_epfd, EPOLL_CTL_ADD, ev->fd, &epev);
@@ -62,7 +63,7 @@ fdev_disable(struct fdev *ev, uint16_t flags)
         epev.data.ptr = ev;
         epev.events =
             ((ev->flags & EV_READ) ? EPOLLIN : 0) |
-            ((ev->flags & EV_WRITE) ? EPOLLOUT : 0) | EPOLLET;
+            ((ev->flags & EV_WRITE) ? EPOLLOUT : 0)/* | EPOLLET*/;
         if (ev->flags == 0)
             err = epoll_ctl(m_epfd, EPOLL_CTL_DEL, ev->fd, &epev);
         else
@@ -107,6 +108,7 @@ evloop(int *endgame)
         }
         for (i = 0; i < nev; i++) {
             struct fdev *ev = m_evs[i].data.ptr;
+
             if ((m_valid[i] &&
                     ev->flags & EV_READ &&
                     m_evs[i].events & (EPOLLIN|EPOLLERR|EPOLLHUP)))

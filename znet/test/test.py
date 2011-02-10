@@ -15,12 +15,12 @@ class connector(threading.Thread):
 		n = 0;
 		while(True):
 			count = 0
-			while(count < 30):
+			while(count < 10):
 				self.sock.send("0123456789")
 			        rstr = self.sock.recv(10)
-				#print rstr
+           			#print rstr
 				count+=1
-			sleep(0.1)
+			sleep(1)
 			n+=1
 			#self.sock.close()
 			#return
@@ -31,7 +31,7 @@ class connector(threading.Thread):
 if __name__ == '__main__':
     cnlist = []
     i = 0
-    while i<100:
+    while i<200:
         cn = connector(i)
         cn.start()
         cnlist.append(cn)

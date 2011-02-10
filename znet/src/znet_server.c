@@ -5,6 +5,7 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <pthread.h>
+#include <signal.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -42,11 +43,10 @@ net_connection_cb(int sd, short type, void *arg)
         close(nsd);
         return;
     }
-    /*assert(net_npeers <= net_max_peers);
-    if (net_npeers == net_max_peers) {
+    if (ns->npeers >= ns->max_peers-1) {
         close(nsd);
         return;
-    }*/
+    }
     peer_create_in(nsd,addr,ns);
 }
 
@@ -55,29 +55,6 @@ static void *event_loop(void *arg)
 	net_server_t *ns = (net_server_t *)arg;
 
 	evloop(&ns->endgame);
-	return NULL;
-}
-
-static void *worker_thread(void *arg)
-{
-	int rv;
-	void *data;
-	net_server_t *ns = (net_server_t *)arg;
-	while(!ns->endgame)
-	{
-		rv = queue_pop(ns->fd_queue,&data);
-		if(rv != 0)
-		{
-			if(rv == QUEUE_EOF)
-				break;
-		}
-		else
-		{
-			struct ev_state_t *ev = (struct ev_state_t *)data;
-			peer_io_process(ev);
-			mfree(ns->allocator,ev);
-		}
-	}
 	return NULL;
 }
 
@@ -99,7 +76,7 @@ static int start_listen(net_server_t *ns,const ns_arg_t *ns_arg)
 	{
 		return -1;
 	}
-	rv = listen(fd,100);
+	rv = listen(fd,500);
 	set_nonblocking(fd);
 	ns->fd = fd;
 	fdev_new(&ns->ev,fd,EV_READ,net_connection_cb,ns);
@@ -110,29 +87,19 @@ static void* start_threads(void *arg)
 {
 	//启动工作线程
 	net_server_t *ns = (net_server_t *)arg;
-	int i = 0;
 	pthread_t td;
-	for(i=0;i<ns->nworkers;++i)
-	{
-		pthread_create(&td,NULL,worker_thread,ns);
-		ns->td_workers[i] = td;
-	}
 
 	//启动事件循环
 	pthread_create(&td,NULL,event_loop,ns);
 	ns->td_evloop = td;
 
 	pthread_join(ns->td_evloop,NULL);
-	for(i=0;i<ns->nworkers;++i)
-	{
-		pthread_join(ns->td_workers[i],NULL);
-	}
 	return 0;
 }
 
 static int default_process_func(uint8_t *buf,uint32_t len,uint32_t *off)
 {
-	uint32_t msg_len = dec_be32(buf);
+	/*uint32_t msg_len = dec_be32(buf);
 	if(len < msg_len)
 	{
 		return -1;
@@ -141,12 +108,24 @@ static int default_process_func(uint8_t *buf,uint32_t len,uint32_t *off)
 	{
 		*off = msg_len;
 		return 0;
-	}
+	}*/
+	if(len < 10)
+		return -1;
+	*off = 10;
+	return 0;
+
 }
 
 //server interface
 int ns_start_daemon(net_server_t **ns,const ns_arg_t *ns_arg)
 {
+	//忽略SIGPIPE 信号 
+	struct sigaction sa;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;        
+	sa.sa_handler = SIG_IGN;
+	sigaction(SIGPIPE,&sa,NULL); 
+
 	allocator_t *allocator;
 	if(allocator_create(&allocator) < 0)
 		return -1;
@@ -159,20 +138,18 @@ int ns_start_daemon(net_server_t **ns,const ns_arg_t *ns_arg)
 
         (*ns)->allocator = allocator;
 
-	if (((*ns)->ptbl = ptbl_create(3, id_eq, id_hash)) == NULL)
+	if (((*ns)->ptbl = ptbl_create(33, id_eq, id_hash)) == NULL)
 	{
 		free(*ns);
 		return -1;
 	}
 
 	BTPDQ_INIT(&(*ns)->recv_queue);
-
-	queue_create(&(*ns)->fd_queue,1000);//一些
         
 	thread_mutex_create(&((*ns)->ptbl_mutex),0);
 	thread_mutex_create(&((*ns)->recv_mutex),0);
 	
-	(*ns)->nworkers = ns_arg->nworkers;
+	(*ns)->max_peers = ns_arg->max_peers;
 	if(ns_arg->func)
 		(*ns)->func = ns_arg->func;
 	else
@@ -196,22 +173,8 @@ int ns_stop_daemon(net_server_t *ns)
 	fdev_del(&ns->ev);
 	close(ns->fd);
 	ns->endgame = 1;
-	queue_interrupt_all(ns->fd_queue);
 	pthread_join(ns->td_start,NULL);
 
-	void *data = NULL;
-	unsigned int nelts = queue_size(ns->fd_queue);
-	if(nelts > 0)
-	{
-		int rv = queue_pop(ns->fd_queue,&data);
-		while(rv == 0)
-		{
-			ev_state_t *ev = (ev_state_t *)data;
-			mfree(ns->allocator,ev);
-		}
-	}
-
-	queue_destroy(ns->fd_queue);
 	struct htbl_iter it; 
 	struct peer *p = ptbl_iter_first(ns->ptbl, &it);
 	while (p != NULL) { 
@@ -227,21 +190,27 @@ int ns_stop_daemon(net_server_t *ns)
 
 	allocator_destroy(ns->allocator);
 	free(ns);
+	return 0;
 }
 
-int ns_sendmsg(net_server_t *ns,uint32_t peer_id,void *msg,uint32_t len)
+int ns_sendmsg(net_server_t *ns,uint64_t peer_id,void *msg,uint32_t len)
 {
+	int rv;
 	struct peer *p = NULL;
 	struct msg_t *message = NULL;
-	int enable_write = 0;
 
 	thread_mutex_lock(ns->ptbl_mutex);
 	p = ptbl_find(ns->ptbl,&peer_id);
-	thread_mutex_unlock(ns->ptbl_mutex);
-	if(!p)
+	
+	if(!p || p->status == PEER_DISCONNECTED)
 	{
+		thread_mutex_unlock(ns->ptbl_mutex);
 		return -1;
 	}
+
+        __sync_fetch_and_add(&p->refcount,1);
+	thread_mutex_unlock(ns->ptbl_mutex);
+
 	message = (struct msg_t *)mmalloc(p->allocator,
 			sizeof(struct msg_t));
 	message->buf = (uint8_t *)mmalloc(p->allocator,len);
@@ -250,23 +219,24 @@ int ns_sendmsg(net_server_t *ns,uint32_t peer_id,void *msg,uint32_t len)
 	message->peer_id = p->id;
 
 	thread_mutex_lock(p->sq_mutex);
-
-	if (p->sendbuf.off <=0 && BTPDQ_EMPTY(&p->send_queue)) {  
-		enable_write = 1;
-	}
-
 	BTPDQ_INSERT_TAIL(&p->send_queue, message, msg_entry);  
-	if(enable_write)
-	{
-		fdev_enable(&p->ioev,EV_WRITE);
-	}
-
 	thread_mutex_unlock(p->sq_mutex);
 
-	return 0;
+	rv = fdev_enable(&p->ioev,EV_WRITE);
+	if(rv != 0)
+	{
+		__sync_fetch_and_sub(&p->refcount,1);
+		peer_kill(p);
+		return -1;
+	}
+	else
+	{
+		__sync_fetch_and_sub(&p->refcount,1);
+		return 0;
+	}
 }
 
-int ns_recvmsg(net_server_t *ns,void **msg,uint32_t *len,uint32_t *peer_id)
+int ns_recvmsg(net_server_t *ns,void **msg,uint32_t *len,uint64_t *peer_id)
 {
 	struct msg_t *message;
 	thread_mutex_lock(ns->recv_mutex);
@@ -293,9 +263,19 @@ int ns_free(net_server_t *ns,void *buf)
 	return 0;
 }
 
-int ns_disconnect(net_server_t *ns,uint32_t id)
+int ns_disconnect(net_server_t *ns,uint64_t id)
 {
+	thread_mutex_lock(ns->ptbl_mutex);
+	struct peer *p = ptbl_find(ns->ptbl,&id);
+	if(!p || p->status == PEER_DISCONNECTED)
+	{
+		thread_mutex_unlock(ns->ptbl_mutex);
+		return -1;
+	}
 
+	shutdown(p->sd,SHUT_RDWR);
+	thread_mutex_unlock(ns->ptbl_mutex);
+	return 0;
 }
 
 
