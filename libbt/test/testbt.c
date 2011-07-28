@@ -77,7 +77,7 @@ int main(void)
 
 	//rv = bt_add_p2sp("kongfu.torrent",
 	//	"http://download.firefox.com.cn/releases/webins2.0/official/zh-CN/",&bt_arg);
-	rv = bt_add_p2sp("test.torrent","http://127.0.0.1/war1.20e/",&bt_arg);
+	rv = bt_add_p2sp("test.torrent","http://127.0.0.1/Plants vs. Zombies/",&bt_arg);
 	for(i = 0; i < ntorrents;++i)
 	{
 		bt_stat(torrents[i],&bt_arg,&tstat[i]);
