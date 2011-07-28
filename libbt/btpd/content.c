@@ -443,36 +443,36 @@ startup_test_end(struct torrent *tp, int unclean)
 void
 startup_test_run(void)
 {
-    int ok;
-    struct torrent *tp;
-    struct content *cm;
-    struct timespec ts;
-    struct start_test_data * std = BTPDQ_FIRST(&m_startq);
-    uint32_t this;
-    if (std == NULL)
-        return;
-    tp = std->tp;
-    cm = tp->cm;
-    if (test_piece(std->tp, std->start, &ok) != 0) {
-        cm_on_error(std->tp);
-        return;
-    }
-    if (ok)
-        set_bit(cm->piece_field, std->start);
-    else
-        clear_bit(cm->piece_field, std->start);
-    this = std->start;
-    do
-        std->start++;
-    while (std->start < tp->npieces && !has_bit(cm->pos_field, std->start));
-    if (std->start >= tp->npieces)
-        startup_test_end(tp, 1);
-    if (!BTPDQ_EMPTY(&m_startq))
-    {
-	ts.tv_sec = 0;
-	ts.tv_nsec = 0;
-        btpd_timer_add(&m_workev, &ts);
-    }
+	int ok;
+	struct torrent *tp;
+	struct content *cm;
+	struct timespec ts;
+	struct start_test_data * std = BTPDQ_FIRST(&m_startq);
+	uint32_t this;
+	if (std == NULL)
+		return;
+	tp = std->tp;
+	cm = tp->cm;
+	if (test_piece(std->tp, std->start, &ok) != 0) {
+		cm_on_error(std->tp);
+		return;
+	}
+	if (ok)
+		set_bit(cm->piece_field, std->start);
+	else
+		clear_bit(cm->piece_field, std->start);
+	this = std->start;
+	do
+	std->start++;
+	while (std->start < tp->npieces && !has_bit(cm->pos_field, std->start));
+	if (std->start >= tp->npieces)
+		startup_test_end(tp, 1);
+	if (!BTPDQ_EMPTY(&m_startq))
+	{
+		ts.tv_sec = 0;
+		ts.tv_nsec = 0;
+		btpd_timer_add(&m_workev, &ts);
+	}
 }
 
 void
