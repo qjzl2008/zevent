@@ -196,7 +196,10 @@ void
 torrent_on_tick(struct torrent *tp)
 {
     if (tp->state != T_STOPPING && cm_error(tp))
+	{
         torrent_stop(tp, 0);
+		return;
+	}
     switch (tp->state) {
     case T_STARTING:
         if (cm_started(tp)) {
