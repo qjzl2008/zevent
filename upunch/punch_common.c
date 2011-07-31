@@ -244,30 +244,30 @@ size_t purge_peer_list( struct peer_info ** peer_list,
   scan = *peer_list;
   prev = NULL;
   while(scan != NULL)
-    {
-      if(scan->last_seen < purge_before)
-        {
-	  struct peer_info *next = scan->next;
+  {
+	  if(scan->last_seen < purge_before)
+	  {
+		  struct peer_info *next = scan->next;
 
-	  if(prev == NULL)
-            {
-	      *peer_list = next;
-            }
+		  if(prev == NULL)
+		  {
+			  *peer_list = next;
+		  }
+		  else
+		  {
+			  prev->next = next;
+		  }
+
+		  ++retval;
+		  free(scan);
+		  scan = next;
+	  }
 	  else
-            {
-	      prev->next = next;
-            }
-
-	  ++retval;
-	  free(scan);
-	  scan = next;
-        }
-      else
-        {
-	  prev = scan;
-	  scan = scan->next;
-        }
-    }
+	  {
+		  prev = scan;
+		  scan = scan->next;
+	  }
+  }
 
   return retval;
 }
