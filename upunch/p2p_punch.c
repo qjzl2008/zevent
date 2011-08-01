@@ -1078,8 +1078,6 @@ static int run_loop(p2p_edge_t * eee )
 
     send_deregister( eee, &(eee->supernode));
 
-    closesocket(eee->udp_sock);
-
     edge_deinit( eee );
 
     return(0);

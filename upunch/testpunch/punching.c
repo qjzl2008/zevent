@@ -122,7 +122,7 @@ int main(int argc,char * const argv[] )
 	start_punching_daemon(&args,&edge);
 	Sleep(10000);
 	punching_hole(&edge,peer_ip,peer_port);
-	Sleep(1000000);
+	Sleep(10000);
 	stop_punching_daemon(&edge);
 	return 0;
 }
