@@ -20,6 +20,8 @@ P2P_DECLARE(int) start_punching_daemon(punch_arg_t *args, p2p_edge_t *node);
 P2P_DECLARE(int) stop_punching_daemon(p2p_edge_t *node);
 
 P2P_DECLARE(int) punching_hole(p2p_edge_t *node, const char *peer_ip,int port);
+//尚未加入链表处理的线程安全
+P2P_DECLARE(int) check_ready(p2p_edge_t *node, const char *peer_ip,int port);
 
 #ifdef __cplusplus
 }

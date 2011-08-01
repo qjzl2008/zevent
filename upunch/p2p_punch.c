@@ -922,7 +922,22 @@ P2P_DECLARE(int) punching_hole(p2p_edge_t *node, const char *peer_ip, int port)
 	try_send_register(node, 0, &dest,&snode);
 	return 0;
 }
-
+/* ***************************************************** */
+P2P_DECLARE(int) check_ready(p2p_edge_t *node, const char *peer_ip,int port)
+{
+	struct peer_info *pinfo = NULL;
+	p2p_sock_t peer;
+	unsigned long naddr;
+	peer.family = AF_INET;
+	peer.port = port;
+	naddr = inet_addr(peer_ip);
+	memcpy(&(peer.addr.v4), &(naddr), IPV4_SIZE);
+	pinfo =find_peer_by_addr(node->known_peers,&peer);
+	if(!pinfo)
+		return 0;
+	else
+		return 1;
+}
 /* ***************************************************** */
 static void *punching_worker(void *opaque);
 static int run_loop(p2p_edge_t *eee);
