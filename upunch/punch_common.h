@@ -106,8 +106,8 @@ struct p2p_edge
 
 	p2p_community_t     community_name;         /**< The community. 16 full octets. */
 
-	int                 udp_sock;
-	int                 udp_mgmt_sock;          /**< socket for status info. */
+	SOCKET                 udp_sock;
+	SOCKET                 udp_mgmt_sock;          /**< socket for status info. */
 
 	struct peer_info *  known_peers;            /**< Edges we are connected to. */
 	struct peer_info *  pending_peers;          /**< Edges we have tried to register with. */
