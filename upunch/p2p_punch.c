@@ -116,6 +116,31 @@ static ssize_t sendto_sock( int fd, const void * buf, size_t len, const p2p_sock
     return sent;
 }
 
+static void send_packet(p2p_edge_t *eee,
+						p2p_sock_t *dst)
+{
+	uint8_t pktbuf[P2P_PKT_BUF_SIZE];
+	size_t idx;
+	ssize_t sent;
+	p2p_common_t cmn;
+	p2p_REGISTER_t reg;
+	p2p_sock_str_t sockbuf;
+
+	memset(&cmn, 0, sizeof(cmn) );
+	memset(&reg, 0, sizeof(reg) );
+	cmn.ttl=P2P_DEFAULT_TTL;
+	cmn.pc = p2p_packet;
+	memcpy( cmn.community, eee->community_name, P2P_COMMUNITY_SIZE );
+
+	idx=0;
+	encode_common( pktbuf, &idx, &cmn);
+
+	traceEvent( TRACE_INFO, "send PACKET to %s",
+		sock_to_cstr( sockbuf, dst ) );
+
+
+	sent = sendto_sock( eee->udp_sock, pktbuf, idx, dst);
+}
 
 /** Send a REGISTER packet to another edge. */
 static void send_register( p2p_edge_t * eee,
@@ -703,7 +728,7 @@ static void readFromIPSocket( p2p_edge_t * eee )
 
     if ( recvlen < 0 )
     {
-        traceEvent(TRACE_ERROR, "recvfrom failed with %s", strerror(errno) );
+        traceEvent(TRACE_ERROR, "recvfrom failed with %d", WSAGetLastError() );
 
         return; /* failed to receive data from UDP */
     }
@@ -740,7 +765,7 @@ static void readFromIPSocket( p2p_edge_t * eee )
     {
         if( msg_type == MSG_TYPE_PACKET)
         {
-            traceEvent(TRACE_DEBUG, "Rx REGISTER_ACK (NOT IMPLEMENTED)");
+            traceEvent(TRACE_DEBUG, "Rx MSG_TYPE_PACKET (NOT IMPLEMENTED)");
         }
         else if(msg_type == MSG_TYPE_REGISTER)
         {
@@ -919,6 +944,8 @@ P2P_DECLARE(int) punching_hole(p2p_edge_t *node, const char *peer_ip, int port)
 
 	supernode2addr( &snode, node->sn_ip_array[node->sn_idx]);
 
+	send_packet(node,&dest);
+	//Sleep(1000);
 	try_send_register(node, 0, &dest,&snode);
 	return 0;
 }
