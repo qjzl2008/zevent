@@ -120,7 +120,7 @@ static ssize_t sendto_sock( int fd, const void * buf, size_t len, const p2p_sock
 /** Send a REGISTER packet to another edge. */
 static void send_register( p2p_edge_t * eee,
 						  uint8_t flags,
-                           const p2p_sock_t * remote_peer,
+                           const p2p_sock_t *sn,
 						   p2p_sock_t *dst)
 {
     uint8_t pktbuf[P2P_PKT_BUF_SIZE];
@@ -147,10 +147,10 @@ static void send_register( p2p_edge_t * eee,
     encode_REGISTER( pktbuf, &idx, &cmn, &reg );
 
     traceEvent( TRACE_INFO, "send REGISTER %s",
-                sock_to_cstr( sockbuf, remote_peer ) );
+                sock_to_cstr( sockbuf, sn ) );
 
 
-    sent = sendto_sock( eee->udp_sock, pktbuf, idx, remote_peer );
+    sent = sendto_sock( eee->udp_sock, pktbuf, idx, sn );
 
 }
 
@@ -272,7 +272,7 @@ void set_peer_operational( p2p_edge_t * eee,
 void try_send_register( p2p_edge_t * eee,
                         uint8_t from_supernode,
                         const p2p_sock_t *dst,
-                        const p2p_sock_t * peer )
+                        const p2p_sock_t * sn )
 {
     /* REVISIT: purge of pending_peers not yet done. */
     struct peer_info * scan = find_peer_by_addr( eee->pending_peers, dst );
@@ -296,7 +296,7 @@ void try_send_register( p2p_edge_t * eee,
 
         /* trace Sending REGISTER */
 
-        send_register(eee, from_supernode,peer,dst);
+        send_register(eee, from_supernode,sn,dst);
 
         /* pending_peers now owns scan. */
     }

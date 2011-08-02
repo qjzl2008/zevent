@@ -96,7 +96,7 @@ int main(int argc,char * const argv[] )
 	//////////////////////////////////////////////////////////////////////////
 
 
-	while((opt = getopt_long(argc, argv, "l:s:h:p:", long_options, NULL)) != -1) 
+	while((opt = getopt_long(argc, argv, "l:s:e:h:p:", long_options, NULL)) != -1) 
 	{
 		switch (opt) 
 		{
@@ -122,7 +122,7 @@ int main(int argc,char * const argv[] )
 	start_punching_daemon(&args,&edge);
 	Sleep(10000);
 	punching_hole(&edge,peer_ip,peer_port);
-	Sleep(10000);
+	Sleep(1000000);
 	stop_punching_daemon(&edge);
 	return 0;
 }
