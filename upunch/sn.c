@@ -577,12 +577,16 @@ static int run_loop( p2p_sn_t * sss )
 				bread = recvfrom( sss->sock, pktbuf, P2P_SN_PKTBUF_SIZE, 0/*flags*/,
 					(struct sockaddr *)&sender_sock, (socklen_t*)&i);
 
-				if ( bread <= 0 ) /* For UDP bread of zero just means no data (unlike TCP). */
+				if ( bread == SOCKET_ERROR ) /* For UDP bread of zero just means no data (unlike TCP). */
 				{
 					/* The fd is no good now. Maybe we lost our interface. */
 					traceEvent( TRACE_ERROR, "recvfrom() failed %d errno %d (%s)", bread, errno, strerror(errno) );
 					keep_running=0;
 					break;
+				}
+				if(bread == 0)
+				{
+					continue;
 				}
 
 				/* We have a datagram to process */
@@ -598,12 +602,14 @@ static int run_loop( p2p_sn_t * sss )
                 bread = recvfrom( sss->mgmt_sock, pktbuf, P2P_SN_PKTBUF_SIZE, 0/*flags*/,
 				  (struct sockaddr *)&sender_sock, (socklen_t*)&i);
 
-                if ( bread <= 0 )
+                if ( bread == SOCKET_ERROR )
                 {
-                    traceEvent( TRACE_ERROR, "recvfrom() failed %d errno %d (%s)", bread, errno, strerror(errno) );
+                    traceEvent( TRACE_ERROR, "recvfrom() errno %d", WSAGetLastError() );
                     keep_running=0;
                     break;
                 }
+				if(bread == 0)
+					continue;
 
                 /* We have a datagram to process */
                 process_mgmt( sss, &sender_sock, pktbuf, bread, now );

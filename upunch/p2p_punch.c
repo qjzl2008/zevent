@@ -103,10 +103,9 @@ static ssize_t sendto_sock( int fd, const void * buf, size_t len, const p2p_sock
 
     sent = sendto( fd, buf, len, 0/*flags*/,
                    (struct sockaddr *)&peer_addr, sizeof(struct sockaddr_in) );
-    if ( sent < 0 )
+    if ( sent == SOCKET_ERROR )
     {
-        char * c = strerror(errno);
-        traceEvent( TRACE_ERROR, "sendto failed (%d) %s", errno, c );
+        traceEvent( TRACE_ERROR, "sendto failed (%d)", WSAGetLastError());
     }
     else
     {
@@ -586,9 +585,9 @@ static void readFromMgmtSocket( p2p_edge_t * eee, int * keep_running )
     recvlen=recvfrom(eee->udp_mgmt_sock, udp_buf, P2P_PKT_BUF_SIZE, 0/*flags*/,
 		     (struct sockaddr *)&sender_sock, (socklen_t*)&i);
 
-    if ( recvlen < 0 )
+    if ( recvlen == SOCKET_ERROR )
     {
-        traceEvent(TRACE_ERROR, "mgmt recvfrom failed with %s", strerror(errno) );
+        traceEvent(TRACE_ERROR, "mgmt recvfrom failed with %d", WSAGetLastError() );
 
         return; /* failed to receive data from UDP */
     }
@@ -726,12 +725,15 @@ static void readFromIPSocket( p2p_edge_t * eee )
     recvlen=recvfrom(eee->udp_sock, udp_buf, P2P_PKT_BUF_SIZE, 0/*flags*/,
                      (struct sockaddr *)&sender_sock, (socklen_t*)&i);
 
-    if ( recvlen < 0 )
+    if ( recvlen == SOCKET_ERROR )
     {
         traceEvent(TRACE_ERROR, "recvfrom failed with %d", WSAGetLastError() );
 
         return; /* failed to receive data from UDP */
     }
+
+	if(recvlen == 0)
+		return;
 
     /* REVISIT: when UDP/IPv6 is supported we will need a flag to indicate which
      * IP transport version the packet arrived on. May need to UDP sockets. */
