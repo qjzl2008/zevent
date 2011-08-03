@@ -809,6 +809,7 @@ static void readFromIPSocket( p2p_edge_t * eee )
 
             /* Move from pending_peers to known_peers; ignore if not in pending. */
             set_peer_operational( eee, &sender );
+			eee->puch_callback(eee);
         }
         else if(msg_type == MSG_TYPE_REGISTER_SUPER_ACK)
         {
@@ -844,6 +845,7 @@ static void readFromIPSocket( p2p_edge_t * eee )
                     eee->register_lifetime = ra.lifetime;
                     eee->register_lifetime = MAX( eee->register_lifetime, REGISTER_SUPER_INTERVAL_MIN );
                     eee->register_lifetime = MIN( eee->register_lifetime, REGISTER_SUPER_INTERVAL_MAX );
+					eee->reg_callback(eee);
                 }
                 else
                 {
@@ -934,10 +936,13 @@ static void supernode2addr(p2p_sock_t * sn, const p2p_sn_name_t addrIn)
 }
 
 /* ***************************************************** */
-P2P_DECLARE(int) punching_hole(p2p_edge_t *node, const char *peer_ip, int port)
+P2P_DECLARE(int) punching_hole(p2p_edge_t *node, const char *peer_ip, int port
+							   ,callback_t punch_cb)
 {
 	p2p_sock_t dest,snode;
 	unsigned long naddr;
+
+	node->puch_callback = punch_cb;
 
 	dest.family = AF_INET;
 	dest.port = port;
@@ -951,22 +956,7 @@ P2P_DECLARE(int) punching_hole(p2p_edge_t *node, const char *peer_ip, int port)
 	try_send_register(node, 0, &dest,&snode);
 	return 0;
 }
-/* ***************************************************** */
-P2P_DECLARE(int) check_ready(p2p_edge_t *node, const char *peer_ip,int port)
-{
-	struct peer_info *pinfo = NULL;
-	p2p_sock_t peer;
-	unsigned long naddr;
-	peer.family = AF_INET;
-	peer.port = port;
-	naddr = inet_addr(peer_ip);
-	memcpy(&(peer.addr.v4), &(naddr), IPV4_SIZE);
-	pinfo =find_peer_by_addr(node->known_peers,&peer);
-	if(!pinfo)
-		return 0;
-	else
-		return 1;
-}
+
 /* ***************************************************** */
 static void *punching_worker(void *opaque);
 static int run_loop(p2p_edge_t *eee);
@@ -979,7 +969,7 @@ P2P_DECLARE(int) stop_punching_daemon(p2p_edge_t *node)
 }
 
 /* ***************************************************** */
-P2P_DECLARE(int) start_punching_daemon(punch_arg_t *args, p2p_edge_t *node)
+P2P_DECLARE(int) start_punching_daemon(punch_arg_t *args, p2p_edge_t *node,callback_t reg_cb)
 {
 	int i;
 
@@ -1006,6 +996,8 @@ P2P_DECLARE(int) start_punching_daemon(punch_arg_t *args, p2p_edge_t *node)
 	{
 		traceEvent(TRACE_NORMAL, "supernode %u => %s\n",i,(node->sn_ip_array[i]));
 	}
+
+	node->reg_callback = reg_cb;
 
 	supernode2addr(&(node->supernode), node->sn_ip_array[node->sn_idx]);
 

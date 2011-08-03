@@ -90,6 +90,8 @@ struct peer_info {
 typedef char p2p_sn_name_t[P2P_EDGE_SN_HOST_SIZE];
 #define P2P_EDGE_NUM_SUPERNODES 2
 #define P2P_EDGE_SUP_ATTEMPTS   3
+
+typedef int (*callback_t)(void*);
 typedef struct p2p_edge         p2p_edge_t;
 
 /** Main structure type for edge. */
@@ -127,6 +129,10 @@ struct p2p_edge
 	size_t              rx_p2p;
 	size_t              tx_sup;
 	size_t              rx_sup;
+
+	//call back funciont
+	callback_t			reg_callback;
+	callback_t			puch_callback;
 };
 
 

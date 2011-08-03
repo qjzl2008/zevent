@@ -76,7 +76,19 @@ static const struct option long_options[] = {
 	{ NULL,              0,                 NULL,  0  }
 };
 
+int reg_cb(void *arg)
+{
+	p2p_edge_t *edge = (p2p_edge_t *)arg;
+	printf("Register to sn Success!\n");
+	return 0;
+}
 
+int punching_cb(void *arg)
+{
+	p2p_edge_t *edge = (p2p_edge_t *)arg;
+	printf("Punching Success!\n");
+	return 0;
+}
 int main(int argc,char * const argv[] )
 {
 	p2p_edge_t edge;
@@ -119,9 +131,9 @@ int main(int argc,char * const argv[] )
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	start_punching_daemon(&args,&edge);
+	start_punching_daemon(&args,&edge,reg_cb);
 	Sleep(10000);
-	punching_hole(&edge,peer_ip,peer_port);
+	punching_hole(&edge,peer_ip,peer_port,punching_cb);
 	Sleep(1000000);
 	stop_punching_daemon(&edge);
 	return 0;
