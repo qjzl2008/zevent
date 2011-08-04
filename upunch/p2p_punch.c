@@ -70,7 +70,7 @@ static int edge_init(p2p_edge_t * eee)
 
 
 /** Deinitialise the edge and deallocate any owned memory. */
-static void edge_deinit(p2p_edge_t * eee)
+P2P_DECLARE(void) edge_deinit(p2p_edge_t * eee)
 {
     if ( eee->udp_sock >=0 )
     {
@@ -958,6 +958,36 @@ P2P_DECLARE(int) punching_hole(p2p_edge_t *node, const char *peer_ip, int port
 }
 
 /* ***************************************************** */
+P2P_DECLARE(int) keepalive_sn(p2p_edge_t *node)
+{
+	p2p_sock_t snode;
+	unsigned long naddr;
+
+	uint8_t pktbuf[P2P_PKT_BUF_SIZE];
+	size_t idx;
+	ssize_t sent;
+	p2p_common_t cmn;
+	p2p_REGISTER_t reg;
+	p2p_sock_str_t sockbuf;
+
+	supernode2addr( &snode, node->sn_ip_array[node->sn_idx]);
+	memset(&cmn, 0, sizeof(cmn) );
+	memset(&reg, 0, sizeof(reg) );
+	cmn.ttl=P2P_DEFAULT_TTL;
+	cmn.pc = p2p_heartbeat;
+	memcpy( cmn.community, node->community_name, P2P_COMMUNITY_SIZE );
+
+	idx=0;
+	encode_common( pktbuf, &idx, &cmn);
+
+	traceEvent( TRACE_INFO, "send heartbeat to %s",
+		sock_to_cstr( sockbuf, &snode ) );
+
+	sent = sendto_sock( node->udp_sock, pktbuf, idx, &snode);
+	return 0;
+}
+
+/* ***************************************************** */
 static void *punching_worker(void *opaque);
 static int run_loop(p2p_edge_t *eee);
 
@@ -1112,9 +1142,9 @@ static int run_loop(p2p_edge_t * eee )
 
     } /* while */
 
-    send_deregister( eee, &(eee->supernode));
+    //send_deregister( eee, &(eee->supernode));
 
-    edge_deinit( eee );
+    //edge_deinit( eee );
 
     return(0);
 }

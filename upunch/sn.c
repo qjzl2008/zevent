@@ -352,6 +352,18 @@ static int process_udp( p2p_sn_t * sss,
 		traceEvent(TRACE_DEBUG, "Rx REGISTER_ACK (NOT IMPLEMENTED) Should not be via supernode");
 
     }/* MSG_TYPE_PACKET */
+	else if ( msg_type == MSG_TYPE_HEARTBEAT )
+	{
+		/* Heart Beat PACKET from one edge to supernode. */
+		struct peer_info *  scan;
+		traceEvent( TRACE_DEBUG, "Rx MSG_TYPE_HEARTBEAT update_edge for [%s]",
+			sock_to_cstr( sockbuf, sender_sock ) );
+		scan = find_peer_by_addr( sss->edges, sender_sock );
+		if (scan)
+		{
+			scan->last_seen = now;
+		}
+	}/* MSG_TYPE_HEARTBEAT */
     else if ( msg_type == MSG_TYPE_REGISTER )
 	{
 		/* Forwarding a REGISTER from one edge to the next */

@@ -38,6 +38,7 @@ enum p2p_pc
     p2p_register_super=5,       /* Register edge to supernode */
     p2p_register_super_ack=6,   /* ACK from supernode to edge */
     p2p_register_super_nak=7,   /* NAK from supernode to edge - registration refused */
+	p2p_heartbeat=8
 };
 
 typedef enum p2p_pc p2p_pc_t;

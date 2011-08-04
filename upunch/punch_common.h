@@ -78,6 +78,7 @@ extern "C" {
 #define MSG_TYPE_REGISTER_SUPER         5
 #define MSG_TYPE_REGISTER_SUPER_ACK     6
 #define MSG_TYPE_REGISTER_SUPER_NAK     7
+#define MSG_TYPE_HEARTBEAT				8
 
 struct peer_info {
     struct peer_info *  next;

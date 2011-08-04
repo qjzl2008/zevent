@@ -22,6 +22,9 @@ P2P_DECLARE(int) stop_punching_daemon(p2p_edge_t *node);
 
 P2P_DECLARE(int) punching_hole(p2p_edge_t *node, const char *peer_ip,
 							   int port,callback_t puch_cb );
+P2P_DECLARE(int) keepalive_sn(p2p_edge_t *node);
+
+P2P_DECLARE(void) edge_deinit(p2p_edge_t *eee);
 
 #ifdef __cplusplus
 }
