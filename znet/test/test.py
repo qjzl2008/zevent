@@ -20,7 +20,7 @@ class connector(threading.Thread):
 			        rstr = self.sock.recv(10)
            			#print rstr
 				count+=1
-			sleep(1)
+			#sleep(1)
 			n+=1
 			#self.sock.close()
 			#return
@@ -31,7 +31,7 @@ class connector(threading.Thread):
 if __name__ == '__main__':
     cnlist = []
     i = 0
-    while i<200:
+    while i<2:
         cn = connector(i)
         cn.start()
         cnlist.append(cn)

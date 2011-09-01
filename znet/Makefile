@@ -1,5 +1,4 @@
 ROOT = .
-BINNAME = testserver
 TARGET_LIB = libznet.so
 
 znet_inc = $(ROOT)/src
