@@ -203,7 +203,7 @@ mpool_get(mp, pgno, flags)
 	++mp->pageread;
 #endif
 	off = mp->pagesize * pgno;
-	if (lseek(mp->fd, off, SEEK_SET) != off)
+	if (lseek64(mp->fd, off, SEEK_SET) != off)
 		return (NULL);
 	if ((nr = read(mp->fd, bp->page, mp->pagesize)) != mp->pagesize) {
 		if (nr >= 0)
@@ -378,7 +378,7 @@ mpool_write(mp, bp)
 		(mp->pgout)(mp->pgcookie, bp->pgno, bp->page);
 
 	off = mp->pagesize * bp->pgno;
-	if (lseek(mp->fd, off, SEEK_SET) != off)
+	if (lseek64(mp->fd, off, SEEK_SET) != off)
 		return (RET_ERROR);
 	if (write(mp->fd, bp->page, mp->pagesize) != mp->pagesize)
 		return (RET_ERROR);
