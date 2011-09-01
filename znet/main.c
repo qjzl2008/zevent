@@ -30,7 +30,7 @@ static void *thread_start(void *arg)
     struct thread_info *tinfo = (struct thread_info *) arg;
 
     struct timeval delay;
-    delay.tv_sec = 10;
+    delay.tv_sec = 30;
     delay.tv_usec = 0;//10000;//10ms
     while(!stop_daemon)
     {
@@ -84,7 +84,7 @@ int main()
 	pthread_mutex_init(&mutex, NULL);
         pthread_attr_t attr;
 	pthread_attr_init(&attr);
-	//pthread_create(&thread_id, &attr, thread_start, tinfo);
+	pthread_create(&thread_id, &attr, thread_start, tinfo);
 	pthread_attr_destroy(&attr);
 
 	uint64_t peer_id;
