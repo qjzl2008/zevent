@@ -1,5 +1,6 @@
 ROOT = .
 BINNAME = testserver
+TARGET_LIB = libznet.so
 
 znet_inc = $(ROOT)/src
 znet_src = $(ROOT)/src
@@ -20,6 +21,7 @@ obj = $(ROOT)/obj
 dbgobj = $(ROOT)/dbgobj
 dst = $(ROOT)/bin
 
+target_lib = $(dst)/$(TARGET_LIB)
 bin = $(dst)/$(BINNAME)
 
 
@@ -27,6 +29,7 @@ bin = $(dst)/$(BINNAME)
 #  Customization of the implicit rules
 
 CC = gcc -funsigned-char
+LD = ld
 #CC = gcc
 DEFS = -DHAS_THREADS -DEVLOOP_EPOLL -DHAVE_CLOCK_MONOTONIC
 IFLAGS1 = -I$(znet_inc) -I$(main_inc) 
@@ -35,6 +38,7 @@ IFLAGS3 = -I$(evloop_inc)
 CFLAGS = -g -Wall $(IFLAGS1) $(IFLAGS2) $(IFLAGS3) 
 SYSLIBS = -lpthread -lrt
 LFLAGS = 
+LDFLAGS = -shared -fpic
 
 LIBS = $(SYSLIBS) 
 
@@ -65,9 +69,7 @@ common_locks_objs = $(patsubst $(common_locks_src)/%.c,$(obj)/%.o,$(common_locks
 common_misc_srcs = $(wildcard $(common_misc_src)/*.c)
 common_misc_objs = $(patsubst $(common_misc_src)/%.c,$(obj)/%.o,$(common_misc_srcs))
 
-main_objs = $(obj)/main.o	
-
-objs =  $(common_mem_objs) $(common_locks_objs) $(evloop_objs) $(znet_objs) $(common_misc_objs) $(main_objs)
+objs =  $(common_mem_objs) $(common_locks_objs) $(evloop_objs) $(znet_objs) $(common_misc_objs)
 
 dbgobjs = $(patsubst $(obj)/%.o,$(dbgobj)/%.o,$(objs))
 
@@ -77,17 +79,15 @@ dbgobjs = $(patsubst $(obj)/%.o,$(dbgobj)/%.o,$(objs))
 
 .PHONY: all clean
 
-all: clean $(bin) 
+all: clean $(target_lib)
 clean: 
 	$(RM) $(objs)
-$(bin): $(objs) 
-	$(LINK) $@ $? $(LIBS)
+	$(RM) $(target_lib)
+$(target_lib): $(objs)
+	$(LD) $(LDFLAGS) -o $(target_lib) $(objs) 
 
 #################################################################
 #  Additional Rules
-
-$(obj)/%.o: $(main_src)/%.c 
-	$(COMPILE.c) $< -o $@
 
 $(obj)/%.o: $(common_mem_src)/%.c $(common_incs)
 	$(COMPILE.c) $< -o $@

@@ -26,7 +26,7 @@ net_connection_cb(int sd, short type, void *arg)
 {
     int nsd;
     struct sockaddr_in addr;
-    socklen_t len;
+    socklen_t len = sizeof(addr);
     net_server_t *ns = (net_server_t *)arg;
     nsd = accept(sd, (struct sockaddr *)&addr, (socklen_t *)&len);
     if (nsd < 0) {
