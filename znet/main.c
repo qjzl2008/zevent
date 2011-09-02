@@ -30,7 +30,7 @@ static void *thread_start(void *arg)
     struct thread_info *tinfo = (struct thread_info *) arg;
 
     struct timeval delay;
-    delay.tv_sec = 30;
+    delay.tv_sec = 10;
     delay.tv_usec = 0;//10000;//10ms
     while(!stop_daemon)
     {
@@ -38,7 +38,7 @@ static void *thread_start(void *arg)
 	if(rv == 0)
 	{
 	    pthread_mutex_lock(&mutex);
-	    mpool_sync(tinfo->mpool);
+//	    mpool_sync(tinfo->mpool);
 	    pthread_mutex_unlock(&mutex);
 	}
     }
@@ -64,7 +64,7 @@ int main()
 
 	//init mem db
 	int fd = open("msg.mdb",O_CREAT|O_RDWR|O_LARGEFILE,0600);
-	MPOOL *mp = mpool_open(NULL,fd,4096,1000000);
+	MPOOL *mp = mpool_open(NULL,fd,4096,1000);
 	mpool_stat(mp);
 	pgno_t pgno;
 

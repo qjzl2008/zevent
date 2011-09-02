@@ -64,7 +64,7 @@ mpool_open(key, fd, pagesize, maxcache)
 	int fd;
 	pgno_t pagesize, maxcache;
 {
-	struct stat sb;
+	struct stat64 sb;
 	MPOOL *mp;
 	int entry;
 
@@ -74,7 +74,7 @@ mpool_open(key, fd, pagesize, maxcache)
 	 * XXX
 	 * We don't currently handle pipes, although we should.
 	 */
-	if (fstat(fd, &sb))
+	if (fstat64(fd, &sb))
 		return (NULL);
 	if (!S_ISREG(sb.st_mode)) {
 		errno = ESPIPE;
@@ -157,7 +157,7 @@ mpool_get(mp, pgno, flags)
 {
 	struct _hqh *head;
 	BKT *bp;
-	off_t off;
+	off64_t off;
 	int nr;
 
 	/* Check for attempt to retrieve a non-existent page. */
@@ -202,7 +202,7 @@ mpool_get(mp, pgno, flags)
 #ifdef STATISTICS
 	++mp->pageread;
 #endif
-	off = mp->pagesize * pgno;
+	off = (off64_t)mp->pagesize * (off64_t)pgno;
 	if (lseek64(mp->fd, off, SEEK_SET) != off)
 		return (NULL);
 	if ((nr = read(mp->fd, bp->page, mp->pagesize)) != mp->pagesize) {
@@ -297,7 +297,8 @@ mpool_sync(mp)
 			return (RET_ERROR);
 
 	/* Sync the file descriptor. */
-	return (fsync(mp->fd) ? RET_ERROR : RET_SUCCESS);
+	//return (fsync(mp->fd) ? RET_ERROR : RET_SUCCESS);
+	return RET_SUCCESS;
 }
 
 /*
@@ -367,7 +368,7 @@ mpool_write(mp, bp)
 	MPOOL *mp;
 	BKT *bp;
 {
-	off_t off;
+	off64_t off;
 
 #ifdef STATISTICS
 	++mp->pagewrite;
@@ -377,7 +378,7 @@ mpool_write(mp, bp)
 	if (mp->pgout)
 		(mp->pgout)(mp->pgcookie, bp->pgno, bp->page);
 
-	off = mp->pagesize * bp->pgno;
+	off = (off64_t)mp->pagesize * (off64_t)bp->pgno;
 	if (lseek64(mp->fd, off, SEEK_SET) != off)
 		return (RET_ERROR);
 	if (write(mp->fd, bp->page, mp->pagesize) != mp->pagesize)
