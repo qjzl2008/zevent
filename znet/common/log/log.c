@@ -236,10 +236,6 @@ int open_log(const char *filename)
     }
 
     if (*filename == '|') {
-	/* Spawn a new child logger.  If this is the main server,
-	 * the new child must use a dummy stderr since the current
-	 * stderr might be a pipe to the old logger.  Otherwise, the
-	 * child inherits the parents stderr. */
 	rc = log_child(filename + 1, &logfile);
 	log_error(LOG_MARK,
 		"Start ErrorLog process!");
