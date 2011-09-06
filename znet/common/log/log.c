@@ -15,13 +15,10 @@ static int logfile;
 
 char *cpystrn(char *dst, const char *src, size_t dst_size)
 {
-
     char *d, *end;
-
     if (dst_size == 0) {
 	return (dst);
     }
-
     d = dst;
     end = dst + dst_size - 1;
 
@@ -30,9 +27,7 @@ char *cpystrn(char *dst, const char *src, size_t dst_size)
 	    return (d);
 	}
     }
-
     *d = '\0';	/* always null terminate */
-
     return (d);
 }
 
