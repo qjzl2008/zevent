@@ -1,3 +1,4 @@
+#define _LARGEFILE64_SOURCE
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/fcntl.h>
@@ -18,7 +19,7 @@ char *cpystrn(char *dst, const char *src, size_t dst_size)
     char *d, *end;
 
     if (dst_size == 0) {
-        return (dst);
+	return (dst);
     }
 
     d = dst;
@@ -43,7 +44,6 @@ char *cpystrn(char *dst, const char *src, size_t dst_size)
  * string processing (including converting '+' to ' ' and doing the 
  * url processing. It does not currently support this function.
  *
- *    token_context: Context from which pool allocations will occur.
  *    arg_str:       Input argument string for conversion to argv[].
  *    argv_out:      Output location. This is a pointer to an array
  *                   of pointers to strings (ie. &(char *argv[]).
@@ -52,7 +52,7 @@ char *cpystrn(char *dst, const char *src, size_t dst_size)
  *                   found during parsing of the arg_str. 
  */
 static int tokenize_to_argv(const char *arg_str, 
-                                            char ***argv_out)
+	char ***argv_out)
 {
     const char *cp;
     const char *ct;
@@ -62,53 +62,53 @@ static int tokenize_to_argv(const char *arg_str,
 
 #define SKIP_WHITESPACE(cp) \
     for ( ; *cp == ' ' || *cp == '\t'; ) { \
-        cp++; \
+	cp++; \
     };
 
 #define CHECK_QUOTATION(cp,isquoted) \
     isquoted = 0; \
     if (*cp == '"') { \
-        isquoted = 1; \
-        cp++; \
+	isquoted = 1; \
+	cp++; \
     } \
     else if (*cp == '\'') { \
-        isquoted = 2; \
-        cp++; \
+	isquoted = 2; \
+	cp++; \
     }
 
-/* DETERMINE_NEXTSTRING:
- * At exit, cp will point to one of the following:  NULL, SPACE, TAB or QUOTE.
- * NULL implies the argument string has been fully traversed.
- */
+    /* DETERMINE_NEXTSTRING:
+     * At exit, cp will point to one of the following:  NULL, SPACE, TAB or QUOTE.
+     * NULL implies the argument string has been fully traversed.
+     */
 #define DETERMINE_NEXTSTRING(cp,isquoted) \
     for ( ; *cp != '\0'; cp++) { \
-        if (   (*cp == '\\' && (*(cp+1) == ' ' || *(cp+1) == '\t' || \
-                                *(cp+1) == '"' || *(cp+1) == '\''))) { \
-            cp++; \
-            continue; \
-        } \
-        if (   (!isquoted && (*cp == ' ' || *cp == '\t')) \
-            || (isquoted == 1 && *cp == '"') \
-            || (isquoted == 2 && *cp == '\'')                 ) { \
-            break; \
-        } \
+	if (   (*cp == '\\' && (*(cp+1) == ' ' || *(cp+1) == '\t' || \
+			*(cp+1) == '"' || *(cp+1) == '\''))) { \
+	    cp++; \
+	    continue; \
+	} \
+	if (   (!isquoted && (*cp == ' ' || *cp == '\t')) \
+		|| (isquoted == 1 && *cp == '"') \
+		|| (isquoted == 2 && *cp == '\'')                 ) { \
+	    break; \
+	} \
     }
- 
-/* REMOVE_ESCAPE_CHARS:
- * Compresses the arg string to remove all of the '\' escape chars.
- * The final argv strings should not have any extra escape chars in it.
- */
+
+    /* REMOVE_ESCAPE_CHARS:
+     * Compresses the arg string to remove all of the '\' escape chars.
+     * The final argv strings should not have any extra escape chars in it.
+     */
 #define REMOVE_ESCAPE_CHARS(cleaned, dirty, escaped) \
     escaped = 0; \
     while(*dirty) { \
-        if (!escaped && *dirty == '\\') { \
-            escaped = 1; \
-        } \
-        else { \
-            escaped = 0; \
-            *cleaned++ = *dirty; \
-        } \
-        ++dirty; \
+	if (!escaped && *dirty == '\\') { \
+	    escaped = 1; \
+	} \
+	else { \
+	    escaped = 0; \
+	    *cleaned++ = *dirty; \
+	} \
+	++dirty; \
     } \
     *cleaned = 0;        /* last line of macro... */
 
@@ -124,27 +124,27 @@ static int tokenize_to_argv(const char *arg_str,
      */
     numargs = 1;
     while (*ct != '\0') {
-        CHECK_QUOTATION(ct, isquoted);
-        DETERMINE_NEXTSTRING(ct, isquoted);
-        if (*ct != '\0') {
-            ct++;
-        }
-        numargs++;
-        SKIP_WHITESPACE(ct);
+	CHECK_QUOTATION(ct, isquoted);
+	DETERMINE_NEXTSTRING(ct, isquoted);
+	if (*ct != '\0') {
+	    ct++;
+	}
+	numargs++;
+	SKIP_WHITESPACE(ct);
     }
     *argv_out = calloc(sizeof(char*),numargs);
 
     /*  determine first argument */
     for (argnum = 0; argnum < (numargs-1); argnum++) {
-        SKIP_WHITESPACE(cp);
-        CHECK_QUOTATION(cp, isquoted);
-        ct = cp;
-        DETERMINE_NEXTSTRING(cp, isquoted);
-        cp++;
-        (*argv_out)[argnum] = malloc(cp - ct);
-        cpystrn((*argv_out)[argnum], ct, cp - ct);
-        cleaned = dirty = (*argv_out)[argnum];
-        REMOVE_ESCAPE_CHARS(cleaned, dirty, escaped);
+	SKIP_WHITESPACE(cp);
+	CHECK_QUOTATION(cp, isquoted);
+	ct = cp;
+	DETERMINE_NEXTSTRING(cp, isquoted);
+	cp++;
+	(*argv_out)[argnum] = malloc(cp - ct);
+	cpystrn((*argv_out)[argnum], ct, cp - ct);
+	cleaned = dirty = (*argv_out)[argnum];
+	REMOVE_ESCAPE_CHARS(cleaned, dirty, escaped);
     }
     (*argv_out)[argnum] = NULL;
 
@@ -172,7 +172,6 @@ static int log_child(const char *progname,
 	return errno; 
     }   
 
-
     if ((pid = fork()) < 0) {   
 	return errno;
     }
@@ -180,6 +179,7 @@ static int log_child(const char *progname,
 	//child
 	dup2(filedes[0], STDIN_FILENO); 
 	close(filedes[0]);
+	close(filedes[1]);
 	signal(SIGCHLD, SIG_DFL);
 	int onearg_len = 0;
 	const char *newargs[4];
@@ -207,12 +207,10 @@ static int log_child(const char *progname,
 	    default:
 		{
 		    char *ch, *onearg;
-
 		    ch = onearg = malloc(onearg_len);
 		    i = 0;
 		    while (args[i]) {
 			size_t len = strlen(args[i]);
-
 			memcpy(ch, args[i], len);
 			ch += len;
 			*ch = ' ';
@@ -230,10 +228,10 @@ static int log_child(const char *progname,
 	_exit(-1);
     }
 
+    close(filedes[0]);
     *fpin = filedes[1];
     return 0;
 }
-
 
 int open_log(const char *filename)
 {
@@ -248,14 +246,11 @@ int open_log(const char *filename)
 	 * stderr might be a pipe to the old logger.  Otherwise, the
 	 * child inherits the parents stderr. */
 	rc = log_child(filename + 1, &logfile);
-	if (rc != 0) {
-	    log_error(LOG_MARK, NULL,
-		    "Couldn't start ErrorLog process");
-	    return -1;
-	}
+	log_error(LOG_MARK,
+		"Start ErrorLog process!");
     }
     else{
-	logfile = open(filename,O_CREAT|O_RDWR|O_APPEND/*|O_LARGEFILE*/,0644);
+	logfile = open(filename,O_CREAT|O_RDWR|O_APPEND|O_LARGEFILE,0644);
 	if(logfile != -1)
 	{
 	    return 0;
@@ -308,7 +303,7 @@ struct time_exp_t {
 #define USEC_PER_SEC (int64_t)(1000000)
 
 static void explode_time(time_exp_t *xt, int64_t t,
-	                         int32_t offset, int use_localtime)
+	int32_t offset, int use_localtime)
 {
     struct tm tm;
     time_t tt = (t / USEC_PER_SEC) + offset;
@@ -339,11 +334,11 @@ int time_exp_lt(time_exp_t *result,int64_t input)
 
 const char month_snames[12][4] =
 {
-        "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 };
 const char day_snames[7][4] =
 {
-        "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
+    "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
 };
 
 int log_ctime(char *date_str, int64_t t)
@@ -399,7 +394,7 @@ int64_t time_now(void)
 #define EOL_STR 	"\n"
 #define CTIME_LEN	25
 static void log_error_core(const char *file, int line,
-                           const char *fmt, va_list args)
+	const char *fmt, va_list args)
 {
     char errstr[MAX_LOG_LEN];
     memset(errstr,0,sizeof(errstr));
@@ -431,7 +426,7 @@ static void log_error_core(const char *file, int line,
 }
 
 void log_error(const char *file, int line,
-                               const char *fmt, ...)
+	const char *fmt, ...)
 {
     va_list args;
 
@@ -442,7 +437,7 @@ void log_error(const char *file, int line,
 
 void log_close()
 {
-	if(logfile)
-		close(logfile);
+    if(logfile)
+	close(logfile);
 }
 
