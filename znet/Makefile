@@ -35,7 +35,7 @@ DEFS = -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -DHAS_THREADS -DEVLOOP_EPOLL
 IFLAGS1 = -I$(znet_inc) -I$(main_inc) 
 IFLAGS2 = -I$(common_inc) -I$(common_arch_inc)
 IFLAGS3 = -I$(evloop_inc)
-CFLAGS = -g -Wall $(IFLAGS1) $(IFLAGS2) $(IFLAGS3) 
+CFLAGS = -g -fpic -Wall $(IFLAGS1) $(IFLAGS2) $(IFLAGS3) 
 SYSLIBS = -lpthread -lrt
 LFLAGS = 
 LDFLAGS = -shared -fpic
