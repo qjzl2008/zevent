@@ -58,13 +58,13 @@ int main()
 	ns_start_daemon(&ns,&sinfo);
 
 	void *msg;uint32_t len;
-	char buf[256];
+	char buf[64];
 	memset(buf,0,sizeof(buf));
 	int count = 0;
 
 	//init mem db
 	int fd = open("msg.mdb",O_CREAT|O_RDWR|O_LARGEFILE,0600);
-	MPOOL *mp = mpool_open(NULL,fd,4096,2000);
+	MPOOL *mp = mpool_open(NULL,fd,128,2000);
 	mpool_stat(mp);
 	pgno_t pgno;
 
