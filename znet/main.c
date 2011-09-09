@@ -64,7 +64,7 @@ int main()
 
 	//init mem db
 	int fd = open("msg.mdb",O_CREAT|O_RDWR|O_LARGEFILE,0600);
-	MPOOL *mp = mpool_open(NULL,fd,128,2000);
+	MPOOL *mp = mpool_open(NULL,fd,3000,2000);
 	mpool_stat(mp);
 	pgno_t pgno;
 
