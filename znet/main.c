@@ -46,74 +46,108 @@ static void *thread_start(void *arg)
     return NULL;
 }
 
+static int daemonize()
+{
+    int maxfd, fd;
+    switch (fork()) {
+	case -1: return -1;
+	case 0: break;
+	default: _exit(0);
+    }
+    if (setsid() == -1)
+	return -1;
+    switch (fork()) {
+	case -1: return -1;
+	case 0: break;
+	default: _exit(0);
+    }
+    umask(0); 
+    maxfd = sysconf(_SC_OPEN_MAX);
+    if (maxfd == -1)
+	maxfd = 8192;
+    for (fd = 0; fd < maxfd; fd++)
+	close(fd);
+
+    close(STDIN_FILENO);
+    fd = open("/dev/null", O_RDWR);
+    if (fd != STDIN_FILENO)
+	return -1;
+    if (dup2(STDIN_FILENO, STDOUT_FILENO) != STDOUT_FILENO)
+	return -1;
+    if (dup2(STDIN_FILENO, STDERR_FILENO) != STDERR_FILENO)
+	return -1;
+    return 0;
+}
+
 int main()
 {
-	int rv;
-	net_server_t *ns;
-	ns_arg_t sinfo;
-	sinfo.func = NULL;
-	strcpy(sinfo.ip,"127.0.0.1");
-	sinfo.port = 8899;
-	sinfo.max_peers = 1000;
-	ns_start_daemon(&ns,&sinfo);
+    daemonize();
+    int rv;
+    net_server_t *ns;
+    ns_arg_t sinfo;
+    sinfo.func = NULL;
+    strcpy(sinfo.ip,"127.0.0.1");
+    sinfo.port = 8899;
+    sinfo.max_peers = 1000;
+    ns_start_daemon(&ns,&sinfo);
 
-	void *msg;uint32_t len;
-	char buf[64];
-	memset(buf,0,sizeof(buf));
-	int count = 0;
+    void *msg;uint32_t len;
+    char buf[64];
+    memset(buf,0,sizeof(buf));
+    int count = 0;
 
-	//init mem db
-	int fd = open("msg.mdb",O_CREAT|O_RDWR|O_LARGEFILE,0600);
-	MPOOL *mp = mpool_open(NULL,fd,3000,2000);
-	mpool_stat(mp);
-	pgno_t pgno;
+    //init mem db
+    int fd = open("msg.mdb",O_CREAT|O_RDWR|O_LARGEFILE,0600);
+    MPOOL *mp = mpool_open(NULL,fd,3000,2000);
+    mpool_stat(mp);
+    pgno_t pgno;
 
-	//process signal
-	struct sigaction sa;
-	sigemptyset(&sa.sa_mask);
-	sa.sa_flags = 0;
-	sa.sa_handler = handler;
-	sigaction(SIGINT, &sa, NULL);
+    //process signal
+    struct sigaction sa;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+    sa.sa_handler = handler;
+    sigaction(SIGINT, &sa, NULL);
 
-        //start check-thread
-	struct thread_info *tinfo;
-	tinfo = calloc(1, sizeof(struct thread_info));
-	tinfo->mpool = mp;
+    //start check-thread
+    struct thread_info *tinfo;
+    tinfo = calloc(1, sizeof(struct thread_info));
+    tinfo->mpool = mp;
 
-	pthread_t thread_id;
-	pthread_mutex_init(&mutex, NULL);
-        pthread_attr_t attr;
-	pthread_attr_init(&attr);
-	pthread_create(&thread_id, &attr, thread_start, tinfo);
-	pthread_attr_destroy(&attr);
+    pthread_t thread_id;
+    pthread_mutex_init(&mutex, NULL);
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_create(&thread_id, &attr, thread_start, tinfo);
+    pthread_attr_destroy(&attr);
 
-	uint64_t peer_id;
+    uint64_t peer_id;
 
-	while(!stop_daemon)
+    while(!stop_daemon)
+    {
+	rv = ns_recvmsg(ns,&msg,&len,&peer_id);
+	if(rv == 0)
 	{
-	    rv = ns_recvmsg(ns,&msg,&len,&peer_id);
-	    if(rv == 0)
-	    {
-		pthread_mutex_lock(&mutex);
-		void *page = mpool_new(mp,&pgno);
-		memcpy(page,msg,len);
-		mpool_put(mp,page,MPOOL_DIRTY);
-		pthread_mutex_unlock(&mutex);
+	    pthread_mutex_lock(&mutex);
+	    void *page = mpool_new(mp,&pgno);
+	    memcpy(page,msg,len);
+	    mpool_put(mp,page,MPOOL_DIRTY);
+	    pthread_mutex_unlock(&mutex);
 
-		memcpy(buf,(char *)msg,len);
-		ns_sendmsg(ns,peer_id,buf,len);
-		//ns_disconnect(ns,peer_id);
-		++count;
-		printf("count:%d,%u\n",count,time(NULL));
-		ns_free(ns,msg);
-	    }
+	    memcpy(buf,(char *)msg,len);
+	    ns_sendmsg(ns,peer_id,buf,len);
+	    //ns_disconnect(ns,peer_id);
+	    ++count;
+	    printf("count:%d,%u\n",count,time(NULL));
+	    ns_free(ns,msg);
 	}
-	ns_stop_daemon(ns);
-	//tell check data thread to exit
-	pthread_kill(thread_id,SIGINT);
-	pthread_join(thread_id,NULL);
-	pthread_mutex_destroy(&mutex);
-	mpool_close(mp);
-	printf("Normal exit!\n");
-	return 0;
+    }
+    ns_stop_daemon(ns);
+    //tell check data thread to exit
+    pthread_kill(thread_id,SIGINT);
+    pthread_join(thread_id,NULL);
+    pthread_mutex_destroy(&mutex);
+    mpool_close(mp);
+    printf("Normal exit!\n");
+    return 0;
 }
