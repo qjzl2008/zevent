@@ -79,7 +79,7 @@ dbgobjs = $(patsubst $(obj)/%.o,$(dbgobj)/%.o,$(objs))
 
 .PHONY: all clean
 
-all: clean $(target_lib)
+all: $(target_lib)
 clean: 
 	$(RM) $(objs)
 	$(RM) $(target_lib)
