@@ -31,11 +31,11 @@ IFLAGS3 = -I$(mysql_inc)
 CFLAGS = -g -Wall $(IFLAGS1) $(IFLAGS2) $(IFLAGS3)
 SYSLIBS = -lpthread -lrt
 MYSQL_LIBS = -lmysqlclient
-LFLAGS = 
+LFLAGS = $(SYSLIBS) $(MYSQL_LIBS)
 
 LIBS = $(SYSLIBS) 
 
-LDFLAGS = $(SYSLIBS) $(MYSQL_LIBS)
+LDFLAGS = 
 
 RM = /bin/rm -f
 COMPILE.c = $(CC) $(DEFS) $(CFLAGS) -c
@@ -74,7 +74,7 @@ clean:
 	$(RM) $(objs)
 	$(RM) $(target)
 $(target): $(objs)
-	$(CC) $(CFLAGS) -o $(target) $(objs) $(SYSLIBS) $(MYSQL_LIBS)
+	$(CC) $(CFLAGS) -o $(target) $(objs) $(LFLAGS)
 
 #################################################################
 #  Additional Rules
