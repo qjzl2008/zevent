@@ -8,6 +8,7 @@ common_mem_src = ../common/memory
 common_locks_src = ../common/locks/unix
 common_misc_src = ../common/misc
 common_pool_src = ../common/pool
+common_log_inc = ../common/log
 common_log_src = ../common/log
 
 main_src = $(ROOT)
@@ -27,7 +28,7 @@ LD = ld
 DEFS = -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -DHAS_THREADS -DHAVE_CLOCK_MONOTONIC
 
 IFLAGS1 = -I$(main_inc) 
-IFLAGS2 = -I$(common_inc) -I$(common_arch_inc)
+IFLAGS2 = -I$(common_inc) -I$(common_arch_inc) -I$(common_log_inc)
 IFLAGS3 = -I$(mysql_inc)
 CFLAGS = -g -Wall $(IFLAGS1) $(IFLAGS2) $(IFLAGS3)
 SYSLIBS = -lpthread -lrt

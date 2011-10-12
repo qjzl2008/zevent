@@ -19,6 +19,7 @@ int main(void)
     dbcfg.timeout = DB_DEFAULT_TIMEOUT;
     strcpy(dbcfg.charset,DB_DEFAULT_CHARSET);
 
+    open_log("|/usr/bin/cronolog logs/%Y-%m-%d.%H.log");
     int rv = mysql_pool_init(&dbcfg);
 
     char *sql = "select uid,uname from game_user where uid = 1";
@@ -32,7 +33,7 @@ int main(void)
     if(rows > 0)                                                                          
     {                                                                                     
 	MYSQL_ROW row = mysql_fetch_row(rs);
-	printf("uname:%s\n",row[1]);
+        log_error(LOG_MARK,"uname:%s\n",row[1]);
 	mysql_free_result(rs);
 	return 0;
     }
@@ -43,5 +44,6 @@ int main(void)
     }
 
     mysql_pool_fini(&dbcfg);
+    log_close();
     return 0;
 }
