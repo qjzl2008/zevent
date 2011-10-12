@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "mysql_pool.h"
+#include "log.h"
 
 int main(void)
 {

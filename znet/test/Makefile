@@ -8,6 +8,7 @@ common_mem_src = ../common/memory
 common_locks_src = ../common/locks/unix
 common_misc_src = ../common/misc
 common_pool_src = ../common/pool
+common_log_src = ../common/log
 
 main_src = $(ROOT)
 main_inc = $(ROOT)
@@ -62,7 +63,10 @@ common_misc_objs = $(patsubst $(common_misc_src)/%.c,$(obj)/%.o,$(common_misc_sr
 common_pool_srcs = $(wildcard $(common_pool_src)/*.c)
 common_pool_objs = $(patsubst $(common_pool_src)/%.c,$(obj)/%.o,$(common_pool_srcs))
 
-objs =  $(main_objs) $(common_mem_objs) $(common_locks_objs) $(common_misc_objs) $(common_pool_objs)
+common_log_srcs = $(wildcard $(common_log_src)/*.c)
+common_log_objs = $(patsubst $(common_log_src)/%.c,$(obj)/%.o,$(common_log_srcs))
+
+objs =  $(main_objs) $(common_mem_objs) $(common_locks_objs) $(common_misc_objs) $(common_pool_objs) $(common_log_objs)
 
 #################################################################
 #  Standard Rules
@@ -89,6 +93,9 @@ $(obj)/%.o: $(common_locks_src)/%.c $(common_incs) $(common_arch_incs)
 	$(COMPILE.c) $< -o $@
 
 $(obj)/%.o: $(common_pool_src)/%.c
+	$(COMPILE.c) $< -o $@
+
+$(obj)/%.o: $(common_log_src)/%.c
 	$(COMPILE.c) $< -o $@
 
 $(obj)/%.o: $(main_src)/%.c $(main_incs)
