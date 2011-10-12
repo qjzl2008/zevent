@@ -35,10 +35,10 @@ extern "C"{
 #define DB_DEFAULT_CHARSET "utf8"
 
 
-#include <reslist.h>
 #include <my_global.h>
 #include <mysql.h>
 
+#include "reslist.h"
 #include "thread_mutex.h"
 
 /************ svr cfg: manage db connection pool ****************/
