@@ -1,7 +1,7 @@
-#define _LARGEFILE64_SOURCE
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/fcntl.h>
+#include <sys/time.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -154,7 +154,6 @@ static int log_child(const char *progname,
      * may want a common framework for this, since I expect it will
      * be common for other foo-loggers to want this sort of thing...
      */
-    int rc;
     pid_t pid;
 
     char **args;
@@ -432,3 +431,16 @@ void log_close()
 	close(logfile);
 }
 
+/*
+#include <stdio.h>
+#include "log.h"
+int main(void)
+{
+    open_log("|/usr/bin/cronolog logs/%Y-%m-%d.%H.log");
+    while(1)
+    log_error(LOG_MARK,"testlog:%d",1);
+    log_close();
+    sleep(111111);
+    return 0;
+}
+*/
