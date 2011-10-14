@@ -64,7 +64,7 @@ int main(void)
 	if(bt_start_daemon(&bt_arg) != 0)
 		return -1;
 	//rv = bt_add("download",torrents[0],&bt_arg);
-	rv = bt_add_url("downloads","test.torrent","http://127.0.0.1/test.torrent",&bt_arg);
+	rv = bt_add_url("downloads","test.torrent","http://192.168.1.106/test.torrent",&bt_arg);
 	if(rv == 1)
 	{
 		bt_start(ntorrents,torrents,&bt_arg);
@@ -77,7 +77,9 @@ int main(void)
 
 	//rv = bt_add_p2sp("kongfu.torrent",
 	//	"http://download.firefox.com.cn/releases/webins2.0/official/zh-CN/",&bt_arg);
-	rv = bt_add_p2sp("test.torrent","http://127.0.0.1/Plants vs. Zombies/",&bt_arg);
+	for(i = 0; i < 10; ++i)
+	rv = bt_add_p2sp("test.torrent","http://down1.chinaunix.net/distfiles/",&bt_arg);
+
 	//rv = bt_add_p2sp("test.torrent","http://127.0.0.1",&bt_arg);
 	for(i = 0; i < ntorrents;++i)
 	{
