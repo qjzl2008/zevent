@@ -1,0 +1,5 @@
+{
+    "path" : "./data/scenes",
+    "scenes" : "1.json,2.json",
+    "start_scene" : "1.json"
+}
