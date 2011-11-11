@@ -4,7 +4,7 @@ len  | json
    client->gs:
      [消息ID，用户名，密码]
    gs->client
-     [消息ID, 代码（成功or失败),角色列表]
+     [消息ID, 代码（成功or失败)]
 进游戏:
    client->gs:
      [消息ID,用户ID,角色ID]

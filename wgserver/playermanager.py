@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*- 
 import socket, os, sys, select, struct, time, re, random, operator, datetime
-from GlobalDef import DEF, Logfile, Version
+from GlobalDef import DEF, Logfile, Version ,UUID_Type
 from Database import Account, Character, Profession, Item, Skill, DatabaseDriver
 from collections import namedtuple
 import simplejson as json 
@@ -9,6 +9,7 @@ from sqlalchemy.exc import *
 from NetMessages import Packets   
 from scenemanager import SceneManager
 from uuid import uuid
+from GlobalConfig import GlobalConfig
 
 #reload(sys)
 #sys.setdefaultencoding('utf-8')
@@ -38,6 +39,9 @@ class PlayerManager(object):
 			Initializing login server
 		"""
 		self.clients = {}
+
+	        self.gconfig = GlobalConfig.instance()
+		self.serverid = self.gconfig.GetValue('CONFIG','server-id')
 		self.uuid = uuid.instance()
 
         @classmethod
@@ -108,7 +112,7 @@ class PlayerManager(object):
 	    else:
                 player = self.clients[sender]
 		accountid = player.account.AccountID
-	        uuid = self.uuid.gen_uuid(1,2)
+	        uuid = self.uuid.gen_uuid(self.serverid,UUID_Type.CHARACTER)
 		new_character = Character(accountid,ProfessionID,
 			uuid,jsobj['name'],jsobj['gender'],
 			profession.Appr,profession.Strength,
@@ -176,7 +180,7 @@ class PlayerManager(object):
 		
 	def CreateNewAccount(self, sender, jsobj):
 	    address = self.nserver.getpeeraddr(sender)
-	    uuid = self.uuid.gen_uuid(1,1)
+	    uuid = self.uuid.gen_uuid(self.serverid,UUID_Type.ACCOUNT)
             new_account = Account(uuid,jsobj['name'],jsobj['pwd'],
 		    jsobj['mail'],address[0])
 	    self.dbsession.add(new_account)
@@ -270,6 +274,13 @@ class PlayerManager(object):
 		    self.SendRes2Request(sender,Packets.MSGID_RESPONSE_ENTERGAME,\
 			    Packets.DEF_MSGTYPE_REJECT)
 		    return False
+
+		if character.State == Player.ENTERED_STATE or \
+			self.clients[sender].state != Player.LOGINED_STATE:
+			    self.SendRes2Request(sender,Packets.MSGID_RESPONSE_ENTERGAME,\
+				    Packets.DEF_MSGTYPE_REJECT)
+			    return False
+
 		try:
 		    character = self.scmanager.ProcessEnterGame(character)
 		    if character:

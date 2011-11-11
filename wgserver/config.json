@@ -1,6 +1,6 @@
 {
     "CONFIG": {
-	    "id" : 5,
+	    "server-id" : 5,
 	    "game-server-name": "wgs1", 
 	    "game-server-address": "127.0.0.1", 
 	    "game-server-port": 8888, 

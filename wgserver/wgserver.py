@@ -10,6 +10,7 @@ from Database import Account, Character, Item, Skill, DatabaseDriver
 from playermanager import PlayerManager
 import simplejson as json
 from NetMessages import Packets   
+from GlobalConfig import GlobalConfig
 from log import *
 
 # Consumer thread
@@ -20,6 +21,7 @@ class WGServer(threading.Thread):
 	self.nserver = nserver
         self.MaxTotalUsers = 1000
         self.WorldServerName = "WS1"
+	self.gconfig = GlobalConfig.instance()
 
     def run(self):
 	while(True):
@@ -33,8 +35,11 @@ class WGServer(threading.Thread):
         Loading main configuration, and initializing Database Driver
         (For now, its MySQL)
         """
-        if not self.ReadProgramConfigFile("config.json"):
+	self.dbaddress = self.gconfig.GetValue('CONFIG','db')
+	if not self.dbaddress:
 	    return False
+
+	PutLogList("(*) DB address : %s" % self.dbaddress,'',False)
 	self.Database = DatabaseDriver()
 	if not self.Database.Initialize(self.dbaddress):
 	    PutLogList("(!) DatabaseDriver initialization fails!")
@@ -43,18 +48,6 @@ class WGServer(threading.Thread):
 	self.playermanager = PlayerManager.instance(self.nserver,self.Database)
 	return True
 		
-    def ReadProgramConfigFile(self, cfg):
-         """
-         Parse main configuration file
-         """
-         if not os.path.exists(cfg) and not os.path.isfile(cfg):
-	     PutLogList("(!) Cannot open configuration file.")
-	     return False
-
-	 config = json.load(open(cfg))
-	 self.dbaddress = str(config['CONFIG']['db'])
-	 PutLogList("(*) DB address : %s" % self.dbaddress,'',False)
-	 return True
     
     def processmsg(self,message):
 	print "Recv msg:%s" % (message.data)
