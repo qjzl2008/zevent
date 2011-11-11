@@ -55,24 +55,19 @@ class WGServer(threading.Thread):
 		 repr(message.data)), Logfile.PACKETMS)
 	    return
 
+	del message
 	if obj['cmd'] == Packets.MSGID_REQUEST_LOGIN:
 	    self.playermanager.ProcessClientLogin(message.peerid,obj)
-	    del message
 	elif obj['cmd'] == Packets.MSGID_REQUEST_ENTERGAME:
 	    self.playermanager.ProcessClientRequestEnterGame(message.peerid,obj)
-	    del message
 	elif obj['cmd'] == Packets.MSGID_REQUEST_LEAVEGAME:
 	    self.playermanager.ProcessLeaveGame(message.peerid)
-	    del message
 	elif obj['cmd'] == Packets.MSGID_REQUEST_NEWACCOUNT:
 	    self.playermanager.CreateNewAccount(message.peerid,obj)
-	    del message
 	elif obj['cmd'] == Packets.MSGID_REQUEST_NEWCHARACTER:
 	    self.playermanager.CreateNewCharacter(message.peerid,obj)
-	    del message
 	elif obj['cmd'] == Packets.MSGID_REQUEST_GETCHARLIST:
 	    self.playermanager.ProcessGetCharList(message.peerid)
-	    del message
 	else:
 	    PutLogFileList("MsgID: (0x%08X) %db * %s" % (obj[0], len(message.data),
 		 repr(message.data)), Logfile.PACKETMS)
