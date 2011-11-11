@@ -39,7 +39,6 @@ class Daemon:
 			sys.exit(1) 
 
 	
-		# redirect standard file descriptors
 		sys.stdout.flush()
 		sys.stderr.flush()
 		si = file(self.stdin, 'r')
@@ -61,7 +60,6 @@ class Daemon:
 		"""
 		Start the daemon
 		"""
-		# Check for a pidfile to see if the daemon already runs
 		try:
 			pf = file(self.pidfile,'r')
 			pid = int(pf.read().strip())
