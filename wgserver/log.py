@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*- 
 import os, time, struct, sys
 from GlobalDef import DEF, Logfile
-reload(sys)
-sys.setdefaultencoding('utf-8')
 
 
 def PutLogFileList(buffer, sLogName, bIsPacket = False):
@@ -31,7 +29,7 @@ def PutLogFileList(buffer, sLogName, bIsPacket = False):
 		sFileName = '%s/%s' % (Logfile.BASE, sLogName)
 		
 	if not os.path.isdir(os.path.dirname(sFileName)):
-		os.makedirs(os.path.dirname(sFileName))
+		os.makedirs(os.path.dirname(sFileName),0755)
 		
 	FileHandle = open(sFileName, 'a')
 	try:

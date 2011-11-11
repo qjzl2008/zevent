@@ -41,7 +41,7 @@ class PyTCPServer(object):
     def InitNetLog(self):  
 	logging.getLogger().setLevel(logging.DEBUG)  
         if not os.path.exists("Logs"):
-	    os.mkdir("Logs")
+	    os.mkdir("Logs",0755)
 
 	fh = logging.FileHandler("Logs/network-server.log")  
 	fh.setLevel(logging.DEBUG)
