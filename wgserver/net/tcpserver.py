@@ -36,6 +36,22 @@ class PyTCPServer(object):
         self._socket = None
         self._started = False
 	self.queue = Queue()
+	self.InitNetLog()
+
+    def InitNetLog(self):  
+	logging.getLogger().setLevel(logging.DEBUG)  
+        if not os.path.exists("Logs"):
+	    os.mkdir("Logs")
+
+	fh = logging.FileHandler("Logs/network-server.log")  
+	fh.setLevel(logging.DEBUG)
+	#ch = logging.StreamHandler()  
+	#ch.setLevel(logging.INFO)  
+	formatter = logging.Formatter("[%(asctime)s] - %(name)s - %(levelname)s - %(message)s")
+	#ch.setFormatter(formatter)  
+	fh.setFormatter(formatter) 
+	logging.getLogger().addHandler(fh)  
+	#logging.getLogger().addHandler(ch)
 
     def listen(self, port, address=""):
         """Binds to the given port and starts the server in a single process.
@@ -142,7 +158,7 @@ class PyTCPConnection(object):
 	    self.stream.close()
 
     def _on_write_complete(self):
-	print "write_complete!"
+        logging.warning("write_complete")
 	pass
 
     def _on_headers(self, data):

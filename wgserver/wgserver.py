@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*- 
 import os
 import threading
-from net import tcpserver
-from net import ioloop
 from net import msg
 import random
 import time
@@ -47,8 +45,7 @@ class WGServer(threading.Thread):
 
 	self.playermanager = PlayerManager.instance(self.nserver,self.Database)
 	return True
-		
-    
+   
     def processmsg(self,message):
 	print "Recv msg:%s" % (message.data)
 	try:
@@ -84,22 +81,4 @@ class WGServer(threading.Thread):
 	    #self.nserver.sendmsg(msg.peerid,msg.data)
 	    #print msg.peerid,msg.data,len(msg.data)
 	pass
-
-
-if __name__ == "__main__":  
-    cfg = "config.json"
-    if not os.path.exists(cfg) and not os.path.isfile(cfg):
-	PutLogList("(!) Cannot open configuration file.")
-	sys.exit()
-
-    config = json.load(open(cfg))
-    ip = config['CONFIG']['game-server-address']
-    port = config['CONFIG']['game-server-port']
-
-    nserver = tcpserver.PyTCPServer(None)
-    nserver.listen(port,ip)
-    wgserver = WGServer('Consumer', nserver)
-    wgserver.Init()
-    wgserver.start()
-    ioloop.IOLoop.instance().start()
 

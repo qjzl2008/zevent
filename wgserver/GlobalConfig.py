@@ -1,5 +1,6 @@
 import os
 import simplejson as json
+from log import *
 class GlobalConfig(object):
 	def __init__(self):
 		"""
