@@ -237,6 +237,6 @@ class DatabaseDriver:
 			return False
 		self.Session = sessionmaker(bind = self.engine)
 		return True
-	
+
 	def session(self):
 		return self.Session()

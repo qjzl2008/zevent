@@ -2,6 +2,7 @@
 import os
 import simplejson as json 
 from log import *
+from npcmanager import NPC,NPCManager
 
 class  Scene(object):
     """
@@ -11,11 +12,15 @@ class  Scene(object):
 	self.scene_cfg = scene_cfg
 	self.scene = {}
 	self.players = {}
+	self.npc_manager = NPCManager()
+
 	self.load_scene(scene_cfg)
+	print self.npc_manager
 
     def load_scene(self,scene_cfg):
-	scene = json.load(open(self.scene_cfg))
-	self.sceneid = scene['id']
+	self.scene_json = json.load(open(self.scene_cfg))
+	self.sceneid = self.scene_json['id']
+	self.npc_manager.load_npcs(self.scene_json)
 	pass
 
     def get_object(self,key,objectid):
@@ -27,9 +32,10 @@ class SceneManager(object):
 	self.c2scene = {}
 
     @classmethod
-    def instance(cls):
+    def instance(cls,nserver):
 	if not hasattr(cls, "_instance"):
 	    cls._instance = cls()
+	    cls._instance.nserver = nserver
 	    cls._instance.Init()
 	    return cls._instance
 

@@ -42,6 +42,7 @@ class PlayerManager(object):
 
 	        self.gconfig = GlobalConfig.instance()
 		self.serverid = self.gconfig.GetValue('CONFIG','server-id')
+	        self.dbaddress = self.gconfig.GetValue('CONFIG','db')
 		self.uuid = uuid.instance()
 
         @classmethod
@@ -49,7 +50,7 @@ class PlayerManager(object):
 	    if not hasattr(cls, "_instance"):
 		cls._instance = cls()
 		cls._instance.nserver = nserver
-		cls._instance.Database = db
+	        cls.Database = db
 		cls._instance.dbsession = db.session()
 		cls._instance.Init()
 	    return cls._instance
@@ -59,7 +60,7 @@ class PlayerManager(object):
 	    return hasattr(cls, "_instance")
 		
 	def Init(self):
-	    self.scmanager = SceneManager.instance()
+	    self.scmanager = SceneManager.instance(self.nserver)
 	    return True
 	def obj2dict(self,obj):
 	    memberlist = [m for m in dir(obj)]

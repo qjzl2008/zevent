@@ -6,6 +6,7 @@ import random
 import time
 from Database import Account, Character, Item, Skill, DatabaseDriver
 from playermanager import PlayerManager
+from scenemanager import SceneManager
 import simplejson as json
 from NetMessages import Packets   
 from GlobalConfig import GlobalConfig
@@ -38,12 +39,13 @@ class WGServer(threading.Thread):
 	    return False
 
 	PutLogList("(*) DB address : %s" % self.dbaddress,'',False)
-	self.Database = DatabaseDriver()
-	if not self.Database.Initialize(self.dbaddress):
+	self.Database = DatabaseDriver.instance(self.dbaddress)
+        if not self.Database:
 	    PutLogList("(!) DatabaseDriver initialization fails!")
 	    return False
 
 	self.playermanager = PlayerManager.instance(self.nserver,self.Database)
+	self.scmanager = SceneManager.instance(self.nserver)
 	return True
    
     def processmsg(self,message):
