@@ -24,10 +24,16 @@ class WGServer(threading.Thread):
 
     def run(self):
 	while(True):
+	    sleep = True
 	    message = self.nserver.recvmsg()
-	    if message == None:
-	    	continue
-	    self.processmsg(message)
+	    if message != None:
+		sleep = False
+		self.processmsg(message)
+	    #gs logic
+	    self.MainLogic()
+	    if sleep:
+		time.sleep(0.01)
+	    continue
 
     def Init(self):
         """
@@ -76,5 +82,7 @@ class WGServer(threading.Thread):
 
 	    #self.nserver.sendmsg(msg.peerid,msg.data)
 	    #print msg.peerid,msg.data,len(msg.data)
+	pass
+    def MainLogic(self):
 	pass
 
