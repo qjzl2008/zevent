@@ -17,7 +17,7 @@ class connector(threading.Thread):
 		n = 0;
 		while(True):
 			count = 0
-			while(count < 1):
+			while(count < 1000):
 			     #create account
 				buf = '{"cmd":8,"name":"zhousihai","pwd":"123456",\
 					"mail":"zhousihai@126.com"}'
@@ -91,7 +91,7 @@ class connector(threading.Thread):
 if __name__ == '__main__':
     cnlist = []
     i = 0
-    while i<1:
+    while i<5:
         cn = connector(i)
         cn.start()
         cnlist.append(cn)
