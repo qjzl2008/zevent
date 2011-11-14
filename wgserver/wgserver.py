@@ -51,9 +51,7 @@ class WGServer(threading.Thread):
 	    return False
 
 	self.playermanager = PlayerManager.instance(self.nserver,self.Database)
-	print "self.playermanager:",self.playermanager
 	self.scmanager = SceneManager.instance(self.nserver)
-	print "self.scmanager:",self.scmanager
 	return True
    
     def processmsg(self,message):
