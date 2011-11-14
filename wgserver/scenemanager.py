@@ -15,7 +15,6 @@ class  Scene(object):
 	self.npc_manager = NPCManager()
 
 	self.load_scene(scene_cfg)
-	print self.npc_manager
 
     def load_scene(self,scene_cfg):
 	self.scene_json = json.load(open(self.scene_cfg))
