@@ -70,14 +70,6 @@ class PlayerManager(object):
             return _dict
 		
 	def ProcessClientLogin(self, sender, jsobj):
-	    PutLogList("(*) Login success: %s" % jsobj['cnm'])
-	    msg = '{"cmd":%d,"code":%d,"veru":%d,"verl":%d}' % (Packets.MSGID_RESPONSE_LOGIN,
-	    Packets.DEF_MSGTYPE_CONFIRM,Version.UPPER, Version.LOWER)
-	    fmt = '>i%ds' % (len(msg))
-	    SendData = struct.pack(fmt,len(msg),msg)
-	    self.nserver.sendmsg(sender,SendData)
-	    return
-
 	    account = Account.ByName(self.dbsession, jsobj['cnm'])
 	    if not account:
 		PutLogList("(!) Account does not exists: %s" % jsobj['cnm'],

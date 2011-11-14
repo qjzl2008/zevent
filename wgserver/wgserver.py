@@ -55,7 +55,6 @@ class WGServer(threading.Thread):
 		 repr(message.data)), Logfile.PACKETMS)
 	    return
 
-	del message
 	if obj['cmd'] == Packets.MSGID_REQUEST_LOGIN:
 	    self.playermanager.ProcessClientLogin(message.peerid,obj)
 	elif obj['cmd'] == Packets.MSGID_REQUEST_ENTERGAME:

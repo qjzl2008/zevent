@@ -86,7 +86,6 @@ class SceneManager(object):
 	    character.State = Player.ENTERED_STATE
 	    scene.players[character.CharacterID] = character
 	    self.c2scene[character.CharacterID] = scene.sceneid
-	    print "enchid:%d" % (character.CharacterID)
 	except:
 	    character = None
 	finally:
