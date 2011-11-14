@@ -36,7 +36,7 @@ class SceneManager(object):
 	    cls._instance = cls()
 	    cls._instance.nserver = nserver
 	    cls._instance.Init()
-	    return cls._instance
+	return cls._instance
 
     @classmethod
     def initialized(cls):
@@ -95,5 +95,11 @@ class SceneManager(object):
 	    character = None
 	finally:
 	    return character
-
+    
+    def MainLogic(self):
+	for key in self.scenes.keys():
+	    scene = self.scenes[key]
+	    for cid in scene.players.keys():
+		print "cid:%d" % (cid)
+	pass
 
