@@ -84,7 +84,7 @@ clean:
 	$(RM) $(objs)
 	$(RM) $(target_lib)
 $(target_lib): $(objs)
-	$(LD) $(LDFLAGS) -o $(target_lib) $(objs) 
+	$(LD) $(LDFLAGS) -o $(target_lib) $(objs) $(LIBS) 
 
 #################################################################
 #  Additional Rules
