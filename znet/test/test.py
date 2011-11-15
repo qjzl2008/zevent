@@ -11,19 +11,20 @@ class connector(threading.Thread):
 
     def run(self):
         try:
-		self.sock.connect(("127.0.0.1",8899))
+		self.sock.connect(("127.0.0.1",5555))
 		n = 0;
 		while(True):
 			count = 0
-			while(count < 10):
+			while(count < 1000):
 				self.sock.send("0123456789")
 			        rstr = self.sock.recv(10)
-           			#print rstr
+           			print rstr
 				count+=1
+				#return
 			#sleep(1)
 			n+=1
-			#self.sock.close()
-			#return
+			self.sock.close()
+			return
         except socket.error,e:
             print e
             return
@@ -31,7 +32,7 @@ class connector(threading.Thread):
 if __name__ == '__main__':
     cnlist = []
     i = 0
-    while i<2:
+    while i<100:
         cn = connector(i)
         cn.start()
         cnlist.append(cn)

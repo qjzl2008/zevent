@@ -81,7 +81,7 @@ static int daemonize()
 
 int main()
 {
-    daemonize();
+//    daemonize();
     int rv;
     net_server_t *ns;
     ns_arg_t sinfo;
