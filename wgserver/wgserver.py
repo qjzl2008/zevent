@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*- 
 import os
 import threading
-from net import msg
 import random
 import time
 from Database import Account, Character, Item, Skill, DatabaseDriver
