@@ -18,7 +18,7 @@ class connector(threading.Thread):
 			count = 0
 			sendcount = 0
 			recvcount = 0
-			while(count < 10000):
+			while(count < 1000):
 			        buf = '{"cmd":1,"cnm":"zhousihai","pwd":"123456"}'
 			        message = struct.pack('>i',len(buf)) + buf
 				self.sock.send(message)
@@ -30,8 +30,8 @@ class connector(threading.Thread):
 				retmsg = self.sock.recv(nlen)
 				recvcount += 1
 			#	print "recvcount:%d" % sendcount
-				#print "Login Res:",retmsg
-
+				print "Login Res:",retmsg
+                       
 				#self.sock.send("0123456789")
 			        #rstr = self.sock.recv(10)
            			#print rstr

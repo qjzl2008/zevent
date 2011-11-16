@@ -191,6 +191,29 @@ int ns_stop_daemon(net_server_t *ns)
 	return 0;
 }
 
+int ns_getpeeraddr(net_server_t *ns,uint64_t peer_id,char *ip)
+{
+    struct peer *p = NULL;
+
+    if(!ip)
+	return -1;
+    thread_mutex_lock(ns->ptbl_mutex);
+    p = ptbl_find(ns->ptbl,&peer_id);
+
+    if(!p || p->status == PEER_DISCONNECTED)
+    {
+	thread_mutex_unlock(ns->ptbl_mutex);
+	return -1;
+    }
+
+    __sync_fetch_and_add(&p->refcount,1);
+    thread_mutex_unlock(ns->ptbl_mutex);
+    char *peer_ip = inet_ntoa(p->addr.sin_addr);
+
+    __sync_fetch_and_sub(&p->refcount,1);
+    strcpy(ip,peer_ip);
+    return 0;
+}
 int ns_sendmsg(net_server_t *ns,uint64_t peer_id,void *msg,uint32_t len)
 {
 	int rv;
