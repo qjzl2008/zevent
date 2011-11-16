@@ -17,7 +17,7 @@ class connector(threading.Thread):
 		n = 0;
 		while(True):
 			count = 0
-			while(count < 1):
+			while(count < 1000):
 			     #create account
 				buf = '{"cmd":8,"name":"zhousihai","pwd":"123456",\
 					"mail":"zhousihai@126.com"}'
