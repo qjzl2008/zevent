@@ -97,23 +97,21 @@ static void* start_threads(void *arg)
 	return 0;
 }
 
+#define HEADER_LEN (4)
 static int default_process_func(uint8_t *buf,uint32_t len,uint32_t *off)
 {
-	/*uint32_t msg_len = dec_be32(buf);
-	if(len < msg_len)
+        if(len < HEADER_LEN)
+	    return -1;
+	uint32_t msg_len = dec_be32(buf);
+	if(len < msg_len + HEADER_LEN)
 	{
 		return -1;
 	}
 	else
 	{
-		*off = msg_len;
+		*off = msg_len + HEADER_LEN;
 		return 0;
-	}*/
-	if(len < 10)
-		return -1;
-	*off = 10;
-	return 0;
-
+	}
 }
 
 //server interface
