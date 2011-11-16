@@ -6,21 +6,26 @@ from GlobalConfig import GlobalConfig
 from wgserver import WGServer
 from log import *
 from daemon import Daemon
-from net import tcpserver
-from net import ioloop
+from nserver import ns_arg_t,net_server_t,net_server
+#from net import tcpserver
+#from net import ioloop
 
 class MyDaemon(Daemon):
     def run(self):
         self.gconfig = GlobalConfig.instance()
+	self.znetlib = self.gconfig.GetValue('CONFIG','net-lib')
 	self.ip = self.gconfig.GetValue('CONFIG','game-server-address')
 	self.port = self.gconfig.GetValue('CONFIG','game-server-port')
+        
+	nserver = net_server(self.znetlib)
+	ns_arg = ns_arg_t()
+	ns_arg.ip = self.ip
+	ns_arg.port = self.port
+	nserver.ns_start(ns_arg)
 
-	nserver = tcpserver.PyTCPServer(None)
-	nserver.listen(self.port,self.ip)
-	wgserver = WGServer('consumer', nserver)
+	wgserver = WGServer(nserver)
 	wgserver.Init()
-	wgserver.start()
-	ioloop.IOLoop.instance().start()
+	wgserver.run()
 
 if __name__ == "__main__":
         daemon = MyDaemon('/tmp/wgserver.pid')

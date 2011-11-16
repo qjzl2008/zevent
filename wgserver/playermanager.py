@@ -79,7 +79,7 @@ class PlayerManager(object):
 		Packets.DEF_LOGRESMSGTYPE_NOTEXISTINGACCOUNT)
 		fmt = '>i%ds' % (len(msg))
 		SendData = struct.pack(fmt,len(msg),msg)
-	        self.nserver.sendmsg(sender,SendData)
+	        self.nserver.ns_sendmsg(sender,SendData,len(SendData))
 
 	    elif account.Password != jsobj['pwd']:
 		PutLogList("(!) Wrong Password: %s" % jsobj['cnm'], Logfile.ERROR)
@@ -87,14 +87,14 @@ class PlayerManager(object):
 		Packets.DEF_LOGRESMSGTYPE_PASSWORDMISMATCH)
 		fmt = '>i%ds' % (len(msg))
 		SendData = struct.pack(fmt,len(msg),msg)
-	        self.nserver.sendmsg(sender,SendData)
+	        self.nserver.ns_sendmsg(sender,SendData,len(SendData))
 	    else:
 		PutLogList("(*) Login success: %s" % jsobj['cnm'])
 		msg = '{"cmd":%d,"code":%d,"veru":%d,"verl":%d}' % (Packets.MSGID_RESPONSE_LOGIN,
 		Packets.DEF_MSGTYPE_CONFIRM,Version.UPPER, Version.LOWER)
 		fmt = '>i%ds' % (len(msg))
 		SendData = struct.pack(fmt,len(msg),msg)
-	        self.nserver.sendmsg(sender,SendData)
+	        self.nserver.ns_sendmsg(sender,SendData,len(SendData))
 		player = Player(account)
 		player.setstate(Player.LOGINED_STATE)
 		self.clients[sender] = player
@@ -174,13 +174,13 @@ class PlayerManager(object):
 
 	    fmt = '>i%ds' % (len(msg))
 	    SendData = struct.pack(fmt,len(msg),msg)
-	    self.nserver.sendmsg(sender,SendData)
+	    self.nserver.ns_sendmsg(sender,SendData,len(SendData))
 
 	def DeleteCharacter(self, sender, buffer):
 	    pass
 		
 	def CreateNewAccount(self, sender, jsobj):
-	    address = self.nserver.getpeeraddr(sender)
+	    address = self.nserver.ns_getpeeraddr(sender)
 	    uuid = self.uuid.gen_uuid(self.serverid,UUID_Type.ACCOUNT)
             new_account = Account(uuid,jsobj['name'],jsobj['pwd'],
 		    jsobj['mail'],address[0])
@@ -214,7 +214,7 @@ class PlayerManager(object):
 	    msg = '{"cmd":%d,"code":%d}' % (cmd,code)
 	    fmt = '>i%ds' % (len(msg))
 	    SendData = struct.pack(fmt,len(msg),msg)
-	    self.nserver.sendmsg(sender,SendData)
+	    self.nserver.ns_sendmsg(sender,SendData,len(SendData))
 
 	def ProcessLeaveGame(self, sender):
 	    try:

@@ -2,6 +2,7 @@
     "CONFIG": {
 	    "server-id" : 5,
 	    "game-server-name": "wgs1", 
+	    "net-lib": "/home/zhoubug/dev/svn_work/zevent/znet/bin/libznet.so",
 	    "game-server-address": "127.0.0.1", 
 	    "game-server-port": 8888, 
 	    "db": "mysql://root:123456@localhost:3306/playerdb?charset=utf8"
