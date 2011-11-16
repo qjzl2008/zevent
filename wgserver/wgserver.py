@@ -12,8 +12,6 @@ from NetMessages import Packets
 from GlobalConfig import GlobalConfig
 from log import *
 
-# Consumer thread
-
 class WGServer:
     def __init__(self, nserver):
 	self.nserver = nserver
