@@ -9,8 +9,25 @@
 #include <stdio.h>
 #include "znet.h"
 
+static int stop_daemon = 0;
+
+static void handler(int sig)
+{
+    if(sig == SIGINT)
+    {
+	stop_daemon = 1;
+    }
+}
+
 int main(void)
 {
+    //process signal
+    struct sigaction sa;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+    sa.sa_handler = handler;
+    sigaction(SIGINT, &sa, NULL);
+
     net_client_t *nc;
     nc_arg_t cinfo;
     cinfo.func = NULL;
@@ -23,7 +40,6 @@ int main(void)
 	printf("Connect to server failed!ip:%s,port:%d\n",cinfo.ip,cinfo.port);
 	return -1;
     }
-    int stop_daemon = 0;
 
     void *msg;uint32_t len;
     char buf[64];
@@ -44,7 +60,7 @@ int main(void)
 	{
 	    memcpy(buf,(char *)msg,len);
 	    nc_sendmsg(nc,buf,len);
-	    //ns_disconnect(ns,peer_id);
+	    //nc_disconnect(nc);
 	    ++count;
 	    printf("count:%d,%u\n",count,time(NULL));
 	    nc_free(nc,msg);
