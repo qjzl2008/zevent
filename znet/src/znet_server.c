@@ -103,6 +103,7 @@ static int default_process_func(uint8_t *buf,uint32_t len,uint32_t *off)
         if(len < HEADER_LEN)
 	    return -1;
 	uint32_t msg_len = dec_be32(buf);
+
 	if(len < msg_len + HEADER_LEN)
 	{
 		return -1;
