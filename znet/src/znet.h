@@ -28,6 +28,7 @@ typedef struct{
 typedef struct{
 	char ip[32];
 	uint16_t port;
+	int timeout;
 	data_process_fp func;
 }nc_arg_t;
 
@@ -42,13 +43,14 @@ int ns_recvmsg(net_server_t *ns,void **msg,uint32_t *len,uint64_t *peer_id);
 int ns_free(net_server_t *ns,void *buf);
 int ns_disconnect(net_server_t *ns,uint64_t id);
 
-typedef struct net_client net_client_t;
+typedef struct net_client_t net_client_t;
 
 //client interface
 int nc_connect(net_client_t **nc,const nc_arg_t *nc_arg);
 int nc_disconnect(net_client_t *nc);
 int nc_sendmsg(net_client_t *nc,void *msg,uint32_t len);
-int nc_recvmsg(net_client_t *nc,void *msg,uint32_t *len);
+int nc_recvmsg(net_client_t *nc,void **msg,uint32_t *len);
+int nc_free(net_client_t *nc,void *buf);
 
 #ifdef __cplusplus
 	}
