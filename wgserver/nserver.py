@@ -56,9 +56,31 @@ class net_server(object):
 	    return False
 	return True
 
-    def ns_recvmsg(self):
+    def ns_recvmsg(self,timeout):
 	self.lib.ns_recvmsg.restype = c_int
 	self.lib.ns_recvmsg.argtypes = [POINTER(net_server_t),POINTER(c_void_p),
+		POINTER(c_uint),POINTER(c_ulonglong),c_uint]
+
+	msg = c_char()
+	pmsg = pointer(msg)
+        pmsg = cast(pmsg,c_void_p)
+
+	msg_len = c_uint(0)
+	plen = pointer(msg_len)
+
+	peerid = c_ulonglong(0)
+	peer_id = pointer(peerid)
+	rv = self.lib.ns_recvmsg(self.ns.contents,pmsg,plen,peer_id,timeout)
+	if rv != 0:
+	    return False
+	size = plen[0]
+	msg = string_at(pmsg.value,size)
+
+	return (peer_id[0],msg,plen[0],pmsg)
+
+    def ns_tryrecvmsg(self):
+	self.lib.ns_tryrecvmsg.restype = c_int
+	self.lib.ns_tryrecvmsg.argtypes = [POINTER(net_server_t),POINTER(c_void_p),
 		POINTER(c_uint),POINTER(c_ulonglong)]
 
 	msg = c_char()
@@ -70,8 +92,8 @@ class net_server(object):
 
 	peerid = c_ulonglong(0)
 	peer_id = pointer(peerid)
-	rv = self.lib.ns_recvmsg(self.ns.contents,pmsg,plen,peer_id)
-	if rv < 0:
+	rv = self.lib.ns_tryrecvmsg(self.ns.contents,pmsg,plen,peer_id)
+	if rv != 0:
 	    return False
 	size = plen[0]
 	msg = string_at(pmsg.value,size)
@@ -93,10 +115,10 @@ if __name__ == "__main__":
     ns_arg.port = 8888
     nserver.ns_start(ns_arg)
     while True:
-	msg = nserver.ns_recvmsg()
+	msg = nserver.ns_recvmsg(1000000)
 	if msg:
 	    nserver.ns_sendmsg(msg[0],msg[1],msg[2])
-            nserver.ns_getaddr(msg[0])
+            nserver.ns_getpeeraddr(msg[0])
 	    nserver.ns_free(msg[3])
 	    #nserver.ns_disconnect(msg[0])
     nserver.ns_stop()

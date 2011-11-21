@@ -25,7 +25,7 @@ class WGServer:
 	"""
 	while(True):
 	    sleep = True
-	    message = self.nserver.ns_recvmsg()
+	    message = self.nserver.ns_recvmsg(1000000)
 	    if message:
 		sleep = False
 		self.processmsg(message)

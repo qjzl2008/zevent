@@ -53,16 +53,17 @@ int main(void)
     int count = 0;
 
     rv = nc_sendmsg(nc,buf,len);
-    while(!stop_daemon)
+    while(!stop_daemon && count < 100000)
     {
-	rv = nc_recvmsg(nc,&msg,&len);
+	rv = nc_recvmsg(nc,&msg,&len,1000000);
+	//rv = nc_tryrecvmsg(nc,&msg,&len);
 	if(rv == 0)
 	{
 	    memcpy(buf,(char *)msg,len);
 	    nc_sendmsg(nc,buf,len);
 	    //nc_disconnect(nc);
 	    ++count;
-	    printf("count:%d,%u\n",count,time(NULL));
+//	    printf("count:%d,%u\n",count,time(NULL));
 	    nc_free(nc,msg);
 	}
     }

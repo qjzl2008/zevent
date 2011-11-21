@@ -7,6 +7,7 @@
 #include "znet_types.h"
 
 #define MAX_WORKERS (64)
+#define MAX_QUEUE_CAPACITY (20000)
 
 struct net_server_t {
     int endgame;
@@ -23,8 +24,9 @@ struct net_server_t {
     struct ptbl *ptbl;//peer hash table
     struct thread_mutex_t *ptbl_mutex;
     
-    struct msg_tq recv_queue;
-    struct thread_mutex_t *recv_mutex;
+//    struct msg_tq recv_queue;
+//    struct thread_mutex_t *recv_mutex;
+    queue_t *recv_queue;
 
     pthread_t td_start;
     pthread_t td_evloop;

@@ -119,9 +119,10 @@ static int peer_read_cb(struct peer *p)
 			msg->len = off;
 			msg->peer_id = p->id;
 			
-			thread_mutex_lock(p->ns->recv_mutex);
+			queue_push(p->ns->recv_queue,msg);
+		/*	thread_mutex_lock(p->ns->recv_mutex);
 			BTPDQ_INSERT_TAIL(&p->ns->recv_queue, msg, msg_entry);  
-			thread_mutex_unlock(p->ns->recv_mutex);
+			thread_mutex_unlock(p->ns->recv_mutex);*/
 
 			iobuf_consumed(&p->recvbuf,off);
 			

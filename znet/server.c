@@ -34,6 +34,9 @@ static void *thread_start(void *arg)
     delay.tv_usec = 0;//10000;//10ms
     while(!stop_daemon)
     {
+	delay.tv_sec = 30;
+	delay.tv_usec = 0;//10000;//10ms
+
 	int rv = select(0,NULL,NULL,NULL,&delay); 
 	if(rv == 0)
 	{
@@ -125,22 +128,24 @@ int main()
 
     while(!stop_daemon)
     {
-	rv = ns_recvmsg(ns,&msg,&len,&peer_id);
+	rv = ns_recvmsg(ns,&msg,&len,&peer_id,1000000);
+//	rv = ns_tryrecvmsg(ns,&msg,&len,&peer_id);
 	if(rv == 0)
 	{
-	    pthread_mutex_lock(&mutex);
+/*	    pthread_mutex_lock(&mutex);
 	    void *page = mpool_new(mp,&pgno);
 	    memcpy(page,msg,len);
 	    mpool_put(mp,page,MPOOL_DIRTY);
 	    pthread_mutex_unlock(&mutex);
-
+*/
 	    memcpy(buf,(char *)msg,len);
 	    ns_sendmsg(ns,peer_id,buf,len);
 	    //ns_disconnect(ns,peer_id);
 	    ++count;
-	    printf("count:%d,%u\n",count,time(NULL));
+	 //   printf("count:%d,%u\n",count,time(NULL));
 	    ns_free(ns,msg);
 	}
+	//printf("time:%d\n",time(NULL));
     }
     ns_stop_daemon(ns);
     //tell check data thread to exit

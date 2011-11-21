@@ -143,10 +143,11 @@ int ns_start_daemon(net_server_t **ns,const ns_arg_t *ns_arg)
 		return -1;
 	}
 
-	BTPDQ_INIT(&(*ns)->recv_queue);
-        
+	//BTPDQ_INIT(&(*ns)->recv_queue);
+	//thread_mutex_create(&((*ns)->recv_mutex),0);
+	
+	queue_create(&((*ns)->recv_queue),MAX_QUEUE_CAPACITY);
 	thread_mutex_create(&((*ns)->ptbl_mutex),0);
-	thread_mutex_create(&((*ns)->recv_mutex),0);
 	
 	(*ns)->max_peers = ns_arg->max_peers;
 	if(ns_arg->func)
@@ -183,8 +184,9 @@ int ns_stop_daemon(net_server_t *ns)
 	}
 	ptbl_free(ns->ptbl);   
 
+	queue_destroy(ns->recv_queue);
 	thread_mutex_destroy(ns->ptbl_mutex);
-	thread_mutex_destroy(ns->recv_mutex);
+	//thread_mutex_destroy(ns->recv_mutex);
 	thread_mutex_destroy(ns->mpool_mutex);
 
 	allocator_destroy(ns->allocator);
@@ -258,14 +260,36 @@ int ns_sendmsg(net_server_t *ns,uint64_t peer_id,void *msg,uint32_t len)
 	}
 }
 
-int ns_recvmsg(net_server_t *ns,void **msg,uint32_t *len,uint64_t *peer_id)
+int ns_recvmsg(net_server_t *ns,void **msg,uint32_t *len,uint64_t *peer_id,
+	uint32_t timeout)
 {
 	struct msg_t *message;
-	thread_mutex_lock(ns->recv_mutex);
+	int rv = queue_pop(ns->recv_queue,(void *)&message,timeout);
+	if(rv != 0)
+	    return -1;
+/*	thread_mutex_lock(ns->recv_mutex);
 	message = BTPDQ_FIRST(&ns->recv_queue);
 	if(message)
 		BTPDQ_REMOVE(&ns->recv_queue,message,msg_entry);
-	thread_mutex_unlock(ns->recv_mutex);
+	thread_mutex_unlock(ns->recv_mutex);*/
+	if(message)
+	{
+		*msg = message->buf;
+		*len = message->len;
+		*peer_id = message->peer_id;
+		mfree(ns->allocator,message);
+		return 0;
+	}
+	else
+		return -1;
+}
+
+int ns_tryrecvmsg(net_server_t *ns,void **msg,uint32_t *len,uint64_t *peer_id)
+{
+	struct msg_t *message;
+	int rv = queue_trypop(ns->recv_queue,(void *)&message);
+	if(rv != 0)
+	    return -1;
 	if(message)
 	{
 		*msg = message->buf;

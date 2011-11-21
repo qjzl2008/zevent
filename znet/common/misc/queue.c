@@ -199,7 +199,7 @@ unsigned int queue_size(queue_t *queue) {
  * Once retrieved, the item is placed into the address specified by
  * 'data'.
  */
-int queue_pop(queue_t *queue, void **data)
+int queue_pop(queue_t *queue, void **data,long long timeout)
 {
     int rv;
 
@@ -216,9 +216,15 @@ int queue_pop(queue_t *queue, void **data)
     if (queue_empty(queue)) {
         if (!queue->terminated) {
             queue->empty_waiters++;
-            rv = thread_cond_wait(queue->not_empty, queue->one_big_mutex);
+	    if(timeout > 0)
+		rv = thread_cond_timedwait(queue->not_empty, queue->one_big_mutex,
+			timeout);
+	    else
+		rv = thread_cond_wait(queue->not_empty, queue->one_big_mutex);
             queue->empty_waiters--;
             if (rv != 0) {
+		if(rv == COND_ETIMEUP) 
+		    rv = QUEUE_TIMEOUT;
                 thread_mutex_unlock(queue->one_big_mutex);
                 return rv;
             }

@@ -157,10 +157,11 @@ int nc_connect(net_client_t **nc,const nc_arg_t *nc_arg)
 
         (*nc)->allocator = allocator;
 
-	BTPDQ_INIT(&(*nc)->recv_queue);
-        
+	queue_create(&((*nc)->recv_queue),C_MAX_QUEUE_CAPACITY);
+//	BTPDQ_INIT(&(*nc)->recv_queue);
+//	thread_mutex_create(&((*nc)->recv_mutex),0);
+
 	thread_mutex_create(&((*nc)->peer_mutex),0);
-	thread_mutex_create(&((*nc)->recv_mutex),0);
 	
 	if(nc_arg->func)
 		(*nc)->func = nc_arg->func;
@@ -178,7 +179,15 @@ int nc_connect(net_client_t **nc,const nc_arg_t *nc_arg)
 
 int nc_disconnect(net_client_t *nc)
 {
-	shutdown(nc->peer->sd,SHUT_RDWR);
+	thread_mutex_lock(nc->peer_mutex);
+	struct cpeer *p = nc->peer;
+	if(!p || p->status == CPEER_DISCONNECTED)
+	{
+		thread_mutex_unlock(nc->peer_mutex);
+		return -1;
+	}
+	shutdown(p->sd,SHUT_RDWR);
+	thread_mutex_unlock(nc->peer_mutex);
 	return 0;
 }
 
@@ -222,14 +231,19 @@ int nc_sendmsg(net_client_t *nc,void *msg,uint32_t len)
 	}
 }
 
-int nc_recvmsg(net_client_t *nc,void **msg,uint32_t *len)
+int nc_recvmsg(net_client_t *nc,void **msg,uint32_t *len,uint32_t timeout)
 {
 	struct msg_t *message;
+	int rv = queue_pop(nc->recv_queue,(void *)&message,timeout);
+	if(rv != 0)
+	    return -1;
+/*
 	thread_mutex_lock(nc->recv_mutex);
 	message = BTPDQ_FIRST(&nc->recv_queue);
 	if(message)
 		BTPDQ_REMOVE(&nc->recv_queue,message,msg_entry);
 	thread_mutex_unlock(nc->recv_mutex);
+*/
 	if(message)
 	{
 		*msg = message->buf;
@@ -241,6 +255,25 @@ int nc_recvmsg(net_client_t *nc,void **msg,uint32_t *len)
 		return -1;
 
 }
+
+int nc_tryrecvmsg(net_client_t *nc,void **msg,uint32_t *len)
+{
+	struct msg_t *message;
+	int rv = queue_trypop(nc->recv_queue,(void *)&message);
+	if(rv != 0)
+	    return -1;
+	if(message)
+	{
+		*msg = message->buf;
+		*len = message->len;
+		mfree(nc->allocator,message);
+		return 0;
+	}
+	else
+		return -1;
+
+}
+
 
 int nc_free(net_client_t *nc,void *buf)
 {
@@ -256,10 +289,10 @@ int nc_stop_daemon(net_client_t *nc)
 	pthread_join(nc->td_start,NULL);
 
 	cpeer_kill(nc->peer);
+	queue_destroy(nc->recv_queue);
 	thread_mutex_destroy(nc->peer_mutex);
-	thread_mutex_destroy(nc->recv_mutex);
+	//thread_mutex_destroy(nc->recv_mutex);
 	thread_mutex_destroy(nc->mpool_mutex);
-
 	allocator_destroy(nc->allocator);
 	free(nc);
 	return 0;

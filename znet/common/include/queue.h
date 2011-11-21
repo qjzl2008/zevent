@@ -18,6 +18,7 @@ typedef enum {
 	QUEUE_EINTR = 1,
 	QUEUE_EAGAIN,
 	QUEUE_EOF,
+	QUEUE_TIMEOUT
 }QUEUE_ERROR_TYPE;
 
 /** 
@@ -44,11 +45,12 @@ int queue_push(queue_t *queue, void *data);
  *
  * @param queue the queue
  * @param data the data
+ * @param timeout milliseconds
  * @returns QUEUE_EINTR the blocking was interrupted (try again)
  * @returns QUEUE_EOF if the queue has been terminated
  * @returns 0 on a successful pop
  */
-int queue_pop(queue_t *queue, void **data);
+int queue_pop(queue_t *queue, void **data, long long timeout);
 
 /**
  * push/add an object to the queue, returning immediately if the queue is full
