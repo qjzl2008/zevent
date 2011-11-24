@@ -67,6 +67,14 @@ typedef struct _quadtree_t
     float             _overlap;                   /* overlapped ratio of quanbox */
 } quadtree_t;
 
+/* quad object*/
+typedef struct quadtree_object {
+     struct list_head quad_lst;
+     void *object;
+     quadnode_t *node;
+     quadbox_t _box;
+}quadtree_object_t;
+
 /*=============================================================================
                         Public Functions
 =============================================================================*/
@@ -83,30 +91,28 @@ quadtree_destroy (IN  quadtree_t        *qtree
                   );
 
 /* inserts a node identified by node_key into a quadtree, returns the node quadtree encoding */
-extern  quadnode_t *
+extern  quadtree_object_t *
 quadtree_insert (IN  quadtree_t            *qtree,
-        IN  struct list_head *node_lst,
+	IN  void *qobject,
         IN  quadbox_t            *node_box
                  );
 
-/* searches nodes inside search_box */
-extern  void
+/* searches objects inside search_box */
+extern void
 quadtree_search (IN  const quadtree_t    *qtree,
         IN  quadbox_t            *search_box,
-        OUT list_t                *results_list[],
-        IN OUT int *index,
-        IN int max_index
-                 );
+        OUT quadtree_object_t                *objects[],
+	IN  int max,
+	OUT int *num
+	);
 
 extern  void
 quadtree_update (IN  quadtree_t            *qtree,
-        IN  quadnode_t *node
+        IN  quadtree_object_t *object,
+        IN  quadbox_t            *node_box
                  );
 
-extern  void
-quadtree_remove (IN  quadtree_t            *qtree,
-        IN  quadnode_t *node
-                 );
+extern void quadtree_del_object (quadtree_object_t *object);
 
 typedef void (*quad_travel_func)(struct list_head *, void *);
 void quad_travel(quadnode_t *current_node, quad_travel_func f, void *param);

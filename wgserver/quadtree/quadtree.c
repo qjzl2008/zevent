@@ -3,13 +3,21 @@
  *        Quad tree implementation -- for spatial quick searching
  *        cheungmine
  */
-#include "stdio.h"
-#include "quadtree.h"
+#include <stdio.h>
 #include <assert.h>
+#include <stddef.h>
+#include "quadtree.h"
 
 /*=============================================================================
   Private Functions
   =============================================================================*/
+static void printbox(quadnode_t *node)
+{
+   // printf("box:minx:%f,miny:%f,maxx:%f,maxy:%f\n",node->_box._xmin,
+//	    node->_box._ymin,node->_box._xmax,node->_box._ymax);
+}
+
+
 static int quadbox_is_valid (quadbox_t    *qb)
 {
     return (qb->_xmin < qb->_xmax && qb->_ymin < qb->_ymax)? 1 : 0;
@@ -138,6 +146,7 @@ static void quadnode_add_data ( quadnode_t* node, struct list_head *node_lst)
         list_add(node_lst, &node->_lst);
 }
 
+
 /* inserts a node to parent node of tree. returns pointer to node */
 static quadnode_t*  quadtree_insert_node ( quadtree_t *tree,
         quadnode_t    *parent,
@@ -172,12 +181,6 @@ static quadnode_t*  quadtree_insert_node ( quadtree_t *tree,
     }
 
     return NULL;
-}
-
-void printbox(quadnode_t *node)
-{
-   // printf("box:minx:%f,miny:%f,maxx:%f,maxy:%f\n",node->_box._xmin,
-//	    node->_box._ymin,node->_box._xmax,node->_box._ymax);
 }
 
 /* searched tree nodes */
@@ -261,27 +264,87 @@ quadtree_destroy (IN  quadtree_t    *qtree)
     free (qtree);
 }
 
-/* inserts a node into quadtree and return pointer to new node */
-quadnode_t *
+/* inserts a node into quadtree and return pointer to new object */
+quadtree_object_t *
 quadtree_insert (IN  quadtree_t *qtree,
-        IN  struct list_head *node_lst,
+	IN  void *object,
         IN  quadbox_t        *node_box
                  )
 {
     int        depth = -1;
-    return quadtree_insert_node (qtree, qtree->_root, node_lst, node_box, &depth);
+    quadtree_object_t *qobject = (quadtree_object_t *)malloc(sizeof(quadtree_object_t));
+    qobject->object = object;
+
+    quadnode_t *node = NULL;
+    node = quadtree_insert_node (qtree, qtree->_root, &qobject->quad_lst, 
+	    node_box, &depth);
+    if(!node)
+    {
+	free(qobject);
+	return NULL;
+    }
+    else
+    {
+	qobject->node = node;
+	qobject->_box = *node_box;
+	return qobject;
+    }
 }
 
 /* searches nodes inside search_box */
+#define MAX_LIST_INDEX (1000)
 void
 quadtree_search (IN  const quadtree_t    *qtree,
         IN  quadbox_t            *search_box,
-        OUT list_t                *results_list[],
-        IN OUT int *index,
-        IN int max_index
+        OUT quadtree_object_t                *objects[],
+	IN  int max,
+	OUT int *num
                  )
 {
-    quadtree_search_nodes (qtree->_root, search_box, results_list, index, max_index);
+    int max_index = MAX_LIST_INDEX;
+    struct list_head *results_list[max_index];
+    int index = 0;
+    quadtree_search_nodes (qtree->_root, search_box, results_list, &index, max_index);
+
+    int x = 0,count = 0;
+    for (x = 0; x < index && count < max; ++x)
+    {
+        struct list_head *l = results_list[x];
+        struct list_head *n = results_list[x]->next;
+        quadtree_object_t *object;
+        if (!l)
+                continue;
+	int i = 0;
+        while (n != l && i < max) {
+                object = (quadtree_object_t *)((char *)n - offsetof(quadtree_object_t,
+			    quad_lst) );
+		objects[count++] = object;
+                n = n->next;
+        }
+    }
+    *num = count;
+}
+
+void quadtree_del_object (quadtree_object_t *object)
+{
+	list_del(&object->quad_lst);
+	free(object);
+}
+
+void
+quadtree_update (IN  quadtree_t            *qtree,
+        IN  quadtree_object_t *object,
+        IN  quadbox_t            *node_box
+                 )
+{
+    object->_box = *node_box;
+    if ( quadbox_is_inside (node_box, &(object->node->_box)) )
+    {
+	return;
+    }
+    void *obj = object->object;
+    quadtree_del_object(object);
+    quadtree_insert(qtree,obj,node_box);
 }
 
 void quad_travel(quadnode_t *current_node, quad_travel_func f, void *param)

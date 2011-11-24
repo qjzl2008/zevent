@@ -14,15 +14,16 @@ typedef struct npc_
 static quadtree_t *map_tree;
 static int id_index;
 
+static int count = 0;
 void printnpc(npc *t, void *param)
 {
         if (!t)
                 return;
         printf("name[%s] id[%d] x[%d] y[%d]\n",
                 ((npc *)t)->name, ((npc *)t)->id, ((npc *)t)->pos_x, ((npc *)t)->pos_y);
+	++count;
 }
 
-static int count = 0;
 void printnpc_v3(struct list_head *l, void *param)
 {
         struct list_head *n = l->next;
@@ -45,7 +46,7 @@ void dumpallnpc()
 
 int addnpc(char *name, int id, int pos_x, int pos_y)
 {
-        quadbox_t pos_box = {pos_x, pos_y, pos_x + 32, pos_y + 32};
+        quadbox_t pos_box = {pos_x, pos_y, pos_x + 2, pos_y + 2};
         npc *p = (npc *)malloc(sizeof(npc));
         if (!p)
                 return (-1);
@@ -61,30 +62,33 @@ int addnpc(char *name, int id, int pos_x, int pos_y)
 		pos_box._xmin,pos_box._ymin,
 		pos_box._xmax,pos_box._ymax);
 */
-        if (quadtree_insert(map_tree, &p->quad_lst, &pos_box) == NULL)
+	quadtree_object_t *object = quadtree_insert(map_tree, p, &pos_box);
+        if (object == NULL)
         {
                 printf("add to map fail\n");
         }
+	quadtree_del_object(object);
 
         return (0);
 }
 
+#define MAX_OBJECTS_NUM (5000)
 void searchnpc(double min_x,double max_x,double min_y,double max_y)
 {
     char name[32];
-    struct list_head *quad_ret[1000];
-    int index = 0;
+    int num = 0;
     quadbox_t box;
     printf("min_x:%f max_x:%f min_y:%f max_y:%f: search by quad_tree\n",
 	    min_x,max_x,min_y,max_y);
 
     box._xmin = min_x; box._xmax = max_x; box._ymin = min_y; box._ymax = max_y;
-    quadtree_search(map_tree, &box, quad_ret, &index, 1000);
-    printf("index:%d\n",index);
+    quadtree_object_t *objects[MAX_OBJECTS_NUM];
+    quadtree_search(map_tree, &box, objects, MAX_OBJECTS_NUM,&num);
     int x = 0;
-    for (x = 0; x < index; ++x)
+    for (x = 0; x < num; ++x)
     {
-	printnpc_v3(quad_ret[x], NULL);
+	npc *n = objects[x]->object;
+	printnpc(n, NULL);
     }
 }
 
@@ -93,7 +97,7 @@ void addmultinpc()
         char npcname[32];
         int x=0, y=0;
 	int count = 0;
-	for(count = 0; count < 5000; ++count) {
+	for(count = 0; count < 1000; ++count) {
 	    x = rand()%400;
 	    y = rand()%600;
 	    sprintf(npcname,"%s-%d","zhoubug",count);
