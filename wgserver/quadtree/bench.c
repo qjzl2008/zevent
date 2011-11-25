@@ -62,12 +62,14 @@ int addnpc(char *name, int id, int pos_x, int pos_y)
 		pos_box._xmin,pos_box._ymin,
 		pos_box._xmax,pos_box._ymax);
 */
-	quadtree_object_t *object = quadtree_insert(map_tree, p, &pos_box);
+	quadtree_object_t *object = quadtree_insert(map_tree, p,0, &pos_box);
         if (object == NULL)
         {
                 printf("add to map fail\n");
         }
-	quadtree_del_object(object);
+//	quadtree_del_object(object);
+        quadbox_t new_box = {1000,1000,2000,2000};
+	quadtree_update(map_tree,object,&new_box);
 
         return (0);
 }
@@ -97,7 +99,7 @@ void addmultinpc()
         char npcname[32];
         int x=0, y=0;
 	int count = 0;
-	for(count = 0; count < 1000; ++count) {
+	for(count = 0; count < 1; ++count) {
 	    x = rand()%400;
 	    y = rand()%600;
 	    sprintf(npcname,"%s-%d","zhoubug",count);

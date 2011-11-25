@@ -13,8 +13,8 @@
   =============================================================================*/
 static void printbox(quadnode_t *node)
 {
-   // printf("box:minx:%f,miny:%f,maxx:%f,maxy:%f\n",node->_box._xmin,
-//	    node->_box._ymin,node->_box._xmax,node->_box._ymax);
+   printf("box:minx:%f,miny:%f,maxx:%f,maxy:%f\n",node->_box._xmin,
+	    node->_box._ymin,node->_box._xmax,node->_box._ymax);
 }
 
 
@@ -124,11 +124,6 @@ static void quadnode_create_child(quadnode_t* node, float overlap, int depth)
     node->_sub[NW] = quadnode_create (&nw);
     node->_sub[SW] = quadnode_create (&sw);
     node->_sub[SE] = quadnode_create (&se);
-    printbox(node);
-    printbox(node->_sub[NE]);
-    printbox(node->_sub[NW]);
-    printbox(node->_sub[SW]);
-    printbox(node->_sub[SE]);
 }
 
 static int quadnode_has_child(const quadnode_t* node)
@@ -159,6 +154,7 @@ static quadnode_t*  quadtree_insert_node ( quadtree_t *tree,
     {
         if ( ++(*depth) < tree->_depth )
         {
+	    //printbox(parent);
             if ( !quadnode_has_child ( parent ) )
                 quadnode_create_child (parent, tree->_overlap, (*depth));
 
@@ -194,8 +190,6 @@ static void  quadtree_search_nodes (quadnode_t    *current_node,
         if (*index >= max_index)
 	    return;
 
-	if(!quadbox_is_overlapped(&(current_node->_box),search_box))
-	    printbox(current_node);
         if ( quadbox_is_overlapped ( &(current_node->_box), search_box ) )
     {
         if ( quadnode_has_data (current_node) ) {
@@ -205,6 +199,7 @@ static void  quadtree_search_nodes (quadnode_t    *current_node,
 //                      memcpy(&results_list[*index], &current_node->_lst, sizeof(struct list_head));
                         results_list[*index] = &current_node->_lst;
                         ++(*index);
+                       //printbox(current_node);
                 }
 
         if ( quadnode_has_child (current_node) )
@@ -240,8 +235,8 @@ quadtree_create (quadbox_t    box,
         qt->_overlap = overlap;
 
         quadbox_inflate (&box, quadbox_width(&box)*overlap, quadbox_height(&box)*overlap);
-	printf("quadtree_create box minx:%f,maxx:%f,miny:%f,maxy:%f\n",box._xmin,
-		box._xmax,box._ymin,box._ymax);
+	//printf("quadtree_create box minx:%f,maxx:%f,miny:%f,maxy:%f\n",box._xmin,
+	//	box._xmax,box._ymin,box._ymax);
 
         qt->_root = quadnode_create (&box);
         assert (qt->_root);
@@ -268,12 +263,14 @@ quadtree_destroy (IN  quadtree_t    *qtree)
 quadtree_object_t *
 quadtree_insert (IN  quadtree_t *qtree,
 	IN  void *object,
+	IN  uint64_t objectid,
         IN  quadbox_t        *node_box
                  )
 {
     int        depth = -1;
     quadtree_object_t *qobject = (quadtree_object_t *)malloc(sizeof(quadtree_object_t));
     qobject->object = object;
+    qobject->objectid = objectid;
 
     quadnode_t *node = NULL;
     node = quadtree_insert_node (qtree, qtree->_root, &qobject->quad_lst, 
@@ -314,8 +311,7 @@ quadtree_search (IN  const quadtree_t    *qtree,
         quadtree_object_t *object;
         if (!l)
                 continue;
-	int i = 0;
-        while (n != l && i < max) {
+        while (n != l && count < max) {
                 object = (quadtree_object_t *)((char *)n - offsetof(quadtree_object_t,
 			    quad_lst) );
 		objects[count++] = object;
@@ -344,7 +340,7 @@ quadtree_update (IN  quadtree_t            *qtree,
     }
     void *obj = object->object;
     quadtree_del_object(object);
-    quadtree_insert(qtree,obj,node_box);
+    quadtree_object_t *pobject = quadtree_insert(qtree,obj,object->objectid,node_box);
 }
 
 void quad_travel(quadnode_t *current_node, quad_travel_func f, void *param)

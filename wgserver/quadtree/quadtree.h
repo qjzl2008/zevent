@@ -10,6 +10,7 @@
 
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <list.h>
 
@@ -73,6 +74,7 @@ typedef struct quadtree_object {
      void *object;
      quadnode_t *node;
      quadbox_t _box;
+     uint64_t objectid;
 }quadtree_object_t;
 
 /*=============================================================================
@@ -94,6 +96,7 @@ quadtree_destroy (IN  quadtree_t        *qtree
 extern  quadtree_object_t *
 quadtree_insert (IN  quadtree_t            *qtree,
 	IN  void *qobject,
+	IN  uint64_t objectid,
         IN  quadbox_t            *node_box
                  );
 
