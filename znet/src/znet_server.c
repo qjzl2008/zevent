@@ -156,7 +156,6 @@ int ns_start_daemon(net_server_t **ns,const ns_arg_t *ns_arg)
 		(*ns)->func = default_process_func;
 
 	int epfd = evloop_init();
-	printf("epfd:%d\n",epfd);
 	(*ns)->epfd = epfd;
 	start_listen(*ns,ns_arg);
 	//pthread_attr_t attr;
