@@ -17,6 +17,7 @@ typedef void (*evloop_cb_t)(int fd, short type, void *arg);
 struct fdev {
     evloop_cb_t cb;
     void *arg;
+    int epfd;
     int fd;
     uint16_t flags;
 #ifdef EVLOOP_EPOLL
@@ -44,9 +45,9 @@ struct timeout {
 };
 
 int evloop_init(void);
-int evloop(int *endgame);
+int evloop(int epfd,int *endgame);
 
-int fdev_new(struct fdev *ev, int fd, uint16_t flags, evloop_cb_t cb,
+int fdev_new(int epfd,struct fdev *ev, int fd, uint16_t flags, evloop_cb_t cb,
     void *arg);
 int fdev_del(struct fdev *ev);
 int fdev_enable(struct fdev *ev, uint16_t flags);

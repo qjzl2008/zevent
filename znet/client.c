@@ -63,7 +63,7 @@ int main(void)
 	    nc_sendmsg(nc,buf,len);
 	    //nc_disconnect(nc);
 	    ++count;
-//	    printf("count:%d,%u\n",count,time(NULL));
+	    printf("count:%d,%u\n",count,time(NULL));
 	    nc_free(nc,msg);
 	}
     }

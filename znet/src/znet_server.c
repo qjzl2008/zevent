@@ -54,7 +54,7 @@ static void *event_loop(void *arg)
 {
 	net_server_t *ns = (net_server_t *)arg;
 
-	evloop(&ns->endgame);
+	evloop(ns->epfd,&ns->endgame);
 	return NULL;
 }
 
@@ -79,7 +79,7 @@ static int start_listen(net_server_t *ns,const ns_arg_t *ns_arg)
 	rv = listen(fd,500);
 	set_nonblocking(fd);
 	ns->fd = fd;
-	fdev_new(&ns->ev,fd,EV_READ,net_connection_cb,ns);
+	fdev_new(ns->epfd,&ns->ev,fd,EV_READ,net_connection_cb,ns);
 	return 0;
 }
 
@@ -155,7 +155,9 @@ int ns_start_daemon(net_server_t **ns,const ns_arg_t *ns_arg)
 	else
 		(*ns)->func = default_process_func;
 
-	evloop_init();
+	int epfd = evloop_init();
+	printf("epfd:%d\n",epfd);
+	(*ns)->epfd = epfd;
 	start_listen(*ns,ns_arg);
 	//pthread_attr_t attr;
 	pthread_t td;

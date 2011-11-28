@@ -39,7 +39,7 @@ int cpeer_create_out(int fd,struct net_client_t *nc)
 
 	nc->peer = p;
 
-	fdev_new(&p->ioev,fd,EV_READ,net_io_cb,p);
+	fdev_new(nc->epfd,&p->ioev,fd,EV_READ,net_io_cb,p);
 	return 0;
 }
 

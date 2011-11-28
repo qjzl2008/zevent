@@ -67,7 +67,7 @@ int peer_create_in(int fd,struct sockaddr_in addr,struct net_server_t *ns)
 	ns->npeers++;
 	thread_mutex_unlock(ns->ptbl_mutex);
 
-	fdev_new(&p->ioev,fd,EV_READ,net_io_cb,p);
+	fdev_new(ns->epfd,&p->ioev,fd,EV_READ,net_io_cb,p);
 	return 0;
 }
 

@@ -25,7 +25,7 @@ static void *event_loop(void *arg)
 {
 	net_client_t *nc = (net_client_t *)arg;
 
-	evloop(&nc->endgame);
+	evloop(nc->epfd,&nc->endgame);
 	return NULL;
 }
 
@@ -168,7 +168,8 @@ int nc_connect(net_client_t **nc,const nc_arg_t *nc_arg)
 	else
 		(*nc)->func = default_process_func;
 
-	evloop_init();
+	int epfd = evloop_init();
+	(*nc)->epfd = epfd;
 	cpeer_create_out(sd,*nc);
 
 	pthread_t td;

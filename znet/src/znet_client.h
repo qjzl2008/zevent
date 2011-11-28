@@ -10,6 +10,7 @@
 #define C_MAX_QUEUE_CAPACITY (20000)
 struct net_client_t {
     int endgame;
+    int epfd;
     int sd;
     struct fdev ev; 
 
