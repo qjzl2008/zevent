@@ -85,9 +85,8 @@ static int nc_nbconnect(int *fd, const nc_arg_t *nc_arg)
     int flags=fcntl(sd,F_GETFL,0);
     fcntl(sd,F_SETFL,flags|O_NONBLOCK);
 
-    int rv;
-
-    if((rv=connect(sd,(struct sockaddr *)&addr,addrsize))<0)
+    int rv=connect(sd,(struct sockaddr *)&addr,addrsize);
+    if(rv < 0)
     {
 	if(errno != EINPROGRESS)
 	{
@@ -97,6 +96,7 @@ static int nc_nbconnect(int *fd, const nc_arg_t *nc_arg)
 	else
 	{
 	    FD_SET(sd,&wset);
+	    FD_SET(sd,&eset);
 	    rv = select(sd+1,NULL,&wset,&eset,&tm);
 	    if(rv < 0){
 		close(sd);
@@ -114,10 +114,18 @@ static int nc_nbconnect(int *fd, const nc_arg_t *nc_arg)
 	    }
 	    if(FD_ISSET(sd,&wset))
 	    {
+		int err=0;
+
+		socklen_t len=sizeof(err);
+		rv = getsockopt(sd,SOL_SOCKET,SO_ERROR,&err,&len);
+		if(rv < 0 || (rv ==0 && err))
+		{
+		    close(sd);
+		    return -1;
+		}
 		*fd = sd;
 		return 0;
 	    }
-
 	}
     }
     else
