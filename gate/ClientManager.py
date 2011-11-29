@@ -28,6 +28,7 @@ class ClientManager(threading.Thread):
 	    if message:
 		if message[0] == 1:
 		    PutLogList("(*) peer(ID:%d) disconnected" % message[1])
+		    #self.playermanager.ProcessLeaveGame(message[1])
 		else:
 		    self.processmsg(message)
 		    self.nserver.ns_free(message[4])

@@ -35,7 +35,7 @@ class connector(threading.Thread):
 
 			     #send data 2 clients
 				cmd = Packets.MSGID_DATA2CLIENTS
-				buf = '{"cmd":%d,"msgs":[{"uid":100,"msg":{"cmd":10,"x":100,"y":100}}]}'% cmd
+				buf = '{"cmd":%d,"msgs":[{"cid":100,"msg":{"cmd":10,"x":100,"y":100}}]}'% cmd
 			        message = struct.pack('>i',len(buf)) + buf
 				self.sock.send(message)
                             
