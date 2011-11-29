@@ -31,14 +31,12 @@ class connector(threading.Thread):
 				nlen, = struct.unpack('>i',retmsg)
 				retmsg = self.sock.recv(nlen)
 				print "RegisterGS Res:",retmsg
-				sleep(10000000)
+#				sleep(10000000)
 
 			     #send data 2 clients
 				cmd = Packets.MSGID_DATA2CLIENTS
 				buf = '{"cmd":%d,"msgs":[{"uid":100,"msg":{"cmd":10,"x":100,"y":100}}]}'% cmd
-				print buf
 			        message = struct.pack('>i',len(buf)) + buf
-				print message
 				self.sock.send(message)
                             
 				count+=1

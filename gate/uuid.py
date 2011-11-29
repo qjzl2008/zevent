@@ -13,7 +13,7 @@ class uuid(object):
 	    self.fobject = open("state.dat","r+")
 	    store = self.fobject.read(8)
 	    if store:
-		self.time_last,self.fudge = struct.unpack("II",self.fobject.read(8))
+		self.time_last,self.fudge = struct.unpack("II",store)
 	else:
 	    self.fobject = open("state.dat","w+")
 

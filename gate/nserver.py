@@ -71,12 +71,14 @@ class net_server(object):
 	peerid = c_ulonglong(0)
 	peer_id = pointer(peerid)
 	rv = self.lib.ns_recvmsg(self.ns.contents,pmsg,plen,peer_id,timeout)
-	if rv != 0:
+	if rv < 0:
 	    return False
-	size = plen[0]
-	msg = string_at(pmsg.value,size)
-
-	return (peer_id[0],msg,plen[0],pmsg)
+	elif rv == 0:
+	    size = plen[0]
+	    msg = string_at(pmsg.value,size)
+	    return (rv,peer_id[0],msg,plen[0],pmsg)
+	elif rv == 1:
+	    return (rv,peer_id[0])
 
     def ns_tryrecvmsg(self):
 	self.lib.ns_tryrecvmsg.restype = c_int
@@ -93,12 +95,14 @@ class net_server(object):
 	peerid = c_ulonglong(0)
 	peer_id = pointer(peerid)
 	rv = self.lib.ns_tryrecvmsg(self.ns.contents,pmsg,plen,peer_id)
-	if rv != 0:
+	if rv < 0:
 	    return False
-	size = plen[0]
-	msg = string_at(pmsg.value,size)
-
-	return (peer_id[0],msg,plen[0],pmsg)
+	elif rv == 0:
+	    size = plen[0]
+	    msg = string_at(pmsg.value,size)
+	    return (rv,peer_id[0],msg,plen[0],pmsg)
+	elif rv == 1:
+	    return (rv,peer_id[0])
 
     def ns_free(self,msg):
 	self.lib.ns_disconnect.argtypes = [POINTER(net_server_t),POINTER(c_void_p)]

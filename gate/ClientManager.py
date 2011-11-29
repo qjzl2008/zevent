@@ -20,15 +20,17 @@ class ClientManager(threading.Thread):
 
     def run(self):
 	"""
-            message = (peerid,msg,len,void_pointer)
+            message = (rv,peerid,msg,len,void_pointer)
 	"""
 	while(True):
 	    sleep = True
 	    message = self.nserver.ns_recvmsg(0)
 	    if message:
-		sleep = False
-		self.processmsg(message)
-		self.nserver.ns_free(message[3])
+		if message[0] == 1:
+		    PutLogList("(*) peer(ID:%d) disconnected" % message[1])
+		else:
+		    self.processmsg(message)
+		    self.nserver.ns_free(message[4])
 	    continue
 
     def Init(self,gsmanager):
@@ -52,19 +54,19 @@ class ClientManager(threading.Thread):
    
     def processmsg(self,message):
 	"""
-           message = (peerid,msg,len,void_pointer)
+           message = (rv,peerid,msg,len,void_pointer)
 	   void_pointer ns_free的参数 释放消息到底层网络库内存池
 	"""
 	#self.nserver.ns_sendmsg(message[0],message[1],message[2])
 	#return
 	try:
-	    obj = json.loads(message[1][4:])
+	    obj = json.loads(message[2][4:])
 	except:
-	    PutLogFileList("Packet len: %d b * %s" % (len(message[1][4:]),
-		repr(message[1][4:])), Logfile.PACKETMS)
+	    PutLogFileList("Packet len: %d b * %s" % (len(message[2][4:]),
+		repr(message[2][4:])), Logfile.PACKETMS)
 	    return
 
-        peerid = message[0]
+        peerid = message[1]
 	if obj['cmd'] == Packets.MSGID_REQUEST_LOGIN:
 	    self.playermanager.ProcessClientLogin(peerid,obj)
 	elif obj['cmd'] == Packets.MSGID_REQUEST_ENTERGAME:
@@ -76,8 +78,8 @@ class ClientManager(threading.Thread):
 	elif obj['cmd'] == Packets.MSGID_REQUEST_BINDGS:
 	    self.playermanager.ProcessClientRequestBindGS(peerid,obj)
 	else:
-	    PutLogFileList("MsgID: (0x%08X) %db * %s" % (obj[0], len(message[1][4:]),
-		repr(message[1][4:])), Logfile.PACKETMS)
+	    PutLogFileList("MsgID: (0x%08X) %db * %s" % (obj[0], len(message[2][4:]),
+		repr(message[2][4:])), Logfile.PACKETMS)
 	    return
 
     def Send2Clients(self,obj):
