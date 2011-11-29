@@ -90,7 +90,8 @@ static int peer_read_cb(struct cpeer *p)
 			bcopy(p->recvbuf.buf,msg->buf,off);
 			msg->len = off;
 			msg->peer_id = p->id;
-			
+			msg->type = MSG_DATA;
+
 			queue_push(p->nc->recv_queue,msg);
 /*			thread_mutex_lock(p->nc->recv_mutex);
 			BTPDQ_INSERT_TAIL(&p->nc->recv_queue, msg, msg_entry);  
@@ -184,6 +185,16 @@ int cpeer_kill(struct cpeer *p)
 		printf("ref:%d,close peer id:%llu,peer:%p,nc:%p\n",p->refcount,p->id,p,p->nc);
 		close(p->sd);
 		fdev_del(&p->ioev);
+
+		//push one msg to notify disconnect
+		struct msg_t *msg = (struct msg_t *)mmalloc(p->nc->allocator,
+			sizeof(struct msg_t));
+		msg->buf = NULL;
+		msg->len = 0;
+		msg->peer_id = p->id;
+		msg->type = MSG_DISCONNECT;
+
+		queue_push(p->nc->recv_queue,msg);
 	}
 
 	if(__sync_bool_compare_and_swap(&p->refcount,0,1))

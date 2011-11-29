@@ -245,16 +245,20 @@ int nc_recvmsg(net_client_t *nc,void **msg,uint32_t *len,uint32_t timeout)
 		BTPDQ_REMOVE(&nc->recv_queue,message,msg_entry);
 	thread_mutex_unlock(nc->recv_mutex);
 */
-	if(message)
+	if(!message)
+	    return -1;
+	else
 	{
-		*msg = message->buf;
-		*len = message->len;
-		mfree(nc->allocator,message);
+	    *msg = message->buf;
+	    *len = message->len;
+	    mfree(nc->allocator,message);
+	    if(message->type == MSG_DISCONNECT)
+	    {
+		return 1;
+	    }
+	    else
 		return 0;
 	}
-	else
-		return -1;
-
 }
 
 int nc_tryrecvmsg(net_client_t *nc,void **msg,uint32_t *len)
@@ -263,18 +267,21 @@ int nc_tryrecvmsg(net_client_t *nc,void **msg,uint32_t *len)
 	int rv = queue_trypop(nc->recv_queue,(void *)&message);
 	if(rv != 0)
 	    return -1;
-	if(message)
+	if(!message)
+	    return -1;
+	else
 	{
-		*msg = message->buf;
-		*len = message->len;
-		mfree(nc->allocator,message);
+	    *msg = message->buf;
+	    *len = message->len;
+	    mfree(nc->allocator,message);
+	    if(message->type == MSG_DISCONNECT)
+	    {
+		return 1;
+	    }
+	    else
 		return 0;
 	}
-	else
-		return -1;
-
 }
-
 
 int nc_free(net_client_t *nc,void *buf)
 {

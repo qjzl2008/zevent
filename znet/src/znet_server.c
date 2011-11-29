@@ -273,16 +273,21 @@ int ns_recvmsg(net_server_t *ns,void **msg,uint32_t *len,uint64_t *peer_id,
 	if(message)
 		BTPDQ_REMOVE(&ns->recv_queue,message,msg_entry);
 	thread_mutex_unlock(ns->recv_mutex);*/
-	if(message)
+	if(!message)
+	    return -1;
+	else
 	{
-		*msg = message->buf;
-		*len = message->len;
-		*peer_id = message->peer_id;
-		mfree(ns->allocator,message);
+	    *msg = message->buf;
+	    *len = message->len;
+	    *peer_id = message->peer_id;
+	    mfree(ns->allocator,message);
+	    if(message->type == MSG_DISCONNECT)
+	    {
+		return 1;
+	    }
+	    else
 		return 0;
 	}
-	else
-		return -1;
 }
 
 int ns_tryrecvmsg(net_server_t *ns,void **msg,uint32_t *len,uint64_t *peer_id)
@@ -291,16 +296,22 @@ int ns_tryrecvmsg(net_server_t *ns,void **msg,uint32_t *len,uint64_t *peer_id)
 	int rv = queue_trypop(ns->recv_queue,(void *)&message);
 	if(rv != 0)
 	    return -1;
-	if(message)
+
+	if(!message)
+	    return -1;
+	else
 	{
-		*msg = message->buf;
-		*len = message->len;
-		*peer_id = message->peer_id;
-		mfree(ns->allocator,message);
+	    *msg = message->buf;
+	    *len = message->len;
+	    *peer_id = message->peer_id;
+	    mfree(ns->allocator,message);
+	    if(message->type == MSG_DISCONNECT)
+	    {
+		return 1;
+	    }
+	    else
 		return 0;
 	}
-	else
-		return -1;
 }
 
 
