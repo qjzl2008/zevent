@@ -31,7 +31,7 @@ class connector(threading.Thread):
 				nlen, = struct.unpack('>i',retmsg)
 				retmsg = self.sock.recv(nlen)
 				print "RegisterGS Res:",retmsg
-#				sleep(10000000)
+				sleep(10000000)
 
 			     #send data 2 clients
 				cmd = Packets.MSGID_DATA2CLIENTS

@@ -27,6 +27,7 @@ class  Player(object):
 	#0 1 logined 2 entered
 	self.state = self.INIT_STATE
 	self.gsid = 0
+	self.cid = 0
 
     def setaccount(self,accountinfo):
 	self.account = accountinfo
@@ -108,11 +109,11 @@ class PlayerManager(object):
 		finally:
 		    self.mutex_clients.release()
 
-		self.mutex_peers.acquire()
-		try:
-		    self.player2peer[account.AccountID] = sender
-		finally:
-		    self.mutex_peers.release()
+#		self.mutex_peers.acquire()
+#		try:
+#		    self.player2peer[account.AccountID] = sender
+#		finally:
+#		    self.mutex_peers.release()
 
 	def ChangePassword(self, sender, buffer):
 	    pass
@@ -154,36 +155,39 @@ class PlayerManager(object):
 	    SendData = struct.pack(fmt,len(msg),msg)
 	    self.nserver.ns_sendmsg(sender,SendData,len(SendData))
 
-	def ProcessClientRequestBindGS(self, sender, jsobj):
+	def ProcessClientRequestEnterGame(self,sender,jsobj):
 	    gsid = jsobj['gsid']
-	    self.clientmanager.gsmanager.mutex_gsmanager.acquire()
-	    gspeerid = -1;
-	    try:
-		gspeerid = self.clientmanager.gsmanager.gs2peer[gsid]
+            try:
+		clientinfo = self.clients[sender]
 	    except:
-		PutLogList("(!) gs ID:%d does not exists!" % gsid,
-			Logfile.ERROR)
-	    finally:
-		self.clientmanager.gsmanager.mutex_gsmanager.release()
-	    if gspeerid == -1:
-	        self.SendRes2Request(sender,Packets.MSGID_RESPONSE_BINDGS,
+		self.SendRes2Reqest(sender,Packets.MSGID_RESPONSE_ENTERGAME,\
 			Packets.DEF_MSGTYPE_REJECT)
-	    else:
-		self.clients[sender].gsid = gsid
-	        self.SendRes2Request(sender,Packets.MSGID_RESPONSE_BINDGS,
-			Packets.DEF_MSGTYPE_CONFIRM)
-	    pass
+		return False
+
+	    if not clientinfo or self.clients[sender].state != \
+		    Player.LOGINED_STATE:
+		self.SendRes2Request(sender,Packets.MSGID_RESPONSE_ENTERGAME,\
+			Packets.DEF_MSGTYPE_REJECT)
+		return False
+
+	    rv = self.clientmanager.gsmanager.Send2GS(gsid,jsobj)
+	    if not rv:
+		self.SendRes2Request(sender,Packets.MSGID_RESPONSE_ENTERGAME,
+			Packets.DEF_MSGTYPE_REJECT)
+		return False
+
+	    self.clients[sender].gsid = gsid
 
 	def IsAccountInUse(self, AccountName):
 	    return False
 
-	def Send2Player(self,uid,buf):
+	def Send2Player(self,cid,buf):
 	    peerid = -1
 	    self.mutex_peers.acquire()
 	    try:
-		peerid = self.player2peer[uid]
+		peerid = self.player2peer[cid]
 	    except :
-		PutLogList("(!) Peer does not exists for uid: %d" % uid,
+		PutLogList("(!) Peer does not exists for cid: %d" % cid,
 			Logfile.ERROR)
 	    finally:
 		self.mutex_peers.release()

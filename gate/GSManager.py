@@ -31,6 +31,7 @@ class GSManager(threading.Thread):
 	    if message:
 		if message[0] == 1:
 		    PutLogList("(*) peer(ID:%d) disconnected" % message[1])
+		    self.ProcessGSUnRegister(message[1])
 		else:
 		    self.processmsg(message)
 		    self.nserver.ns_free(message[4])
@@ -74,6 +75,8 @@ class GSManager(threading.Thread):
 	    self.ProcessGSRegister(peerid,obj)
 	elif obj['cmd'] == Packets.MSGID_DATA2CLIENTS:
 	    self.ProcessData2Clients(peerid,obj)
+	elif obj['cmd'] == Packets.MSGID_RESPONSE_ENTERGAME:
+	    self.ProcessEnterGameResponse(peerid,obj)
 	else:
 	    PutLogFileList("MsgID: (0x%08X) %db * %s" % (obj[0], len(message[2][4:]),
 		repr(message[2][4:])), Logfile.PACKETMS)
@@ -98,6 +101,35 @@ class GSManager(threading.Thread):
 	self.SendRes2Request(sender,Packets.MSGID_RESPONSE_REGGS,
 		Packets.DEF_MSGTYPE_CONFIRM)
 
+    def ProcessGSUnRegister(self,sender):
+	self.mutex_gsmanager.acquire()
+	try:
+	    if self.peer2gs.has_key(sender):
+		gsid = self.peer2gs[sender]
+		del self.gs2peer[gsid] 
+		del self.peer2gs[sender]
+	finally:
+	    self.mutex_gsmanager.release()
+
     def ProcessData2Clients(self,sender,msg):
 	self.client_manager.Send2Clients(msg)
 
+    def Send2GS(self,gsid,jsobj):
+	gspeer = -1
+	self.mutex_gsmanager.acquire()
+	try:
+	    if self.gs2peer.has_key(gsid):
+		gspeer = gs2peer[gsid]
+	finally:
+	    self.mutex_gsmanager.release()
+
+	if gspeer == -1:
+	    return False
+
+	buf = json.dump(jsobj)
+	fmt = '>i%ds' % (len(buf))
+	SendData = struct.pack(fmt,len(buf),buf)
+	return self.nserver.ns_sendmsg(gspeer,SendData,len(SendData))
+
+    def ProcessEnterGameResponse(self,sender,jsobj):
+	pass

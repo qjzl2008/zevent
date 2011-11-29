@@ -71,12 +71,8 @@ class ClientManager(threading.Thread):
 	    self.playermanager.ProcessClientLogin(peerid,obj)
 	elif obj['cmd'] == Packets.MSGID_REQUEST_ENTERGAME:
 	    self.playermanager.ProcessClientRequestEnterGame(peerid,obj)
-	elif obj['cmd'] == Packets.MSGID_REQUEST_LEAVEGAME:
-	    self.playermanager.ProcessLeaveGame(peerid)
 	elif obj['cmd'] == Packets.MSGID_REQUEST_NEWACCOUNT:
 	    self.playermanager.CreateNewAccount(peerid,obj)
-	elif obj['cmd'] == Packets.MSGID_REQUEST_BINDGS:
-	    self.playermanager.ProcessClientRequestBindGS(peerid,obj)
 	else:
 	    PutLogFileList("MsgID: (0x%08X) %db * %s" % (obj[0], len(message[2][4:]),
 		repr(message[2][4:])), Logfile.PACKETMS)
