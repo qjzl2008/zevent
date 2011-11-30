@@ -105,7 +105,6 @@ class net_server(object):
 	    return (rv,peer_id[0])
 
     def ns_free(self,msg):
-	self.lib.ns_disconnect.argtypes = [POINTER(net_server_t),POINTER(c_void_p)]
 	rv = self.lib.ns_free(self.ns.contents,msg)
 
     def ns_disconnect(self,peer_id):

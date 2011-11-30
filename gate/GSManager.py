@@ -78,7 +78,7 @@ class GSManager(threading.Thread):
 	elif obj['cmd'] == Packets.MSGID_RESPONSE_ENTERGAME:
 	    self.ProcessEnterGameResponse(peerid,obj)
 	else:
-	    PutLogFileList("MsgID: (0x%08X) %db * %s" % (obj[0], len(message[2][4:]),
+	    PutLogFileList("MsgID: (0x%08X) %db * %s" % (obj['cmd'], len(message[2][4:]),
 		repr(message[2][4:])), Logfile.PACKETMS)
 	    return
 	pass
