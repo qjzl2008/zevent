@@ -31,10 +31,10 @@ class SceneManager(object):
 	self.c2scene = {}
 
     @classmethod
-    def instance(cls,nserver):
+    def instance(cls,nclient):
 	if not hasattr(cls, "_instance"):
 	    cls._instance = cls()
-	    cls._instance.nserver = nserver
+	    cls._instance.nclient = nclient
 	    cls._instance.Init()
 	return cls._instance
 

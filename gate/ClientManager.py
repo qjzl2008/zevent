@@ -30,7 +30,7 @@ class ClientManager(threading.Thread):
 		    PutLogList("(*) peer(ID:%d) disconnected" % message[1])
 		    #self.playermanager.ProcessLeaveGame(message[1])
 		else:
-		    self.processmsg(message)
+		    self.ProcessMsg(message)
 		    self.nserver.ns_free(message[4])
 	    continue
 
@@ -53,7 +53,7 @@ class ClientManager(threading.Thread):
 	self.gsmanager = gsmanager
 	return True
    
-    def processmsg(self,message):
+    def ProcessMsg(self,message):
 	"""
            message = (rv,peerid,msg,len,void_pointer)
 	   void_pointer ns_free的参数 释放消息到底层网络库内存池
@@ -70,12 +70,14 @@ class ClientManager(threading.Thread):
         peerid = message[1]
 	if obj['cmd'] == Packets.MSGID_REQUEST_LOGIN:
 	    self.playermanager.ProcessClientLogin(peerid,obj)
-	elif obj['cmd'] == Packets.MSGID_REQUEST_ENTERGAME:
-	    self.playermanager.ProcessClientRequestEnterGame(peerid,obj)
+	elif obj['cmd'] == Packets.MSGID_REQUEST_BINDGS:
+	    self.playermanager.ProcessClientRequestBindGS(peerid,obj)
 	elif obj['cmd'] == Packets.MSGID_REQUEST_NEWACCOUNT:
 	    self.playermanager.CreateNewAccount(peerid,obj)
+	elif obj['cmd'] == Packets.MSGID_DATA2GS:
+	    self.playermanager.ProcessClientData2GS(peerid,obj)
 	else:
-	    PutLogFileList("MsgID: (0x%08X) %db * %s" % (obj[0], len(message[2][4:]),
+	    PutLogFileList("MsgID: (0x%08X) %db * %s" % (obj['cmd'], len(message[2][4:]),
 		repr(message[2][4:])), Logfile.PACKETMS)
 	    return
 

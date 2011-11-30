@@ -18,7 +18,7 @@ class connector(threading.Thread):
 		n = 0;
 		while(True):
 			count = 0
-			while(count < 10):
+			while(count < 1):
 			     #create account
 				buf = '{"cmd":8,"name":"zhousihai","pwd":"123456",\
 					"mail":"zhousihai@126.com"}'
@@ -39,7 +39,7 @@ class connector(threading.Thread):
 				retmsg = self.sock.recv(nlen)
 				print "Login Res:",retmsg
 
-			    #request enter gs
+			    #request bind gs
 				buf = '{"cmd":%d,"gsid":1}' %\
 					(Packets.MSGID_REQUEST_BINDGS)
 			        message = struct.pack('>i',len(buf)) + buf
@@ -47,8 +47,33 @@ class connector(threading.Thread):
 			        retmsg = self.sock.recv(4)
 				nlen, = struct.unpack('>i',retmsg)
 				retmsg = self.sock.recv(nlen)
-				print "bind gs:",retmsg
+				print "bind gs Res:",retmsg
+			    #send createcharacter
+				cmd1 = Packets.MSGID_DATA2GS
+				cmd2 = Packets.MSGID_REQUEST_NEWCHARACTER
+				buf = '{"cmd":%d,"msgs":[{"gsid":1,"msg":{"cmd":%d,\
+					"professionid":5670219206962356229,\
+					"name":"周霸姐","gender":0}}]}'% (cmd1,cmd2)
+			        message = struct.pack('>i',len(buf)) + buf
+				self.sock.send(message)
+				retmsg = self.sock.recv(4)
+				nlen, = struct.unpack('>i',retmsg)
+				retmsg = self.sock.recv(nlen)
+				print "create character Res:",retmsg
+
+			    #send listcharacter
+				cmd1 = Packets.MSGID_DATA2GS
+				cmd2 = Packets.MSGID_REQUEST_GETCHARLIST
+				buf = '{"cmd":%d,"msgs":[{"gsid":1,"msg":{"cmd":%d}}]}'% (cmd1,cmd2)
+			        message = struct.pack('>i',len(buf)) + buf
+				self.sock.send(message)
+				retmsg = self.sock.recv(4)
+				nlen, = struct.unpack('>i',retmsg)
+				retmsg = self.sock.recv(nlen)
+				print "create character Res:",retmsg
+
 				count+=1
+
 			#sleep(1)
 			n+=1
 			self.sock.close()
@@ -61,7 +86,7 @@ class connector(threading.Thread):
 if __name__ == '__main__':
     cnlist = []
     i = 0
-    while i<100:
+    while i<1:
         cn = connector(i)
         cn.start()
         cnlist.append(cn)

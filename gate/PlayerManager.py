@@ -26,8 +26,7 @@ class  Player(object):
 	self.account = accountinfo
 	#0 1 logined 2 entered
 	self.state = self.INIT_STATE
-	self.gsid = 0
-	self.cid = 0
+	self.gspeerid = -1
 
     def setaccount(self,accountinfo):
 	self.account = accountinfo
@@ -41,9 +40,6 @@ class PlayerManager(object):
 		"""
 		self.clients = {}
 		self.mutex_clients = threading.Lock()
-
-		self.player2peer = {}
-		self.mutex_peers = threading.Lock()
 
 	        self.gconfig = GlobalConfig.instance()
 		self.serverid = self.gconfig.GetValue('CONFIG','server-id')
@@ -109,11 +105,6 @@ class PlayerManager(object):
 		finally:
 		    self.mutex_clients.release()
 
-#		self.mutex_peers.acquire()
-#		try:
-#		    self.player2peer[account.AccountID] = sender
-#		finally:
-#		    self.mutex_peers.release()
 
 	def ChangePassword(self, sender, buffer):
 	    pass
@@ -155,54 +146,59 @@ class PlayerManager(object):
 	    SendData = struct.pack(fmt,len(msg),msg)
 	    self.nserver.ns_sendmsg(sender,SendData,len(SendData))
 
-	def ProcessClientRequestEnterGame(self,sender,jsobj):
+	def ProcessClientRequestBindGS(self,sender,jsobj):
 	    gsid = jsobj['gsid']
             try:
 		clientinfo = self.clients[sender]
 	    except:
-		self.SendRes2Reqest(sender,Packets.MSGID_RESPONSE_ENTERGAME,\
+		self.SendRes2Reqest(sender,Packets.MSGID_RESPONSE_BINDGS,\
 			Packets.DEF_MSGTYPE_REJECT)
 		return False
 
 	    if not clientinfo or self.clients[sender].state != \
 		    Player.LOGINED_STATE:
-		self.SendRes2Request(sender,Packets.MSGID_RESPONSE_ENTERGAME,\
+		self.SendRes2Request(sender,Packets.MSGID_RESPONSE_BINDGS,\
 			Packets.DEF_MSGTYPE_REJECT)
 		return False
 
-	    rv = self.clientmanager.gsmanager.Send2GS(gsid,jsobj)
+            rv = self.clientmanager.gsmanager.GetPeerIDByGsID(gsid)
 	    if not rv:
-		self.SendRes2Request(sender,Packets.MSGID_RESPONSE_ENTERGAME,
+		self.SendRes2Request(sender,Packets.MSGID_RESPONSE_BINDGS,\
 			Packets.DEF_MSGTYPE_REJECT)
 		return False
+	    else:
+		clientinfo.gspeerid = rv
+		self.SendRes2Request(sender,Packets.MSGID_RESPONSE_BINDGS,\
+		    Packets.DEF_MSGTYPE_CONFIRM)
+		return True
 
-	    self.clients[sender].gsid = gsid
+	def ProcessClientData2GS(self,sender,obj):
+            try:
+		clientinfo = self.clients[sender]
+	    except:
+		return False
+
+	    if not clientinfo or self.clients[sender].state != \
+		    Player.LOGINED_STATE:
+		return False
+	    for msg in obj['msgs']:
+		msg['msg']['peerid'] = sender
+		msg['msg']['accountid'] = clientinfo.account.AccountID
+		buf = json.dumps(msg['msg'])
+		gspeerid = clientinfo.gspeerid
+		self.clientmanager.gsmanager.Send2GS(gspeerid,buf)
 
 	def IsAccountInUse(self, AccountName):
 	    return False
 
-	def Send2Player(self,cid,buf):
-	    peerid = -1
-	    self.mutex_peers.acquire()
-	    try:
-		peerid = self.player2peer[cid]
-	    except :
-		PutLogList("(!) Peer does not exists for cid: %d" % cid,
-			Logfile.ERROR)
-	    finally:
-		self.mutex_peers.release()
-	    if peerid == -1:
-		return
-
+	def Send2Player(self,peerid,buf):
             fmt = '>i%ds' % (len(buf))
 	    SendData = struct.pack(fmt,len(buf),buf)
 	    rv = self.nserver.ns_sendmsg(peerid,SendData,len(SendData))
-	    print "rv:%d" % (rv)
-	    pass
 
         def Send2Clients(self,obj):
 	    for msg in obj['msgs']:
 		buf = json.dumps(msg['msg'])
-		uid = msg['uid']
-		self.Send2Player(uid,buf)
+		peerid = msg['peerid']
+		self.Send2Player(peerid,buf)
 	    pass

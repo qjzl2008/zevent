@@ -6,25 +6,26 @@ from GlobalConfig import GlobalConfig
 from wgserver import WGServer
 from log import *
 from daemon import Daemon
-from nserver import ns_arg_t,net_server_t,net_server
-#from net import tcpserver
-#from net import ioloop
+from nclient import nc_arg_t,net_client_t,net_client
 
 class MyDaemon(Daemon):
     def run(self):
         self.gconfig = GlobalConfig.instance()
 	self.znetlib = self.gconfig.GetValue('CONFIG','net-lib')
-	self.ip = self.gconfig.GetValue('CONFIG','game-server-address')
-	self.port = self.gconfig.GetValue('CONFIG','game-server-port')
+	self.ip = self.gconfig.GetValue('CONFIG','gate-server-address')
+	self.port = self.gconfig.GetValue('CONFIG','gate-server-port')
         
-	nserver = net_server(self.znetlib)
-	ns_arg = ns_arg_t()
-	ns_arg.ip = self.ip
-	ns_arg.port = self.port
-	nserver.ns_start(ns_arg)
-
-	wgserver = WGServer(nserver)
-	wgserver.Init()
+	nclient = net_client(self.znetlib)
+	nc_arg = nc_arg_t()
+	nc_arg.ip = self.ip
+	nc_arg.port = self.port
+	rv = nclient.nc_connect(nc_arg)
+	if not rv:
+	    PutLogList("(*) Connect to server IP:%s PORT:%d failed!" % (self.ip,self.port))
+	    sys.exit(0)
+	wgserver = WGServer(nclient)
+	if not wgserver.Init():
+	    sys.exit(0)
 	wgserver.run()
 
 if __name__ == "__main__":

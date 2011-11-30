@@ -19,17 +19,13 @@ fillzeros = lambda txt, count: (txt + ("\x00" * (count-len(txt))))[:count]
 class  Player(object):
 
     INIT_STATE = 0x00
-    LOGINED_STATE = 0x01
     ENTERED_STATE = 0x02
 
-    def __init__(self,accountinfo = None,characterinfo = None):
-	self.account = accountinfo
+    def __init__(self):
 	#0 1 logined 2 entered
 	self.state = self.INIT_STATE
 	self.characterid = 0
 
-    def setaccount(self,accountinfo):
-	self.account = accountinfo
     def setstate(self,state):
 	self.state = state
 
@@ -41,15 +37,15 @@ class PlayerManager(object):
 		self.clients = {}
 
 	        self.gconfig = GlobalConfig.instance()
-		self.serverid = self.gconfig.GetValue('CONFIG','server-id')
+		self.serverid = self.gconfig.GetValue('CONFIG','gsid')
 	        self.dbaddress = self.gconfig.GetValue('CONFIG','db')
 		self.uuid = uuid.instance()
 
         @classmethod
-        def instance(cls,nserver,db):
+        def instance(cls,nclient,db):
 	    if not hasattr(cls, "_instance"):
 		cls._instance = cls()
-		cls._instance.nserver = nserver
+		cls._instance.nclient = nclient
 	        cls.Database = db
 		cls._instance.dbsession = db.session()
 		cls._instance.Init()
@@ -60,7 +56,7 @@ class PlayerManager(object):
 	    return hasattr(cls, "_instance")
 		
 	def Init(self):
-	    self.scmanager = SceneManager.instance(self.nserver)
+	    self.scmanager = SceneManager.instance(self.nclient)
 	    return True
 	def obj2dict(self,obj):
 	    memberlist = [m for m in dir(obj)]
@@ -70,39 +66,11 @@ class PlayerManager(object):
 		    _dict[m] = getattr(obj,m)
             return _dict
 		
-	def ProcessClientLogin(self, sender, jsobj):
-	    account = Account.ByName(self.dbsession, jsobj['cnm'])
-	    if not account:
-		PutLogList("(!) Account does not exists: %s" % jsobj['cnm'],
-			Logfile.ERROR)
-		msg = '{"cmd":%d,"code":%d}' % (Packets.MSGID_RESPONSE_LOGIN,
-		Packets.DEF_LOGRESMSGTYPE_NOTEXISTINGACCOUNT)
-		fmt = '>i%ds' % (len(msg))
-		SendData = struct.pack(fmt,len(msg),msg)
-	        self.nserver.ns_sendmsg(sender,SendData,len(SendData))
-
-	    elif account.Password != jsobj['pwd']:
-		PutLogList("(!) Wrong Password: %s" % jsobj['cnm'], Logfile.ERROR)
-		msg = '{"cmd":%d,"code":%d}' % (Packets.MSGID_RESPONSE_LOG,
-		Packets.DEF_LOGRESMSGTYPE_PASSWORDMISMATCH)
-		fmt = '>i%ds' % (len(msg))
-		SendData = struct.pack(fmt,len(msg),msg)
-	        self.nserver.ns_sendmsg(sender,SendData,len(SendData))
-	    else:
-		PutLogList("(*) Login success: %s" % jsobj['cnm'])
-		msg = '{"cmd":%d,"code":%d,"veru":%d,"verl":%d}' % (Packets.MSGID_RESPONSE_LOGIN,
-		Packets.DEF_MSGTYPE_CONFIRM,Version.UPPER, Version.LOWER)
-		fmt = '>i%ds' % (len(msg))
-		SendData = struct.pack(fmt,len(msg),msg)
-	        self.nserver.ns_sendmsg(sender,SendData,len(SendData))
-		player = Player(account)
-		player.setstate(Player.LOGINED_STATE)
-		self.clients[sender] = player
-
 	def ChangePassword(self, sender, buffer):
 	    pass
 	
-	def CreateNewCharacter(self, sender, jsobj):
+	def CreateNewCharacter(self,jsobj):
+	    sender = jsobj['peerid']
 	    ProfessionID = jsobj['professionid']
 	    profession= Profession.ByID(self.dbsession, ProfessionID)
 	    if not profession:
@@ -111,10 +79,8 @@ class PlayerManager(object):
 		self.SendRes2Request(sender,Packets.MSGID_RESPONSE_NEWCHARACTER,\
 			Packets.DEF_MSGTYPE_REJECT)
 	    else:
-                player = self.clients[sender]
-		accountid = player.account.AccountID
 	        uuid = self.uuid.gen_uuid(self.serverid,UUID_Type.CHARACTER)
-		new_character = Character(accountid,ProfessionID,
+		new_character = Character(jsobj['accountid'],ProfessionID,
 			uuid,jsobj['name'],jsobj['gender'],
 			profession.Appr,profession.Strength,
 			profession.Intelligence,profession.Magic,
@@ -148,7 +114,7 @@ class PlayerManager(object):
 			(new_character.CharName))
 
 
-	def ProcessGetCharList(self,sender):
+	def ProcessGetCharList(self,jsobj):
 	    account_instance = self.clients[sender].account
 	    num = len(account_instance.CharList)
 	    i = 0
@@ -174,47 +140,22 @@ class PlayerManager(object):
 
 	    fmt = '>i%ds' % (len(msg))
 	    SendData = struct.pack(fmt,len(msg),msg)
-	    self.nserver.ns_sendmsg(sender,SendData,len(SendData))
+	    self.nclient.nc_sendmsg(SendData,len(SendData))
 
 	def DeleteCharacter(self, sender, buffer):
 	    pass
+
+	def SendData2Clients(self,msgs):
+	    message = '{"cmd":%d,"msgs":%s}' % (Packets.MSGID_DATA2CLIENTS,
+		    msgs)
+	    fmt = '>i%ds' % (len(message))
+	    SendData = struct.pack(fmt,len(message),message)
+	    rv = self.nclient.nc_sendmsg(SendData,len(SendData))
+	    print "rv:%d,msg:%s,len:%d" % (rv,message,len(message))
 		
-	def CreateNewAccount(self, sender, jsobj):
-	    address = self.nserver.ns_getpeeraddr(sender)
-	    uuid = self.uuid.gen_uuid(self.serverid,UUID_Type.ACCOUNT)
-            new_account = Account(uuid,jsobj['name'],jsobj['pwd'],
-		    jsobj['mail'],address[0])
-	    self.dbsession.add(new_account)
-	    try:
-		    self.dbsession.commit()
-	    except IntegrityError, errstr:
-		    #print errstr
-		    self.dbsession.rollback()
-		    if "Duplicate entry" in str(errstr):
-			self.SendRes2Request(sender,Packets.MSGID_RESPONSE_NEWACCOUNT,\
-				Packets.DEF_MSGTYPE_REJECT)
-			PutLogList("(!) Create account fails [ %s ]. Account already exists" % new_account.Name, Logfile.HACK)
-			return
-		    else:
-			PutLogFileList(str(errstr), Logfile.MYSQL)
-	    except OperationalError, errstr:
-		    #print errstr
-		    self.dbsession.rollback()
-		    self.SendRes2Request(sender,Packets.MSGID_RESPONSE_NEWACCOUNT,\
-			    Packets.DEF_MSGTYPE_REJECT)
-		    PutLogList("(!) Create account fails [ %s ]. Unknown error occured!" % new_account.Name, Logfile.HACK)
-		    return
-
-	    self.SendRes2Request(sender,Packets.MSGID_RESPONSE_NEWACCOUNT,\
-		    Packets.DEF_MSGTYPE_CONFIRM)
-	    PutLogList("(*) Create account success [ %s/%s ]." % \
-		    (new_account.Name, new_account.Mail))
-
 	def SendRes2Request(self,sender,cmd,code):
-	    msg = '{"cmd":%d,"code":%d}' % (cmd,code)
-	    fmt = '>i%ds' % (len(msg))
-	    SendData = struct.pack(fmt,len(msg),msg)
-	    self.nserver.ns_sendmsg(sender,SendData,len(SendData))
+	    msg = '[{"peerid":%d,"msg":{"cmd":%d,"code":%d}}]' % (sender,cmd,code)
+	    self.SendData2Clients(msg)
 
 	def ProcessLeaveGame(self, sender):
 	    try:

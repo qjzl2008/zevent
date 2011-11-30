@@ -13,27 +13,27 @@ from GlobalConfig import GlobalConfig
 from log import *
 
 class WGServer:
-    def __init__(self, nserver):
-	self.nserver = nserver
+    def __init__(self, nclient):
+	self.nclient = nclient
         self.MaxTotalUsers = 1000
         self.WorldServerName = "WS1"
 	self.gconfig = GlobalConfig.instance()
 
     def run(self):
 	"""
-            message = (peerid,msg,len,void_pointer)
+            message = (rv,msg,len,void_pointer)
 	"""
 	while(True):
 	    sleep = True
-	    message = self.nserver.ns_recvmsg(1000000)
+	    message = self.nclient.nc_recvmsg(1000000)
 	    if message:
-		sleep = False
-		self.processmsg(message)
-		self.nserver.ns_free(message[3])
-	    #gs logic
-	    #self.MainLogic()
-	    #if sleep:
-	#	time.sleep(0.01)
+		if message[0] == 0:
+		    self.ProcessMsg(message)
+		    self.nclient.nc_free(message[3])
+		else:
+		    #disconneted to gate
+		    PutLogList("(!) Disconnected to gate server!")
+		    break;
 	    continue
 
     def Init(self):
@@ -51,17 +51,53 @@ class WGServer:
 	    PutLogList("(!) DatabaseDriver initialization fails!")
 	    return False
 
-	self.playermanager = PlayerManager.instance(self.nserver,self.Database)
-	self.scmanager = SceneManager.instance(self.nserver)
+	self.playermanager = PlayerManager.instance(self.nclient,self.Database)
+	self.scmanager = SceneManager.instance(self.nclient)
+
+	if not self.RegisterGS():
+	    return False
+
 	return True
-   
-    def processmsg(self,message):
+    
+    def RegisterGS(self):
+        #register gs
+	cmd = Packets.MSGID_REQUEST_REGGS
+	buf = '{"cmd":%d,"gsid":%d}'% (cmd,self.gconfig.GetValue('CONFIG','gsid'))
+	msg = struct.pack('>i',len(buf)) + buf
+	self.nclient.nc_sendmsg(msg,len(msg))
+	#timeout 3seconds
+	message = self.nclient.nc_recvmsg(3000)
+	if message:
+	    if message[0] == 0:
+		try:
+		    obj = json.loads(message[1][4:])
+		except:
+		    PutLogFileList("Packet len: %d b * %s" % (len(message[1][4:]),
+			repr(message[1][4:])), Logfile.PACKETMS)
+		    self.nclient.nc_free(message[3])
+		    return False
+
+	        if obj['cmd'] == Packets.MSGID_RESPONSE_REGGS:
+		    if obj['code'] == Packets.DEF_MSGTYPE_CONFIRM:
+		        self.nclient.nc_free(message[3])
+		        PutLogList("(!) Registered to gate server sucessful!")
+			return True
+		    else:
+		        self.nclient.nc_free(message[3])
+			self.nclient.nc_disconnect()
+			return False
+		else:
+		    return False
+	    else:
+		#disconneted to gate
+		PutLogList("(!) Disconnected to gate server!")
+		return False;
+
+    def ProcessMsg(self,message):
 	"""
            message = (peerid,msg,len,void_pointer)
 	   void_pointer ns_free的参数 释放消息到底层网络库内存池
 	"""
-	#self.nserver.ns_sendmsg(message[0],message[1],message[2])
-	#return
 	try:
 	    obj = json.loads(message[1][4:])
 	except:
@@ -69,26 +105,17 @@ class WGServer:
 		repr(message[1][4:])), Logfile.PACKETMS)
 	    return
 
-        peerid = message[0]
-	if obj['cmd'] == Packets.MSGID_REQUEST_LOGIN:
-	    self.playermanager.ProcessClientLogin(peerid,obj)
-	elif obj['cmd'] == Packets.MSGID_REQUEST_ENTERGAME:
-	    self.playermanager.ProcessClientRequestEnterGame(peerid,obj)
-	elif obj['cmd'] == Packets.MSGID_REQUEST_LEAVEGAME:
-	    self.playermanager.ProcessLeaveGame(peerid)
-	elif obj['cmd'] == Packets.MSGID_REQUEST_NEWACCOUNT:
-	    self.playermanager.CreateNewAccount(peerid,obj)
+	if obj['cmd'] == Packets.MSGID_REQUEST_ENTERGAME:
+	    self.playermanager.ProcessClientRequestEnterGame(obj)
 	elif obj['cmd'] == Packets.MSGID_REQUEST_NEWCHARACTER:
-	    self.playermanager.CreateNewCharacter(peerid,obj)
+	    self.playermanager.CreateNewCharacter(obj)
 	elif obj['cmd'] == Packets.MSGID_REQUEST_GETCHARLIST:
-	    self.playermanager.ProcessGetCharList(peerid)
+	    self.playermanager.ProcessGetCharList(obj)
 	else:
-	    PutLogFileList("MsgID: (0x%08X) %db * %s" % (obj[0], len(message[1][4:]),
+	    PutLogFileList("MsgID: (0x%08X) %db * %s" % (obj['cmd'], len(message[1][4:]),
 		repr(message[1][4:])), Logfile.PACKETMS)
 	    return
 
-	    #self.nserver.sendmsg(msg.peerid,msg.data)
-	    #print msg.peerid,msg.data,len(msg.data)
 	pass
     def MainLogic(self):
 	self.scmanager.MainLogic()

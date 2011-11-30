@@ -33,7 +33,7 @@ class GSManager(threading.Thread):
 		    PutLogList("(*) peer(ID:%d) disconnected" % message[1])
 		    self.ProcessGSUnRegister(message[1])
 		else:
-		    self.processmsg(message)
+		    self.ProcessMsg(message)
 		    self.nserver.ns_free(message[4])
 	    continue
 
@@ -53,10 +53,9 @@ class GSManager(threading.Thread):
 	    return False
 
 	self.client_manager = client_manager
-
 	return True
    
-    def processmsg(self,message):
+    def ProcessMsg(self,message):
 	"""
            message = (rv,peerid,msg,len,void_pointer)
 	   void_pointer ns_free的参数 释放消息到底层网络库内存池
@@ -71,6 +70,7 @@ class GSManager(threading.Thread):
 	    return
 
         peerid = message[1]
+
 	if obj['cmd'] == Packets.MSGID_REQUEST_REGGS:
 	    self.ProcessGSRegister(peerid,obj)
 	elif obj['cmd'] == Packets.MSGID_DATA2CLIENTS:
@@ -114,22 +114,28 @@ class GSManager(threading.Thread):
     def ProcessData2Clients(self,sender,msg):
 	self.client_manager.Send2Clients(msg)
 
-    def Send2GS(self,gsid,jsobj):
-	gspeer = -1
+    def GetPeerIDByGsID(self,gsid):
+	peerid = -1
 	self.mutex_gsmanager.acquire()
 	try:
 	    if self.gs2peer.has_key(gsid):
-		gspeer = gs2peer[gsid]
+		peerid = self.gs2peer[gsid]
 	finally:
 	    self.mutex_gsmanager.release()
 
-	if gspeer == -1:
+	if peerid == -1:
 	    return False
+	else:
+	    return peerid
 
-	buf = json.dump(jsobj)
+    def Send2GS(self,peerid,buf):
 	fmt = '>i%ds' % (len(buf))
 	SendData = struct.pack(fmt,len(buf),buf)
-	return self.nserver.ns_sendmsg(gspeer,SendData,len(SendData))
+	rv = self.nserver.ns_sendmsg(peerid,SendData,len(SendData))
+	if not rv:
+	    PutLogList("(*) Send2GS gspeerid: %d failed!" % peerid,'',False)
+	    return False
+	return True
 
     def ProcessEnterGameResponse(self,sender,jsobj):
 	pass
