@@ -15,51 +15,6 @@ from sqlalchemy.orm.exc import NoResultFound
 
 Base = declarative_base()
 
-class Account(Base):
-	__tablename__ = "account"
-	AccountID = Column(BigInteger, primary_key = True)
-	Name = Column(String(10), nullable = False, unique = True)
-	Password = Column(String(10), nullable = False)
-	Mail = Column(String(50), nullable = False)
-	Quiz = Column(String(45))
-	Answer = Column(String(20))
-	SignupDate = Column(DateTime(), nullable = False)
-	BlockDate = Column(DateTime())
-	IpAddress = Column(String(15), nullable = False)
-	
-	def __init__(self, AccountID, name, password, mail, address):
-		self.AccountID = AccountID
-		self.Name = name
-		self.Password = password
-		self.Mail = mail
-		self.SignupDate = datetime.datetime.now()
-		self.IpAddress = address
-		
-	def __repr__(self):
-		return "<User('%s', '%s', '%s')>" % (str(self.AccountID), self.Name, self.Password)
-	@staticmethod
-	def ByName(session, name):
-		try:
-			return session.query(Account).\
-				filter(Account.Name == name).\
-				one()
-		except NoResultFound:
-			return False
-	@staticmethod
-	def Match(session, name, pwd):
-		try:
-			return session.query(Account).\
-				filter(Account.Name == name).\
-				filter(Account.Password == pwd).\
-				one()
-		except NoResultFound:
-			return False
-		
-	def Has(self, player_name):
-		return filter(lambda ch: ch.CharName == player_name, self.CharList)
-	def Find(self, player_name):
-		return (lambda x: x[0] if x else False)(self.Has(player_name))
-
 class Profession(Base):
         __tablename__ = "profession"
 	ProfessionID = Column(BigInteger, primary_key = True)
@@ -84,7 +39,7 @@ class Profession(Base):
 
 class Character(Base):
 	__tablename__ = "character"
-	AccountID = Column(BigInteger, ForeignKey("account.AccountID"))
+	AccountID = Column(BigInteger, nullable = False)
 	ProfessionID = Column(BigInteger, ForeignKey("profession.ProfessionID"))
 	CharacterID = Column(BigInteger, primary_key = True)
 	CharName = Column(String(10), nullable = False, unique = True)
@@ -122,7 +77,6 @@ class Character(Base):
 	PK = Column(Integer, default = 0)
 	RewardGold = Column(Integer, default = 0)
 	State = Column(SmallInteger, default = 0)
-	Account = relationship(Account, backref = backref("CharList", order_by = Level))
 	
 	@staticmethod
 	def Exists(session, Name):
@@ -161,6 +115,15 @@ class Character(Base):
 				one()
 		except NoResultFound:
 			return False
+	@staticmethod
+	def ByAccountID(session, accountid):
+		try:
+			return session.query(Character).\
+				filter(Character.AccountID == accountid).\
+				all()
+		except NoResultFound:
+			return False
+
 
 	def AddItem(self, _ID, _Name, _LifeSpan, _Color, _Attr, _Equip, _X, _Y):
 		self.Items.append(Item(Name = _Name,

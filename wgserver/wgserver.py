@@ -3,9 +3,9 @@ import os
 import threading
 import random
 import time
-from Database import Account, Character, Item, Skill, DatabaseDriver
+from Database import Character, Item, Skill, DatabaseDriver
 from GlobalDef import DEF, Logfile, Version ,UUID_Type
-from playermanager import PlayerManager
+from GateLogic import GateLogic
 from scenemanager import SceneManager
 import simplejson as json
 from NetMessages import Packets   
@@ -51,7 +51,7 @@ class WGServer:
 	    PutLogList("(!) DatabaseDriver initialization fails!")
 	    return False
 
-	self.playermanager = PlayerManager.instance(self.nclient,self.Database)
+	self.gatelogic = GateLogic.instance(self.nclient,self.Database)
 	self.scmanager = SceneManager.instance(self.nclient)
 
 	if not self.RegisterGS():
@@ -106,11 +106,11 @@ class WGServer:
 	    return
 
 	if obj['cmd'] == Packets.MSGID_REQUEST_ENTERGAME:
-	    self.playermanager.ProcessClientRequestEnterGame(obj)
+	    self.gatelogic.ProcessClientRequestEnterGame(obj)
 	elif obj['cmd'] == Packets.MSGID_REQUEST_NEWCHARACTER:
-	    self.playermanager.CreateNewCharacter(obj)
+	    self.gatelogic.CreateNewCharacter(obj)
 	elif obj['cmd'] == Packets.MSGID_REQUEST_GETCHARLIST:
-	    self.playermanager.ProcessGetCharList(obj)
+	    self.gatelogic.ProcessGetCharList(obj)
 	else:
 	    PutLogFileList("MsgID: (0x%08X) %db * %s" % (obj['cmd'], len(message[1][4:]),
 		repr(message[1][4:])), Logfile.PACKETMS)

@@ -151,7 +151,7 @@ class PlayerManager(object):
             try:
 		clientinfo = self.clients[sender]
 	    except:
-		self.SendRes2Reqest(sender,Packets.MSGID_RESPONSE_BINDGS,\
+		self.SendRes2Request(sender,Packets.MSGID_RESPONSE_BINDGS,\
 			Packets.DEF_MSGTYPE_REJECT)
 		return False
 
@@ -176,11 +176,15 @@ class PlayerManager(object):
             try:
 		clientinfo = self.clients[sender]
 	    except:
-		return False
+		self.SendRes2Request(sender,Packets.MSGID_RESPONSE_BINDGS,\
+		    Packets.DEF_MSGTYPE_REJECT)
+		return
 
 	    if not clientinfo or self.clients[sender].state != \
 		    Player.LOGINED_STATE:
-		return False
+		self.SendRes2Request(sender,Packets.MSGID_RESPONSE_BINDGS,\
+		    Packets.DEF_MSGTYPE_REJECT)
+
 	    for msg in obj['msgs']:
 		msg['msg']['peerid'] = sender
 		msg['msg']['accountid'] = clientinfo.account.AccountID

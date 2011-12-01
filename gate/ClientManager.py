@@ -74,7 +74,7 @@ class ClientManager(threading.Thread):
 	    self.playermanager.ProcessClientRequestBindGS(peerid,obj)
 	elif obj['cmd'] == Packets.MSGID_REQUEST_NEWACCOUNT:
 	    self.playermanager.CreateNewAccount(peerid,obj)
-	elif obj['cmd'] == Packets.MSGID_DATA2GS:
+	elif obj['cmd'] == Packets.MSGID_REQUEST_DATA2GS:
 	    self.playermanager.ProcessClientData2GS(peerid,obj)
 	else:
 	    PutLogFileList("MsgID: (0x%08X) %db * %s" % (obj['cmd'], len(message[2][4:]),

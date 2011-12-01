@@ -4,6 +4,17 @@ import simplejson as json
 from log import *
 from npcmanager import NPC,NPCManager
 
+class  Player(object):
+
+    INIT_STATE = 0x00
+    ENTERED_STATE = 0x01
+
+    def __init__(self):
+	#0 1 logined 2 entered
+	self.state = self.INIT_STATE
+	self.peerid = -1
+	self.character = None
+
 class  Scene(object):
     """
         	
@@ -82,14 +93,18 @@ class SceneManager(object):
 	except:
 	    return False
 
-    def ProcessEnterGame(self,character):
-        from playermanager import Player
+    def ProcessEnterGame(self,sender,character):
 	try:
 	    if character.Scene == 0:
 		character.Scene = self.newbie_scene
 	    scene = self.scenes[character.Scene]
+
+	    player = Player()
 	    character.State = Player.ENTERED_STATE
-	    scene.players[character.CharacterID] = character
+	    player.character = character
+	    player.peerid = sender
+
+	    scene.players[character.CharacterID] = player
 	    self.c2scene[character.CharacterID] = scene.sceneid
 	except:
 	    character = None

@@ -73,7 +73,7 @@ class GSManager(threading.Thread):
 
 	if obj['cmd'] == Packets.MSGID_REQUEST_REGGS:
 	    self.ProcessGSRegister(peerid,obj)
-	elif obj['cmd'] == Packets.MSGID_DATA2CLIENTS:
+	elif obj['cmd'] == Packets.MSGID_REQUEST_DATA2CLIENTS:
 	    self.ProcessData2Clients(peerid,obj)
 	elif obj['cmd'] == Packets.MSGID_RESPONSE_ENTERGAME:
 	    self.ProcessEnterGameResponse(peerid,obj)

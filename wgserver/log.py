@@ -37,7 +37,7 @@ def PutLogFileList(buffer, sLogName, bIsPacket = False):
 	finally:
 		FileHandle.close()
 
-def PutLogList(text, sLogName = '', Echo = True):
+def PutLogList(text, sLogName = '', Echo = False):
         text = text.encode("UTF-8")
 	if Echo:
 	    sys.stdout.write(text + "\n")
