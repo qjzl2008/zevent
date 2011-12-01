@@ -27,8 +27,8 @@ class ClientManager(threading.Thread):
 	    message = self.nserver.ns_recvmsg(0)
 	    if message:
 		if message[0] == 1:
-		    PutLogList("(*) peer(ID:%d) disconnected" % message[1])
-		    #self.playermanager.ProcessLeaveGame(message[1])
+		    PutLogList("(*) Client(ID:%d) disconnected" % message[1])
+		    self.playermanager.ProcessClientDisConnect(message[1])
 		else:
 		    self.ProcessMsg(message)
 		    self.nserver.ns_free(message[4])
@@ -58,8 +58,6 @@ class ClientManager(threading.Thread):
            message = (rv,peerid,msg,len,void_pointer)
 	   void_pointer ns_free的参数 释放消息到底层网络库内存池
 	"""
-	#self.nserver.ns_sendmsg(message[0],message[1],message[2])
-	#return
 	try:
 	    obj = json.loads(message[2][4:])
 	except:

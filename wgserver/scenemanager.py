@@ -40,6 +40,7 @@ class SceneManager(object):
     def __init__(self):
 	self.scenes = {}
 	self.c2scene = {}
+	self.peer2cid = {}
 
     @classmethod
     def instance(cls,nclient):
@@ -83,15 +84,27 @@ class SceneManager(object):
 		self.newbie_scene = scene.sceneid
 	return True
 
-    def ProcessLeaveGame(self,characterid):
-	try:
-	    sceneid = self.c2scene[characterid]
-	    scene = self.scenes[sceneid]
-	    del scene.players[characterid]
-	    del self.c2scene[characterid]
-	    return True
-	except:
+    def ProcessClientDisconnect(self,obj):
+	peerid = obj['peerid']
+	if not self.peer2cid.has_key(peerid):
 	    return False
+	cid = self.peer2cid[peerid]
+	del self.peer2cid[peerid]
+
+	if not self.c2scene.has_key(cid):
+	    return False
+	sceneid = self.c2scene[cid]
+	del self.c2scene[cid]
+
+	if not self.scenes.has_key(sceneid):
+	    return False
+	scene = self.scenes[sceneid]
+	
+	if not scene.players.has_key(cid):
+	    return False
+	del scene.players[cid]
+	
+	return cid
 
     def ProcessEnterGame(self,sender,character):
 	try:
@@ -106,6 +119,7 @@ class SceneManager(object):
 
 	    scene.players[character.CharacterID] = player
 	    self.c2scene[character.CharacterID] = scene.sceneid
+	    self.peer2cid[sender] = character.CharacterID
 	except:
 	    character = None
 	finally:

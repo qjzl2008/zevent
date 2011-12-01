@@ -111,6 +111,8 @@ class WGServer:
 	    self.gatelogic.CreateNewCharacter(obj)
 	elif obj['cmd'] == Packets.MSGID_REQUEST_GETCHARLIST:
 	    self.gatelogic.ProcessGetCharList(obj)
+	elif obj['cmd'] == Packets.MSGID_NOTIFY_DISCONNECT:
+	    self.gatelogic.ProcessClientDisconnect(obj)
 	else:
 	    PutLogFileList("MsgID: (0x%08X) %db * %s" % (obj['cmd'], len(message[1][4:]),
 		repr(message[1][4:])), Logfile.PACKETMS)

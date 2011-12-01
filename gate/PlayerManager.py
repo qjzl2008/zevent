@@ -161,6 +161,11 @@ class PlayerManager(object):
 			Packets.DEF_MSGTYPE_REJECT)
 		return False
 
+	    if clientinfo.gspeerid != -1:
+		self.SendRes2Request(sender,Packets.MSGID_RESPONSE_BINDGS,\
+			Packets.DEF_MSGTYPE_REJECT)
+		return False
+
             rv = self.clientmanager.gsmanager.GetPeerIDByGsID(gsid)
 	    if not rv:
 		self.SendRes2Request(sender,Packets.MSGID_RESPONSE_BINDGS,\
@@ -176,21 +181,42 @@ class PlayerManager(object):
             try:
 		clientinfo = self.clients[sender]
 	    except:
-		self.SendRes2Request(sender,Packets.MSGID_RESPONSE_BINDGS,\
+		self.SendRes2Request(sender,Packets.MSGID_RESPONSE_DATA2GS,\
 		    Packets.DEF_MSGTYPE_REJECT)
-		return
+		return False
 
 	    if not clientinfo or self.clients[sender].state != \
 		    Player.LOGINED_STATE:
-		self.SendRes2Request(sender,Packets.MSGID_RESPONSE_BINDGS,\
+		self.SendRes2Request(sender,Packets.MSGID_RESPONSE_DATA2GS,\
 		    Packets.DEF_MSGTYPE_REJECT)
+		return False
+
+	    gspeerid = clientinfo.gspeerid
+	    if gspeerid == -1:
+		self.SendRes2Request(sender,Packets.MSGID_RESPONSE_DATA2GS,\
+			Packets.DEF_MSGTYPE_REJECT)
+		return False
 
 	    for msg in obj['msgs']:
 		msg['msg']['peerid'] = sender
 		msg['msg']['accountid'] = clientinfo.account.AccountID
 		buf = json.dumps(msg['msg'])
-		gspeerid = clientinfo.gspeerid
 		self.clientmanager.gsmanager.Send2GS(gspeerid,buf)
+
+	def ProcessClientDisConnect(self,sender):
+            try:
+		clientinfo = self.clients[sender]
+	    except:
+		return False
+
+	    if not clientinfo or clientinfo.gspeerid == -1 or \
+		    self.clients[sender].state != Player.LOGINED_STATE:
+		return False
+	    #notify gs
+	    gspeerid = clientinfo.gspeerid
+            msg = '{"cmd":%d,"peerid":%d}' % (Packets.MSGID_NOTIFY_DISCONNECT,sender)
+	    self.clientmanager.gsmanager.Send2GS(gspeerid,msg)
+	    return True
 
 	def IsAccountInUse(self, AccountName):
 	    return False

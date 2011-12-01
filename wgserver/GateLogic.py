@@ -129,7 +129,7 @@ class GateLogic(object):
 	    pass
 
 	def SendData2Clients(self,msgs):
-	    message = '{"cmd":%d,"msgs":%s}' % (Packets.MSGID_DATA2CLIENTS,
+	    message = '{"cmd":%d,"msgs":%s}' % (Packets.MSGID_REQUEST_DATA2CLIENTS,
 		    msgs)
 	    fmt = '>i%ds' % (len(message))
 	    SendData = struct.pack(fmt,len(message),message)
@@ -138,6 +138,11 @@ class GateLogic(object):
 	def SendRes2Request(self,sender,cmd,code):
 	    msg = '[{"peerid":%d,"msg":{"cmd":%d,"code":%d}}]' % (sender,cmd,code)
 	    self.SendData2Clients(msg)
+
+	def Send2Gate(self,message):
+	    fmt = '>i%ds' % (len(message))
+	    SendData = struct.pack(fmt,len(message),message)
+	    rv = self.nclient.nc_sendmsg(SendData,len(SendData))
 
 	def ProcessLeaveGame(self, sender):
 	    try:
@@ -174,6 +179,18 @@ class GateLogic(object):
 		    Packets.DEF_MSGTYPE_CONFIRM)
 
 
+	def ProcessClientDisconnect(self,obj):
+	    cid = self.scmanager.ProcessClientDisconnect(obj)
+	    if cid:
+		character = Character.ByID(self.dbsession, cid)
+		if character and character.State == Player.ENTERED_STATE:
+		    character.State = Player.INIT_STATE
+		    try:
+			self.dbsession.commit()
+		    except:
+			self.dbsession.rollback()
+	    return True
+
 	def ProcessClientRequestEnterGame(self, jsobj):
 	    sender = jsobj['peerid']
 	    accountid = jsobj['accountid']
@@ -206,6 +223,10 @@ class GateLogic(object):
 
 		self.SendRes2Request(sender,Packets.MSGID_RESPONSE_ENTERGAME,\
 			Packets.DEF_MSGTYPE_CONFIRM)
+		#notify gate 
+		#msg = '{"cmd":%d,"code":0,"peerid":%d}' % \
+		#	(Packets.MSGID_RESPONSE_ENTERGAME,sender)
+		#self.Send2Gate(msg)
 		return True
 	
 	def ProcessRequestPlayerData(self, sender, buffer, GS):

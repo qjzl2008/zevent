@@ -133,7 +133,7 @@ class GSManager(threading.Thread):
 	SendData = struct.pack(fmt,len(buf),buf)
 	rv = self.nserver.ns_sendmsg(peerid,SendData,len(SendData))
 	if not rv:
-	    PutLogList("(*) Send2GS gspeerid: %d failed!" % peerid,'',False)
+	    PutLogList("(*) Send2GS gspeerid: %d failed,msg:%s !" % (peerid,buf),'',False)
 	    return False
 	return True
 
