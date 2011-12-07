@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*- 
 import socket, os, sys, select, struct, time, re, random, operator, datetime
 from GlobalDef import DEF, Logfile, Version ,UUID_Type
-from Database import Character, Profession, Item, Skill, DatabaseDriver
 from collections import namedtuple
 import simplejson as json 
 from log import *
-from sqlalchemy.exc import *
 from NetMessages import Packets   
 from scenemanager import SceneManager
 from uuid import uuid
@@ -19,21 +17,11 @@ fillzeros = lambda txt, count: (txt + ("\x00" * (count-len(txt))))[:count]
 
 class GateLogic(object):
 	def __init__(self):
-		"""
-		"""
-	        self.gconfig = GlobalConfig.instance()
-		self.serverid = self.gconfig.GetValue('CONFIG','gsid')
-	        self.dbaddress = self.gconfig.GetValue('CONFIG','db')
-		self.uuid = uuid.instance()
-
+	    pass
         @classmethod
-        def instance(cls,nclient,db):
+        def instance(cls):
 	    if not hasattr(cls, "_instance"):
 		cls._instance = cls()
-		cls._instance.nclient = nclient
-	        cls.Database = db
-		cls._instance.dbsession = db.session()
-		cls._instance.Init()
 	    return cls._instance
 
         @classmethod
@@ -41,8 +29,17 @@ class GateLogic(object):
 	    return hasattr(cls, "_instance")
 		
 	def Init(self):
-	    self.scmanager = SceneManager.instance(self.nclient)
+	    from wgserver import WGServer
+	    from StoreClient import StoreClient
+            self.gconfig = GlobalConfig.instance()
+	    self.serverid = self.gconfig.GetValue('CONFIG','gsid')
+
+	    self.uuid = uuid.instance()
+	    self.scmanager = SceneManager.instance()
+	    self.nclient = WGServer.instance().nclient
+	    self.storeclient = StoreClient.instance()
 	    return True
+
 	def obj2dict(self,obj):
 	    memberlist = [m for m in dir(obj)]
 	    _dict = {}
@@ -53,50 +50,36 @@ class GateLogic(object):
 	
 	def CreateNewCharacter(self,jsobj):
 	    sender = jsobj['peerid']
-	    ProfessionID = jsobj['professionid']
-	    profession= Profession.ByID(self.dbsession, ProfessionID)
-	    if not profession:
-		PutLogList("(!) Profession does not exists: %d" % ProfessionID,
-			Logfile.ERROR)
-		self.SendRes2Request(sender,Packets.MSGID_RESPONSE_NEWCHARACTER,\
-			Packets.DEF_MSGTYPE_REJECT)
-	    else:
-	        uuid = self.uuid.gen_uuid(self.serverid,UUID_Type.CHARACTER)
-		new_character = Character(jsobj['accountid'],ProfessionID,
-			uuid,jsobj['name'],jsobj['gender'],
-			profession.Appr,profession.Strength,
-			profession.Intelligence,profession.Magic,
-			profession.Vit)
+	    accountid = jsobj['accountid']
+	    uuid = self.uuid.gen_uuid(self.serverid,UUID_Type.CHARACTER)
+	    sql = "call create_character(%d,%d,%d,'%s',%d,@rv)"\
+		    % (accountid,uuid,jsobj['professionid'],
+			    jsobj['name'],jsobj['gender'])
 
-		self.dbsession.add(new_character)
-		try:
-			self.dbsession.commit()
-		except IntegrityError, errstr:
-			#print errstr
-			self.dbsession.rollback()
-			if "Duplicate entry" in str(errstr):
-			    self.SendRes2Request(sender,
-				    Packets.MSGID_RESPONSE_NEWCHARACTER,\
-				    Packets.DEF_MSGTYPE_REJECT)
-			    PutLogList("(!) Create character fails [ %s ]. Character already exists" % new_character.CharName, Logfile.ERROR)
-			    return
-			else:
-			    PutLogFileList(str(errstr), Logfile.MYSQL)
-		except OperationalError, errstr:
-			print errstr
-			self.dbsession.rollback()
-			self.SendRes2Request(sender,Packets.MSGID_RESPONSE_NEWACCOUNT,\
-				Packets.DEF_MSGTYPE_REJECT)
-			PutLogList("(!) Create character fails [ %s ]. Unknown error occured!" % new_character.CharName, Logfile.ERROR)
-			return
-
-		self.SendRes2Request(sender,Packets.MSGID_RESPONSE_NEWCHARACTER,\
-			Packets.DEF_MSGTYPE_CONFIRM)
-		PutLogList("(*) Create character success [ %s ]." % \
-			(new_character.CharName))
-
+	    cmd1 = Packets.MSGID_REQUEST_EXECPROC
+	    cmd2 = Packets.MSGID_REQUEST_NEWCHARACTER
+	    buf = '{"cmd":%d,"msg":{"cmd":%d,\
+		    "peerid":%d,\
+		    "sql":"%s",\
+		    "sqlout":["@rv"]}}'% (cmd1,cmd2,sender,
+			    sql)
+            msg = buf.encode('utf-8')
+	    self.storeclient.Send2Store(msg)
+	    return True
 
 	def ProcessGetCharList(self,jsobj):
+	    sender = jsobj['peerid']
+	    accountid = jsobj['accountid']
+	    sql = "select * from `character` where accountid = %d order by level desc" % (accountid)
+
+	    cmd1 = Packets.MSGID_REQUEST_QUERY
+	    cmd2 = Packets.MSGID_REQUEST_GETCHARLIST
+	    buf = '{"cmd":%d,"msg":{"cmd":%d,\
+		    "peerid":%d,\
+		    "sql":"%s"}}'% (cmd1,cmd2,sender,sql)
+            msg = buf.encode('utf-8')
+	    self.storeclient.Send2Store(msg)
+	    return True
 	    sender = jsobj['peerid']
 	    CharList = Character.ByAccountID(self.dbsession,jsobj['accountid'])
 
@@ -192,6 +175,23 @@ class GateLogic(object):
 	    return True
 
 	def ProcessClientRequestEnterGame(self, jsobj):
+	    sender = jsobj['peerid']
+	    accountid = jsobj['accountid']
+	    cid = jsobj['cid']
+	    sql = "call entergame(%d,%d,@rv,@uid,@cid)"\
+		    % (accountid,cid)
+
+	    cmd1 = Packets.MSGID_REQUEST_EXECPROC
+	    cmd2 = Packets.MSGID_REQUEST_ENTERGAME
+	    buf = '{"cmd":%d,"msg":{"cmd":%d,\
+		    "peerid":%d,\
+		    "sql":"%s",\
+		    "sqlout":["@rv,@uid,@cid"]}}'% (cmd1,cmd2,sender,
+			    sql)
+            msg = buf.encode('utf-8')
+	    self.storeclient.Send2Store(msg)
+	    return True
+
 	    sender = jsobj['peerid']
 	    accountid = jsobj['accountid']
 	    character = Character.ByID(self.dbsession, jsobj['cid'])

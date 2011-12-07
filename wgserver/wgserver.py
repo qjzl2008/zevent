@@ -3,7 +3,6 @@ import os
 import threading
 import random
 import time
-from Database import Character, Item, Skill, DatabaseDriver
 from GlobalDef import DEF, Logfile, Version ,UUID_Type
 from GateLogic import GateLogic
 from scenemanager import SceneManager
@@ -11,13 +10,23 @@ import simplejson as json
 from NetMessages import Packets   
 from GlobalConfig import GlobalConfig
 from log import *
+from nclient import nc_arg_t,net_client_t,net_client
 
-class WGServer:
-    def __init__(self, nclient):
-	self.nclient = nclient
+class WGServer(threading.Thread):
+    def __init__(self):
+	threading.Thread.__init__(self, name="WGServer")
         self.MaxTotalUsers = 1000
         self.WorldServerName = "WS1"
-	self.gconfig = GlobalConfig.instance()
+
+    @classmethod
+    def instance(cls):
+	if not hasattr(cls, "_instance"):
+	    cls._instance = cls()
+	return cls._instance
+
+    @classmethod
+    def initialized(cls):
+	return hasattr(cls, "_instance")
 
     def run(self):
 	"""
@@ -38,21 +47,31 @@ class WGServer:
 
     def Init(self):
         """
-        Loading main configuration, and initializing Database Driver
-        (For now, its MySQL)
         """
-	self.dbaddress = self.gconfig.GetValue('CONFIG','db')
-	if not self.dbaddress:
+        self.gconfig = GlobalConfig.instance()
+	znetlib = self.gconfig.GetValue('CONFIG','net-lib')
+	gate_ip = self.gconfig.GetValue('CONFIG','gate-server-address')
+	gate_port = self.gconfig.GetValue('CONFIG','gate-server-port')
+        
+	self.nclient = net_client(znetlib)
+	nc_arg = nc_arg_t()
+	nc_arg.ip = gate_ip
+	nc_arg.port = gate_port
+	rv = self.nclient.nc_connect(nc_arg)
+	if not rv:
+	    PutLogList("(*) Connect to server IP:%s PORT:%d failed!" % (gate_ip,
+		gate_port))
 	    return False
 
-	PutLogList("(*) DB address : %s" % self.dbaddress,'',False)
-	self.Database = DatabaseDriver.instance(self.dbaddress)
-        if not self.Database:
-	    PutLogList("(!) DatabaseDriver initialization fails!")
+	self.scmanager = SceneManager.instance()
+	rv = self.scmanager.Init()
+	if not rv:
 	    return False
 
-	self.gatelogic = GateLogic.instance(self.nclient,self.Database)
-	self.scmanager = SceneManager.instance(self.nclient)
+	self.gatelogic = GateLogic.instance()
+	rv = self.gatelogic.Init()
+	if not rv:
+	    return False
 
 	if not self.RegisterGS():
 	    return False

@@ -43,11 +43,9 @@ class SceneManager(object):
 	self.peer2cid = {}
 
     @classmethod
-    def instance(cls,nclient):
+    def instance(cls):
 	if not hasattr(cls, "_instance"):
 	    cls._instance = cls()
-	    cls._instance.nclient = nclient
-	    cls._instance.Init()
 	return cls._instance
 
     @classmethod
