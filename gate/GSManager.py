@@ -3,23 +3,49 @@ import os
 import threading
 import random
 import time
-from Database import Account, DatabaseDriver
 from GlobalDef import DEF, Logfile, Version ,UUID_Type
 from PlayerManager import PlayerManager
 import simplejson as json
 from NetMessages import Packets   
 from GlobalConfig import GlobalConfig
 from log import *
+from nserver import ns_arg_t,net_server_t,net_server
 
 class GSManager(threading.Thread):
-    def __init__(self, threadname, nserver):
-	threading.Thread.__init__(self, name=threadname)
-	self.nserver = nserver
-	self.gconfig = GlobalConfig.instance()
-
+    def __init__(self):
+	threading.Thread.__init__(self, name="GSManager")
 	self.mutex_gsmanager = threading.Lock()
 	self.gs2peer = {}
 	self.peer2gs = {}
+
+    @classmethod
+    def instance(cls):
+	if not hasattr(cls, "_instance"):
+	    cls._instance = cls()
+	return cls._instance
+
+    @classmethod
+    def initialized(cls):
+	return hasattr(cls, "_instance")
+
+    def Init(self):
+        """
+        """
+        from ClientManager import ClientManager
+	self.gconfig = GlobalConfig.instance()
+
+        #start server
+	znetlib = self.gconfig.GetValue('CONFIG','net-lib')
+	gsip = self.gconfig.GetValue('CONFIG','gs-server-address')
+	gsport = self.gconfig.GetValue('CONFIG','gs-server-port')
+	self.nserver = net_server(znetlib)
+	ns_arg = ns_arg_t()
+	ns_arg.ip = gsip
+	ns_arg.port = gsport
+	self.nserver.ns_start(ns_arg)
+
+	self.client_manager = ClientManager.instance()
+	return True
 
     def run(self):
 	"""
@@ -37,24 +63,7 @@ class GSManager(threading.Thread):
 		    self.nserver.ns_free(message[4])
 	    continue
 
-    def Init(self,client_manager):
-        """
-        Loading main configuration, and initializing Database Driver
-        (For now, its MySQL)
-        """
-	self.dbaddress = self.gconfig.GetValue('CONFIG','db')
-	if not self.dbaddress:
-	    return False
-
-	PutLogList("(*) DB address : %s" % self.dbaddress,'',False)
-	self.Database = DatabaseDriver.instance(self.dbaddress)
-        if not self.Database:
-	    PutLogList("(!) DatabaseDriver initialization fails!")
-	    return False
-
-	self.client_manager = client_manager
-	return True
-   
+  
     def ProcessMsg(self,message):
 	"""
            message = (rv,peerid,msg,len,void_pointer)

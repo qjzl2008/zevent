@@ -18,7 +18,7 @@ class connector(threading.Thread):
 		n = 0;
 		while(True):
 			count = 0
-			while(count < 10):
+			while(count < 1):
 			     #create account
 				buf = '{"cmd":8,"name":"zhousihai","pwd":"123456",\
 					"mail":"zhousihai@126.com"}'
@@ -53,7 +53,7 @@ class connector(threading.Thread):
 				cmd2 = Packets.MSGID_REQUEST_NEWCHARACTER
 				buf = '{"cmd":%d,"msgs":[{"gsid":1,"msg":{"cmd":%d,\
 					"professionid":5670219206962356229,\
-					"name":"周霸姐","gender":0}}]}'% (cmd1,cmd2)
+					"name":"1周霸姐","gender":0}}]}'% (cmd1,cmd2)
 			        message = struct.pack('>i',len(buf)) + buf
 				self.sock.send(message)
 				retmsg = self.sock.recv(4)
@@ -96,7 +96,7 @@ class connector(threading.Thread):
 if __name__ == '__main__':
     cnlist = []
     i = 0
-    while i<100:
+    while i<1:
         cn = connector(i)
         cn.start()
         cnlist.append(cn)
