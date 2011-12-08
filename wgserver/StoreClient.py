@@ -173,9 +173,6 @@ class StoreClient(threading.Thread):
 		    charid = obj['msg']['sqlout']['@cid']
 		    self.GetCharInfo(sender,accountid,charid,
 			    Packets.MSGID_REQUEST_JOINSCENE)
-		    self.gatelogic.SendRes2Request(sender,
-			    Packets.MSGID_RESPONSE_ENTERGAME,
-			    Packets.DEF_MSGTYPE_CONFIRM)
             return True
 	
 	def GetCharInfo(self,sender,accountid,charid,cmd):
@@ -195,7 +192,9 @@ class StoreClient(threading.Thread):
 	    character.Init(obj['msg']['res'][0])
 	    peerid = obj['msg']['peerid']
             self.scene_manager.ProcessEnterGame(peerid,character)
-
+	    self.gatelogic.SendRes2Request(peerid,
+		    Packets.MSGID_RESPONSE_ENTERGAME,
+		    Packets.DEF_MSGTYPE_CONFIRM)
 
 	def ProcessLeaveGameRes(self,obj):
 	    code = obj['code']

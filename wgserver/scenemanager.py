@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*- 
 import os
+import threading 
 import simplejson as json 
 from log import *
 from npcmanager import NPC,NPCManager
@@ -38,6 +39,7 @@ class  Scene(object):
 
 class SceneManager(object):
     def __init__(self):
+	self.mutex = threading.Lock() 
 	self.scenes = {}
 	self.c2scene = {}
 	self.peer2cid = {}
@@ -83,28 +85,34 @@ class SceneManager(object):
 	return True
 
     def ProcessClientDisconnect(self,obj):
+	self.mutex.acquire()
 	peerid = obj['peerid']
 	if not self.peer2cid.has_key(peerid):
+	    self.mutex.release()
 	    return False
 	cid = self.peer2cid[peerid]
 	del self.peer2cid[peerid]
 
 	if not self.c2scene.has_key(cid):
+	    self.mutex.release()
 	    return False
 	sceneid = self.c2scene[cid]
 	del self.c2scene[cid]
 
 	if not self.scenes.has_key(sceneid):
+	    self.mutex.release()
 	    return False
 	scene = self.scenes[sceneid]
 	
 	if not scene.players.has_key(cid):
+	    self.mutex.release()
 	    return False
 	del scene.players[cid]
-	
+	self.mutex.release()
 	return cid
 
     def ProcessEnterGame(self,sender,character):
+        self.mutex.acquire()   
 	try:
 	    if character.Scene == 0:
 		character.Scene = self.newbie_scene
@@ -121,6 +129,7 @@ class SceneManager(object):
 	except:
 	    character = None
 	finally:
+	    self.mutex.release()
 	    return character
     
     def MainLogic(self):

@@ -116,7 +116,9 @@ class GateLogic(object):
 				sql)
 		msg = buf.encode('utf-8')
 		self.storeclient.Send2Store(msg)
-	    return True
+		return True
+	    else:
+		return False
 
 	def ProcessClientRequestEnterGame(self, jsobj):
 	    sender = jsobj['peerid']
