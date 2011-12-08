@@ -126,52 +126,23 @@ class GateLogic(object):
 	    fmt = '>i%ds' % (len(message))
 	    SendData = struct.pack(fmt,len(message),message)
 	    rv = self.nclient.nc_sendmsg(SendData,len(SendData))
-
-	def ProcessLeaveGame(self, sender):
-	    try:
-		clientinfo = self.clients[sender]
-	    except:
-		self.SendRes2Reuest(sender,Packets.MSGID_RESPONSE_LEAVEGAME,\
-			Packets.DEF_MSGTYPE_REJECT)
-		return False
-
-	    rv = self.scmanager.ProcessLeaveGame(clientinfo.characterid)
-	    if not rv:
-		self.SendRes2Request(sender,Packets.MSGID_RESPONSE_LEAVEGAME,\
-			Packets.DEF_MSGTYPE_REJECT)
-		return False
-
-	    character = Character.ByID(self.dbsession, clientinfo.characterid)
-	    if not character:
-		self.SendRes2Request(sender,Packets.MSGID_RESPONSE_LEAVEGAME,\
-			Packets.DEF_MSGTYPE_REJECT)
-		return False
-	    else:
-		try:
-		    #更新数据库状态角色在线
-		    character.State = Player.INIT_STATE
-		    self.dbsession.commit()
-		except:
-		    self.dbsession.rollback()
-		    self.SendRes2Request(sender,Packets.MSGID_RESPONSE_LEAVEGAME,\
-			    Packets.DEF_MSGTYPE_REJECT)
-		    return False
-		
-	    del self.clients[sender]
-	    self.SendRes2Request(sender,Packets.MSGID_RESPONSE_LEAVEGAME,\
-		    Packets.DEF_MSGTYPE_CONFIRM)
-
-
+	
 	def ProcessClientDisconnect(self,obj):
 	    cid = self.scmanager.ProcessClientDisconnect(obj)
 	    if cid:
-		character = Character.ByID(self.dbsession, cid)
-		if character and character.State == Player.ENTERED_STATE:
-		    character.State = Player.INIT_STATE
-		    try:
-			self.dbsession.commit()
-		    except:
-			self.dbsession.rollback()
+		sender = obj['peerid']
+		sql = "call leavegame(%d,@rv,@cid)"\
+			% (cid)
+
+		cmd1 = Packets.MSGID_REQUEST_EXECPROC
+		cmd2 = Packets.MSGID_REQUEST_LEAVEGAME
+		buf = '{"cmd":%d,"msg":{"cmd":%d,\
+			"peerid":%d,\
+			"sql":"%s",\
+			"sqlout":["@rv,@cid"]}}'% (cmd1,cmd2,sender,
+				sql)
+		msg = buf.encode('utf-8')
+		self.storeclient.Send2Store(msg)
 	    return True
 
 	def ProcessClientRequestEnterGame(self, jsobj):
@@ -192,43 +163,6 @@ class GateLogic(object):
 	    self.storeclient.Send2Store(msg)
 	    return True
 
-	    sender = jsobj['peerid']
-	    accountid = jsobj['accountid']
-	    character = Character.ByID(self.dbsession, jsobj['cid'])
-	    if not character:
-		self.SendRes2Request(sender,Packets.MSGID_RESPONSE_ENTERGAME,\
-			Packets.DEF_MSGTYPE_REJECT)
-		return False
-	    else:
-		if character.AccountID != accountid:
-		    self.SendRes2Request(sender,Packets.MSGID_RESPONSE_ENTERGAME,\
-			    Packets.DEF_MSGTYPE_REJECT)
-		    return False
-
-		if character.State == Player.ENTERED_STATE:
-		    self.SendRes2Request(sender,Packets.MSGID_RESPONSE_ENTERGAME,\
-			    Packets.DEF_MSGTYPE_REJECT)
-		    return False
-
-		try:
-		    character = self.scmanager.ProcessEnterGame(sender,character)
-		    if character:
-			self.dbsession.commit()
-		except:
-		    if character:
-			self.dbsession.rollback()
-		    self.SendRes2Request(sender,Packets.MSGID_RESPONSE_ENTERGAME,\
-			    Packets.DEF_MSGTYPE_REJECT)
-		    return False
-
-		self.SendRes2Request(sender,Packets.MSGID_RESPONSE_ENTERGAME,\
-			Packets.DEF_MSGTYPE_CONFIRM)
-		#notify gate 
-		#msg = '{"cmd":%d,"code":0,"peerid":%d}' % \
-		#	(Packets.MSGID_RESPONSE_ENTERGAME,sender)
-		#self.Send2Gate(msg)
-		return True
-	
 	def ProcessRequestPlayerData(self, sender, buffer, GS):
 	    pass
 
