@@ -34,7 +34,7 @@ class WGServer(threading.Thread):
 	"""
 	while(True):
 	    sleep = True
-	    message = self.nclient.nc_recvmsg(1000000)
+	    message = self.nclient.nc_recvmsg(0)
 	    if message:
 		if message[0] == 0:
 		    self.ProcessMsg(message)
