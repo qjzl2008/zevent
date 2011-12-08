@@ -18,7 +18,7 @@ class connector(threading.Thread):
 		n = 0;
 		while(True):
 			count = 0
-			while(count < 10000):
+			while(count < 1):
 			     #create account
 				buf = '{"cmd":8,"name":"zhousihai","pwd":"123456",\
 					"mail":"zhousihai@126.com"}'
@@ -82,6 +82,19 @@ class connector(threading.Thread):
 				nlen, = struct.unpack('>i',retmsg)
 				retmsg = self.sock.recv(nlen)
 				print "enter game Res:",retmsg
+				count+=1
+
+			    #send echo
+				cmd1 = Packets.MSGID_REQUEST_DATA2GS
+				cmd2 = Packets.MSGID_REQUEST_ECHO
+				buf = '{"cmd":%d,"msgs":[{"gsid":1,"msg":{"cmd":%d,\
+					"data":"%s"}}]}'% (cmd1,cmd2,"test echo")
+			        message = struct.pack('>i',len(buf)) + buf
+				self.sock.send(message)
+				retmsg = self.sock.recv(4)
+				nlen, = struct.unpack('>i',retmsg)
+				retmsg = self.sock.recv(nlen)
+				print "echo Res:",retmsg
 				count+=1
 
 			#sleep(1)
