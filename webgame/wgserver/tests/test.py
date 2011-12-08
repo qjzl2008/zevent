@@ -4,7 +4,6 @@ import thread
 import threading
 import socket
 import struct
-from NetMessages import Packets 
 
 class connector(threading.Thread):
     def __init__(self,num):
@@ -14,11 +13,11 @@ class connector(threading.Thread):
 
     def run(self):
         try:
-		self.sock.connect(("127.0.0.1",8887))
+		self.sock.connect(("127.0.0.1",8888))
 		n = 0;
 		while(True):
 			count = 0
-			while(count < 1):
+			while(count < 1000):
 			     #create account
 				buf = '{"cmd":8,"name":"zhousihai","pwd":"123456",\
 					"mail":"zhousihai@126.com"}'
@@ -39,67 +38,47 @@ class connector(threading.Thread):
 				retmsg = self.sock.recv(nlen)
 				print "Login Res:",retmsg
 
-			    #request bind gs
-				buf = '{"cmd":%d,"gsid":1}' %\
-					(Packets.MSGID_REQUEST_BINDGS)
+			     #create character
+				buf = '{"cmd":16,"professionid":5670219206962356229,\
+					"name":"无敌霸姐","gender":0}'
 			        message = struct.pack('>i',len(buf)) + buf
 				self.sock.send(message)
+
 			        retmsg = self.sock.recv(4)
 				nlen, = struct.unpack('>i',retmsg)
 				retmsg = self.sock.recv(nlen)
-				print "bind gs Res:",retmsg
-			    #send createcharacter
-				cmd1 = Packets.MSGID_REQUEST_DATA2GS
-				cmd2 = Packets.MSGID_REQUEST_NEWCHARACTER
-				buf = '{"cmd":%d,"msgs":[{"gsid":1,"msg":{"cmd":%d,\
-					"professionid":5670219206962356229,\
-					"name":"1周霸姐","gender":0}}]}'% (cmd1,cmd2)
-			        message = struct.pack('>i',len(buf)) + buf
-				self.sock.send(message)
-				retmsg = self.sock.recv(4)
-				nlen, = struct.unpack('>i',retmsg)
-				retmsg = self.sock.recv(nlen)
-				print "create character Res:",retmsg
+				print "CreateCharacter Res:",retmsg
 
-			    #send listcharacter
-				cmd1 = Packets.MSGID_REQUEST_DATA2GS
-				cmd2 = Packets.MSGID_REQUEST_GETCHARLIST
-				buf = '{"cmd":%d,"msgs":[{"gsid":1,"msg":{"cmd":%d}}]}'% (cmd1,cmd2)
+			     #list character
+				buf = '{"cmd":17}'
 			        message = struct.pack('>i',len(buf)) + buf
 				self.sock.send(message)
-				retmsg = self.sock.recv(4)
+
+			        retmsg = self.sock.recv(4)
 				nlen, = struct.unpack('>i',retmsg)
 				retmsg = self.sock.recv(nlen)
-				print "list characters Res:",retmsg
-			    #send entergame
-				cmd1 = Packets.MSGID_REQUEST_DATA2GS
-				cmd2 = Packets.MSGID_REQUEST_ENTERGAME
-				buf = '{"cmd":%d,"msgs":[{"gsid":1,"msg":{"cmd":%d,\
-					"cid":%d}}]}'% (cmd1,cmd2,5672894519046307842)
+				print "ListCharacter Res:",retmsg
+                            #entergame
+			        buf = '{"cmd":2,"cid":5672894519046307842}'
 			        message = struct.pack('>i',len(buf)) + buf
 				self.sock.send(message)
-				retmsg = self.sock.recv(4)
+
+			        retmsg = self.sock.recv(4)
 				nlen, = struct.unpack('>i',retmsg)
 				retmsg = self.sock.recv(nlen)
-				print "enter game Res:",retmsg
+				print "EnterGame Res:",retmsg
+
+			     #leavegame
+			        buf = '{"cmd":4}'
+			        message = struct.pack('>i',len(buf)) + buf
+				self.sock.send(message)
+
+			        retmsg = self.sock.recv(4)
+				nlen, = struct.unpack('>i',retmsg)
+				retmsg = self.sock.recv(nlen)
+				print "LeaveGame Res:",retmsg
+
 				count+=1
-
-			    #send echo
-			        num = 0
-				while num < 100000:
-				    cmd1 = Packets.MSGID_REQUEST_DATA2GS
-				    cmd2 = Packets.MSGID_REQUEST_ECHO
-				    buf = '{"cmd":%d,"msgs":[{"gsid":1,"msg":{"cmd":%d,\
-					    "data":"%s"}}]}'% (cmd1,cmd2,"test echo")
-				    message = struct.pack('>i',len(buf)) + buf
-				    self.sock.send(message)
-				    retmsg = self.sock.recv(4)
-				    nlen, = struct.unpack('>i',retmsg)
-				    retmsg = self.sock.recv(nlen)
-				    print "echo Res:",retmsg
-				    num = num + 1
-				count+=1
-
 			#sleep(1)
 			n+=1
 			self.sock.close()

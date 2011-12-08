@@ -1,0 +1,15 @@
+{
+    "CONFIG": {
+	    "server-id" : 5,
+	    "game-server-name": "wgs1", 
+	    "net-lib": "/home/zhoubug/dev/svn_work/zevent/znet/bin/libznet.so",
+	    "clients-server-address":"127.0.0.1",
+	    "clients-server-port":8887,
+	    "gs-server-address": "127.0.0.1", 
+	    "gs-server-port": 8888, 
+	    "sqlstore-address":"127.0.0.1",
+	    "sqlstore-port":7766,
+	    "db": "mysql://root:123456@localhost:3306/playerdb?charset=utf8"
+    }
+}
+
