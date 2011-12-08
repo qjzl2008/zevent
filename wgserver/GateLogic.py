@@ -80,33 +80,6 @@ class GateLogic(object):
             msg = buf.encode('utf-8')
 	    self.storeclient.Send2Store(msg)
 	    return True
-	    sender = jsobj['peerid']
-	    CharList = Character.ByAccountID(self.dbsession,jsobj['accountid'])
-
-	    num = len(CharList)
-	    i = 0
-	    chars = ''
-	    for Char in CharList:
-		chars += '{"uid":%d,"cid":%d,"cnm":"%s","level":%d}' % (Char.AccountID,
-			Char.CharacterID,
-			Char.CharName,Char.Level)
-		i += 1
-		if i < num:
-		    chars += ','
-
-            msg = '['
-	    msg += '{"cmd":%d,"code":%d,"num":%d}' % (Packets.MSGID_RESPONSE_GETCHARLIST,
-		    Packets.DEF_MSGTYPE_CONFIRM,num)
-
-	    if chars != '':
-		msg += ','
-		msg += chars
-
-            msg += ']'
-	    msg = msg.encode("UTF-8")
-
-	    buf = '[{"peerid":%d,"msg":%s}]' % (sender,msg)
-	    self.SendData2Clients(buf)
 
 	def DeleteCharacter(self, sender, buffer):
 	    pass
@@ -162,6 +135,12 @@ class GateLogic(object):
             msg = buf.encode('utf-8')
 	    self.storeclient.Send2Store(msg)
 	    return True
+
+	def ProcessEcho(self, jsobj):
+	    sender = jsobj['peerid']
+	    msg = jsobj['data'].encode("UTF-8")
+	    buf = '[{"peerid":%d,"msg":"%s"}]' % (sender,msg)
+	    self.SendData2Clients(buf)
 
 	def ProcessRequestPlayerData(self, sender, buffer, GS):
 	    pass
