@@ -12,6 +12,7 @@
 #include "store_client.h"
 #include "client_manager.h"
 #include "gs_manager.h"
+#include "uuidservice.h"
 
 static int stop_daemon = 0;
 
@@ -66,6 +67,7 @@ int main()
     sa.sa_handler = handler;
     sigaction(SIGINT, &sa, NULL);
 
+    uuid_init();
     sc_start();
     gm_start();
     cm_start();
@@ -88,6 +90,8 @@ int main()
     cm_destroy();
     gm_destroy();
     sc_destroy();
+
+    uuid_fini();
     printf("Normal exit!\n");
     return 0;
 }
