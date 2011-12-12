@@ -60,7 +60,7 @@ int main(void)
 	if(rv == 0)
 	{
 	    memcpy(buf,(char *)msg,len);
-	    nc_sendmsg(nc,buf,len);
+//	    nc_sendmsg(nc,buf,len);
 	    //nc_disconnect(nc);
 	    ++count;
 	    printf("count:%d,%u\n",count,time(NULL));
