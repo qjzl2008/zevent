@@ -8,8 +8,7 @@ extern "C"{
 int gm_start();
 int gm_send2gs(char *buf);
 int gm_stop();
-
-};
+int gm_destroy();
 
 #ifdef __cplusplus
 }

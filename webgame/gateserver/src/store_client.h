@@ -1,5 +1,5 @@
-#ifndef GS_MANAGER_H
-#define GS_MANAGER_H
+#ifndef STORE_CLIENT_H
+#define STORE_CLIENT_H
 
 #ifdef __cplusplus
 extern "C"{
@@ -8,8 +8,7 @@ extern "C"{
 int sc_start();
 int sc_send2store(char *buf);
 int sc_stop();
-
-};
+int sc_destroy();
 
 #ifdef __cplusplus
 }
