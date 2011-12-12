@@ -87,19 +87,16 @@ int uuid_init()
 	rv = shm_create(&shm,SHM_SIZE,SHM_FILE);
 	if( rv != 0)
 	{
-	    printf("errno:%d\n",rv);
+	    printf("shm creat errno:%d\n",rv);
 	    return -1;
 	}
 	uuid_data = shm.base;
 	uuid_data->time_last = time(NULL);  
 	uuid_data->fudge = 0;
-	printf("create shm!\n");
     }
     else
     {
 	uuid_data = shm.base;
-	printf("attach shm!\n");
-	printf("time:%d\n",uuid_data->time_last);
     }
     return 0;
 }
