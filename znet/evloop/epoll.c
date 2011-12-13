@@ -92,7 +92,7 @@ evloop(int m_epfd,int *endgame)
         if (delay.tv_sec >= 0)
             millisecs = delay.tv_sec * 1000 + delay.tv_nsec / 1000000;
         else
-            millisecs = 1000;//millisecs = -1;
+            millisecs = 200;//millisecs = -1;
 
         if ((nev = epoll_wait(m_epfd, m_evs, 100, millisecs)) < 0) {
             if (errno == EINTR)
