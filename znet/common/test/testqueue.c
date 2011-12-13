@@ -16,7 +16,7 @@ int main(void)
 	*data = 100;
 	queue_push(queue,data);
 
-	queue_pop(queue, &tmp);
+	queue_pop(queue, &tmp,0);
 
 	printf("tmp:%d\n",*(int *)tmp);
 	free(tmp);
