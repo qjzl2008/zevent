@@ -188,31 +188,33 @@ int nc_connect(net_client_t **nc,const nc_arg_t *nc_arg)
 
 int nc_disconnect(net_client_t *nc)
 {
-	fdev_del(&nc->ev);
-	close(nc->sd);
-	nc->endgame = 1;
-	pthread_join(nc->td_start,NULL);
+    if(!nc)
+	return -1;
+    fdev_del(&nc->ev);
+    close(nc->sd);
+    nc->endgame = 1;
+    pthread_join(nc->td_start,NULL);
 
-	cpeer_kill(nc->peer);
-	queue_destroy(nc->recv_queue);
-	thread_mutex_destroy(nc->peer_mutex);
-	//thread_mutex_destroy(nc->recv_mutex);
-	thread_mutex_destroy(nc->mpool_mutex);
-	allocator_destroy(nc->allocator);
-	free(nc);
+    cpeer_kill(nc->peer);
+    queue_destroy(nc->recv_queue);
+    thread_mutex_destroy(nc->peer_mutex);
+    //thread_mutex_destroy(nc->recv_mutex);
+    thread_mutex_destroy(nc->mpool_mutex);
+    allocator_destroy(nc->allocator);
+    free(nc);
 
     /*
-	thread_mutex_lock(nc->peer_mutex);
-	struct cpeer *p = nc->peer;
-	if(!p || p->status == CPEER_DISCONNECTED)
-	{
-		thread_mutex_unlock(nc->peer_mutex);
-		return -1;
-	}
-	shutdown(p->sd,SHUT_RDWR);
-	thread_mutex_unlock(nc->peer_mutex);
-	*/
-	return 0;
+       thread_mutex_lock(nc->peer_mutex);
+       struct cpeer *p = nc->peer;
+       if(!p || p->status == CPEER_DISCONNECTED)
+       {
+       thread_mutex_unlock(nc->peer_mutex);
+       return -1;
+       }
+       shutdown(p->sd,SHUT_RDWR);
+       thread_mutex_unlock(nc->peer_mutex);
+       */
+    return 0;
 }
 
 int nc_sendmsg(net_client_t *nc,void *msg,uint32_t len)
