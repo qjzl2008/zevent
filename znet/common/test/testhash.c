@@ -14,7 +14,7 @@ int main(void)
 	unsigned int sum = 0;
 	int i;
 
-	for(i = 0;i<100;++i)
+	for(i = 0;i<1000000;++i)
 	{
 		key = malloc(sizeof(char) * 256);
 		memset(key,0,256);
@@ -24,7 +24,7 @@ int main(void)
 
 		sprintf(key,"char%10d",i);
 		hash_set(hash,key,HASH_KEY_STRING,val);
-		//hash_set(hash,key,HASH_KEY_STRING,NULL);
+		hash_set(hash,key,HASH_KEY_STRING,NULL);
 		val = hash_get(hash,key,HASH_KEY_STRING);
 
 		if(val)
