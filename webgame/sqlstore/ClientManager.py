@@ -64,6 +64,7 @@ class ClientManager(object):
 		repr(message[2][4:])), Logfile.PACKETMS)
 	    return
 
+        print obj
         peerid = message[1]
 	if obj['cmd'] == Packets.MSGID_REQUEST_EXECSQL:
 	    self.ProcessExecSQL(peerid,obj)
