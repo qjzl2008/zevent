@@ -191,26 +191,48 @@ void * hash_get(hash_t *ht,const void *key,int klen)
 void hash_set(hash_t *ht,const void *key,int klen,const void *val)
 {
 	hash_entry_t **hep;
-	hep = find_entry(ht,key,klen,val);
+	hash_entry_t *he;
+	hep = find_entry(ht,key,klen,NULL);
 	if(*hep){
-		if(!val){
-			hash_entry_t *old = *hep;
-			*hep = (*hep)->next;
-			old->next = ht->free;
-			ht->free = old;
-			--ht->count;
-		}
-		else {
-			/* replace entry */
-			(*hep)->val = val;
-			/* check that the collision rate isn't too high*/
-			if(ht->count > ht->max){
-				expand_array(ht);
-			}
-		}
+	    he = *hep;
+	    ht->free_func((void *)he->key);
+	    ht->free_func((void *)he->val);
+	    if(!val){
+		hash_entry_t *old = *hep;
+		*hep = (*hep)->next;
+		old->next = ht->free;
+		ht->free = old;
+		--ht->count;
+	    }
+	    else {
+		/* replace entry */
+		(*hep)->val = val;
+	    }
 	}
+	else
+	{
+	    if(!val)
+		return;
+	    if((he = ht->free) != NULL)
+		ht->free = he->next;
+	    else
+		he = malloc(sizeof(*he));
 
-	/*else key not present and val == NULL */
+	    unsigned int hash;
+	    hash = ht->hash_func(key,&klen);
+	    he->next = NULL;
+	    he->hash = hash;
+	    he->key = key;
+	    he->klen = klen;
+	    he->val = val;
+	    *hep = he;
+	    ht->count++;
+	    /* check that the collision rate isn't too high*/
+	    if(ht->count > ht->max){
+		expand_array(ht);
+	    }
+
+	}
 }
 
 unsigned int hash_count(hash_t *ht)
@@ -244,7 +266,7 @@ void hash_destroy(hash_t *ht)
 	while(he)
 	{
 		old = he->next;
-		free_he(ht,he);
+		free(he);
 		he = old;
 	}
 
