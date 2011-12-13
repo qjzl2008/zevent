@@ -10,6 +10,7 @@ extern "C"{
 int cm_start();
 int cm_send2clients(char *msg);
 int cm_send2client(uint64_t peerid,void *buf,uint32_t len);
+int cm_joinuser(uint64_t peerid,uint64_t uid);
 int cm_stop();
 int cm_destroy();
 

@@ -64,6 +64,9 @@ static int process_msg(void *msg,int len)
 		case MSGID_REQUEST_NEWACCOUNT:
 		    sc_logic_createaccount(jmsg);
 		    break;
+		case MSGID_REQUEST_LOGIN:
+		    sc_logic_login(jmsg);
+		    break;
 	    }
 	    break;
     }
@@ -83,7 +86,7 @@ static void *thread_entry(void *arg)
 
     while(!sc->stop_daemon)
     {
-	rv = nc_recvmsg(nc,&msg,&len,MS_PER_SECOND);
+	rv = nc_recvmsg(nc,&msg,&len,MS_PER_SECOND/4);
 	if(rv < 0)
 	    continue;
 	if(rv == 0)

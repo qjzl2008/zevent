@@ -11,10 +11,14 @@
 #include "client.h"
 #include "netcmd.h"
 #include "cm_logic.h"
+#include "allocator.h"
 
 typedef struct client_manager_t client_manager_t;
 struct client_manager_t{
     net_server_t *ns;
+
+    thread_mutex_t *mutex_mpool;
+    allocator_t *allocator;
 
     thread_mutex_t *mutex_clients;
     hash_t *clients;
@@ -59,6 +63,9 @@ static int process_msg(void *msg,int len,uint64_t peerid)
 	case MSGID_REQUEST_NEWACCOUNT:
 	    cm_logic_createaccount(peerid,jmsg);
 	    break;
+	case MSGID_REQUEST_LOGIN:
+	    cm_logic_login(peerid,jmsg);
+	    break;
     }
     json_object_put(jmsg);
     return 0;
@@ -75,7 +82,7 @@ static void *thread_entry(void *arg)
     while(!cm->stop_daemon)
     {
 	uint64_t peer_id;
-	rv = ns_recvmsg(ns,&msg,&len,&peer_id,MS_PER_SECOND);
+	rv = ns_recvmsg(ns,&msg,&len,&peer_id,MS_PER_SECOND/4);
 	if(rv < 0)
 	    continue;
 	if(rv == 0)
@@ -104,6 +111,11 @@ int cm_start()
     if(rv < 0)
 	return -1;
 
+    //init memory pool
+    thread_mutex_create(&cm->mutex_mpool,THREAD_MUTEX_DEFAULT);
+    allocator_create(&cm->allocator); 
+    allocator_mutex_set(cm->allocator,cm->mutex_mpool);
+
     thread_mutex_create(&cm->mutex_clients,THREAD_MUTEX_DEFAULT);
     cm->clients = hash_make();
     cm->stop_daemon = 0;
@@ -113,6 +125,11 @@ int cm_start()
     pthread_create(&cm->thread_id, &attr, thread_entry, cm);
     pthread_attr_destroy(&attr);
 
+    return 0;
+}
+
+int cm_joinuser(uint64_t peerid,uint64_t uid)
+{
     return 0;
 }
 

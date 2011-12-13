@@ -84,8 +84,8 @@ int main()
     struct timeval delay;
     while(!stop_daemon)
     {
-	delay.tv_sec = 1;
-	delay.tv_usec = 0;
+	delay.tv_sec = 0;
+	delay.tv_usec = 100000;
 
 	int rv = select(0,NULL,NULL,NULL,&delay); 
 	if(rv == 0)

@@ -52,3 +52,40 @@ int cm_logic_createaccount(uint64_t peerid,json_object *jmsg)
     }
     return 0;
 }
+
+int cm_logic_login(uint64_t peerid,json_object *jmsg)
+{
+    unsigned char hexid[64];
+    uuid2hex(peerid,hexid,sizeof(hexid));
+    char sql[256]={'\0'};
+    json_object *jname = json_util_get(jmsg,"cnm");
+    if(!jname)
+	return -1;
+    const char *name = json_object_get_string(jname);
+
+    json_object *jpwd = json_util_get(jmsg,"pwd");
+    if(!jpwd)
+	return -1;
+    const char *pwd = json_object_get_string(jpwd);
+
+    snprintf(sql,sizeof(sql),"call login('%s','%s',@rv,@accountid)",
+	    name,pwd);
+
+    int cmd1 = MSGID_REQUEST_EXECPROC;
+    int cmd2 = MSGID_REQUEST_LOGIN;
+    char buf[1024] = {'\0'};
+    snprintf(buf+4,sizeof(buf),"{\"cmd\":%d,\"msg\":{\"cmd\":%d,\"cid\":\"%s\",\
+	    \"sql\":\"%s\",\
+	    \"sqlout\":[\"@rv\",\"@accountid\"]}}",cmd1,cmd2,hexid,
+			   sql);
+    int len = strlen(buf+4);
+    int nlen = htonl(len);
+    memcpy(buf,&nlen,sizeof(nlen));
+
+    int rv = sc_send2store(buf,len+sizeof(len));
+    if(rv < 0)
+    {
+	return -1;
+    }
+    return 0;
+}

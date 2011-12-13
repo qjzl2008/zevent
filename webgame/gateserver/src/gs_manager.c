@@ -66,7 +66,7 @@ static void *thread_entry(void *arg)
     while(!gm->stop_daemon)
     {
 	uint64_t peer_id;
-	rv = ns_recvmsg(ns,&msg,&len,&peer_id,MS_PER_SECOND);
+	rv = ns_recvmsg(ns,&msg,&len,&peer_id,MS_PER_SECOND/4);
 	if(rv < 0)
 	    continue;
 	if(rv == 0)
