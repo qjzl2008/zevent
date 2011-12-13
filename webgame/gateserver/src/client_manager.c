@@ -9,6 +9,8 @@
 #include "thread_mutex.h"
 #include "hash.h"
 #include "client.h"
+#include "netcmd.h"
+#include "cm_logic.h"
 
 typedef struct client_manager_t client_manager_t;
 struct client_manager_t{
@@ -32,14 +34,13 @@ static int init_ns_arg(ns_arg_t *ns_arg)
 	return -1;
     const char *ip = json_object_get_string(jip);
     snprintf(ns_arg->ip,sizeof(ns_arg->ip),ip);
-    json_object_put(jip);
 
     json_object *jport = json_util_get(jfile,"CONFIG.clients-server-port");
     if(!jport)
 	return -1;
     int port = json_object_get_int(jport);
     ns_arg->port = port;
-    json_object_put(jport);
+    json_object_put(jfile);
     return 0;
 }
 
@@ -47,9 +48,19 @@ static int init_ns_arg(ns_arg_t *ns_arg)
 static int process_msg(void *msg,int len,uint64_t peerid)
 {
     char *body = (char *)msg + HEADER_LEN;
-    json_object *jobj = json_tokener_parse(body);
-    if(!jobj)
+    json_object *jmsg = json_tokener_parse(body);
+    if(!jmsg)
 	return -1;
+    json_object *jcmd = json_util_get(jmsg,"cmd");
+    if(!jcmd)
+	return -1;
+    int cmd = json_object_get_int(jcmd);
+    switch(cmd){
+	case MSGID_REQUEST_NEWACCOUNT:
+	    cm_logic_createaccount(peerid,jmsg);
+	    break;
+    }
+    json_object_put(jmsg);
     return 0;
 }
 
@@ -110,8 +121,9 @@ int cm_send2clients(char *msg)
     return 0;
 }
 
-int cm_send2player(char *buf)
+int cm_send2client(uint64_t peerid,void *buf,uint32_t len)
 {
+    ns_sendmsg(cm->ns,peerid,buf,len);
     return 0;
 }
 

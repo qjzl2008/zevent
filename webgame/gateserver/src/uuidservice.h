@@ -38,7 +38,7 @@ int gen_uuid(const char *svrlist,int uuid_type,uint64_t *uuid);
 
 int uuid_init();
 int uuid_fini();
-int gen_uuid_local(int uuid_type,int svrid,uint64_t *uuid);
+int gen_uuid_local(int uuid_type,uint64_t *uuid);
 
 int uuid2hex(uint64_t uuid,unsigned char *buf,size_t bufsize);
 

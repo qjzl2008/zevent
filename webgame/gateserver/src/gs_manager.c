@@ -33,14 +33,13 @@ static int init_ns_arg(ns_arg_t *ns_arg)
 	return -1;
     const char *ip = json_object_get_string(jip);
     snprintf(ns_arg->ip,sizeof(ns_arg->ip),ip);
-    json_object_put(jip);
 
     json_object *jport = json_util_get(jfile,"CONFIG.gs-server-port");
     if(!jport)
 	return -1;
     int port = json_object_get_int(jport);
     ns_arg->port = port;
-    json_object_put(jport);
+    json_object_put(jfile);
     return 0;
 }
 
@@ -48,9 +47,11 @@ static int init_ns_arg(ns_arg_t *ns_arg)
 static int process_msg(void *msg,int len,uint64_t peerid)
 {
     char *body = (char *)msg + HEADER_LEN;
-    json_object *jobj = json_tokener_parse(body);
-    if(!jobj)
+    json_object *jmsg = json_tokener_parse(body);
+    if(!jmsg)
 	return -1;
+
+    json_object_put(jmsg);
     return 0;
 }
 

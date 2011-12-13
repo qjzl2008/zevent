@@ -67,10 +67,19 @@ int main()
     sa.sa_handler = handler;
     sigaction(SIGINT, &sa, NULL);
 
-    uuid_init();
-    sc_start();
-    gm_start();
-    cm_start();
+    int rv;
+    rv = uuid_init();
+    if(rv < 0)
+	return -1;
+    rv = sc_start();
+    if(rv < 0)
+	return -1;
+    rv = gm_start();
+    if(rv < 0)
+	return -1;
+    rv = cm_start();
+    if(rv < 0)
+	return -1;
 
     struct timeval delay;
     while(!stop_daemon)

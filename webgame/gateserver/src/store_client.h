@@ -6,7 +6,7 @@ extern "C"{
 #endif
 
 int sc_start();
-int sc_send2store(char *buf);
+int sc_send2store(void *buf,int len);
 int sc_stop();
 int sc_destroy();
 

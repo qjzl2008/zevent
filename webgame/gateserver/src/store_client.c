@@ -9,6 +9,8 @@
 #include "thread_mutex.h"
 #include "hash.h"
 #include "store_client.h"
+#include "netcmd.h"
+#include "sc_logic.h"
 
 typedef struct store_client_t store_client_t;
 struct store_client_t{
@@ -29,15 +31,14 @@ static int init_nc_arg(nc_arg_t *nc_arg)
 	return -1;
     const char *ip = json_object_get_string(jip);
     snprintf(nc_arg->ip,sizeof(nc_arg->ip),ip);
-    json_object_put(jip);
 
     json_object *jport = json_util_get(jfile,"CONFIG.sqlstore-port");
     if(!jport)
 	return -1;
     int port = json_object_get_int(jport);
     nc_arg->port = port;
-    json_object_put(jport);
     nc_arg->timeout = 3;
+    json_object_put(jfile);
     return 0;
 }
 
@@ -45,9 +46,30 @@ static int init_nc_arg(nc_arg_t *nc_arg)
 static int process_msg(void *msg,int len)
 {
     char *body = (char *)msg + HEADER_LEN;
-    json_object *jobj = json_tokener_parse(body);
-    if(!jobj)
+    json_object *jmsg = json_tokener_parse(body);
+    if(!jmsg)
 	return -1;
+    printf("store client recv msg:%s\n",body);
+    json_object *jsccmd = json_util_get(jmsg,"cmd");
+    if(!jsccmd)
+	return -1;
+    int sccmd = json_object_get_int(jsccmd);
+    
+    json_object *jcmcmd = json_util_get(jmsg,"msg.cmd");
+    int cmcmd = json_object_get_int(jcmcmd);
+
+    switch(sccmd){
+	case MSGID_RESPONSE_EXECPROC:
+	    switch (cmcmd){
+		case MSGID_REQUEST_NEWACCOUNT:
+		    sc_logic_createaccount(jmsg);
+		    break;
+	    }
+	    break;
+    }
+
+    json_object_put(jmsg);
+
     return 0;
 }
 
@@ -97,6 +119,12 @@ int sc_start()
     pthread_create(&sc->thread_id, &attr, thread_entry, sc);
     pthread_attr_destroy(&attr);
 
+    return 0;
+}
+
+int sc_send2store(void *buf,int len)
+{
+    nc_sendmsg(sc->nc,buf,len);
     return 0;
 }
 

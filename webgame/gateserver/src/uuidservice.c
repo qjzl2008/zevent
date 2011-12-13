@@ -110,8 +110,9 @@ int uuid_fini()
     return 0;
 }
 
-int gen_uuid_local(int uuid_type,int svrid,uint64_t *uuid)
+int gen_uuid_local(int uuid_type,uint64_t *uuid)
 {
+    int svrid = 1;
     uint64_t time_now;
 
     time_now = time(NULL);

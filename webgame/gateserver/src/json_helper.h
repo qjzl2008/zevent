@@ -4,7 +4,7 @@
 #ifdef __cplusplus
 extern "C"{
 #endif
-#include <json/json.h>
+#include "json/json.h"
 
 json_object *json_util_get(json_object *obj, const char *path);
 
