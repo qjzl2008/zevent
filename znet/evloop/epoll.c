@@ -80,20 +80,22 @@ fdev_del(struct fdev *ev)
     return fdev_disable(ev, EV_READ|EV_WRITE);
 }
 
+#define DELAY_TIME (200)//millisecs
 int
 evloop(int m_epfd,int *endgame)
 {
-    int nev, i, millisecs = 200;
+    int nev, i, millisecs = DELAY_TIME;
 //    struct timespec delay;
     struct epoll_event m_evs[100];
     while (!(*endgame)) {
         evtimers_run();
- /*       delay = evtimer_delay();
-        if (delay.tv_sec >= 0)
+       /* delay = evtimer_delay();
+        if (delay.tv_sec > 0)
             millisecs = delay.tv_sec * 1000 + delay.tv_nsec / 1000000;
         else
             millisecs = 200;//millisecs = -1;
-*/
+	    */
+
         if ((nev = epoll_wait(m_epfd, m_evs, 100, millisecs)) < 0) {
             if (errno == EINTR)
                 continue;
