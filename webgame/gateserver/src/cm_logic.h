@@ -11,7 +11,7 @@ extern "C"{
 int cm_logic_createaccount(uint64_t peerid,json_object *jmsg);
 int cm_logic_login(uint64_t peerid,json_object *jmsg);
 int cm_logic_bindgs(uint64_t peerid,json_object *jmsg);
-int cm_logic_send2gs(uint64_t peerid,json_object *jmsg);
+int cm_logic_data2gs(uint64_t peerid,json_object *jmsg);
 
 #ifdef __cplusplus
 }

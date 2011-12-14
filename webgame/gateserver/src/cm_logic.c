@@ -2,6 +2,7 @@
 #include <string.h>
 #include "client_manager.h"
 #include "cm_logic.h"
+#include "gs_manager.h"
 #include "store_client.h"
 #include "uuidservice.h"
 #include "netcmd.h"
@@ -114,7 +115,14 @@ int cm_logic_bindgs(uint64_t peerid,json_object *jmsg)
 	return -1;
     int gsid = json_object_get_int(jgsid);
 
-    int rv = cm_bindgs(peerid,gsid);
+    uint64_t gspeerid;
+    int rv = gm_getpidbyid(gsid,&gspeerid);
+    if(rv < 0)
+    {
+	cm_logic_sendres(peerid,MSGID_RESPONSE_BINDGS,DEF_MSGTYPE_REJECT);
+	return -1;
+    }
+    rv = cm_bindgs(peerid,gspeerid);
     if(rv < 0)
     {
 	cm_logic_sendres(peerid,MSGID_RESPONSE_BINDGS,DEF_MSGTYPE_REJECT);
@@ -127,6 +135,7 @@ int cm_logic_bindgs(uint64_t peerid,json_object *jmsg)
     return 0;
 }
 
-int cm_logic_send2gs(uint64_t peerid,json_object *jmsg)
+int cm_logic_data2gs(uint64_t peerid,json_object *jmsg)
 {
+    return 0;
 }

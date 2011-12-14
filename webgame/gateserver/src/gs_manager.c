@@ -94,6 +94,7 @@ static void *thread_entry(void *arg)
 	if(rv == 1)
 	{
 	    //disconnect
+	    gm_unreggs(peer_id);
 	}
     }
     return NULL;
@@ -144,17 +145,38 @@ int gm_reggs(uint64_t peerid,int gsid)
 
     int rv = 0;
     thread_mutex_lock(gm->mutex);
-    val = hash_get(gm->peer2gs,hexpeerid,HASH_KEY_STRING,&entry_key); 
+    val = hash_get(gm->gs2peer,&gsid,sizeof(int),&entry_key); 
     if(!val)
     {
 	int *pgsid = mmalloc(gm->allocator,sizeof(gsid));
 	memcpy(pgsid,&gsid,sizeof(gsid));
 	hash_set(gm->peer2gs,hexpeerid,HASH_KEY_STRING,pgsid);
-	hash_set(gm->gs2peer,pgsid,HASH_KEY_STRING,hexpeerid);
+	hash_set(gm->gs2peer,pgsid,sizeof(int),hexpeerid);
 	rv = 0;
     }
     else{
+	mfree(gm->allocator,hexpeerid);
 	rv = -1;
+    }
+    thread_mutex_unlock(gm->mutex);
+    return rv;
+}
+
+int gm_getpidbyid(int gsid,uint64_t *peerid)
+{
+    void *entry_key,*val;
+
+    int rv = 0;
+    thread_mutex_lock(gm->mutex);
+    val = hash_get(gm->gs2peer,&gsid,sizeof(int),&entry_key); 
+    if(!val)
+    {
+	rv = -1;
+    }
+    else{
+	unsigned char *pid = (unsigned char *)val;
+	hex2uuid(pid,peerid);
+	rv = 0;
     }
     thread_mutex_unlock(gm->mutex);
     return rv;

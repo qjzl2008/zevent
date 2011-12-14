@@ -70,6 +70,8 @@ static int process_msg(void *msg,int len,uint64_t peerid)
 	case MSGID_REQUEST_BINDGS:
 	    cm_logic_bindgs(peerid,jmsg);
 	    break;
+	case MSGID_REQUEST_DATA2GS:
+	    cm_logic_data2gs(peerid,jmsg);
     }
     json_object_put(jmsg);
     return 0;
@@ -139,7 +141,7 @@ int cm_joinuser(uint64_t peerid,uint64_t uid)
     uuid2hex(peerid,hexpeerid,hexsize);
     client_t *client = mmalloc(cm->allocator,sizeof(client_t));
     client->state = LOGINED_STATE;
-    client->gsid = -1;
+    client->gspeerid = 0;
     client->accountid = uid;
 
     thread_mutex_lock(cm->mutex_clients);
@@ -159,7 +161,7 @@ int cm_send2client(uint64_t peerid,void *buf,uint32_t len)
     return 0;
 }
 
-int cm_bindgs(uint64_t peerid,int gsid)
+int cm_bindgs(uint64_t peerid,uint64_t gspeerid)
 {
     unsigned char hexpeerid[64]={'\0'};
     uuid2hex(peerid,hexpeerid,sizeof(hexpeerid));
@@ -172,7 +174,7 @@ int cm_bindgs(uint64_t peerid,int gsid)
     {
 	client_t *client = (client_t *)val;
 	if(client->state == LOGINED_STATE)
-	    client->gsid = gsid;
+	    client->gspeerid = gspeerid;
 	thread_mutex_unlock(cm->mutex_clients);
 	return 0;
     }
