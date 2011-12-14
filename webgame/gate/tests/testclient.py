@@ -85,19 +85,19 @@ class connector(threading.Thread):
 				count+=1
 #
 #			    #send echo
-#			        num = 0
-#				while num < 1:
-#				    cmd1 = Packets.MSGID_REQUEST_DATA2GS
-#				    cmd2 = Packets.MSGID_REQUEST_ECHO
-#				    buf = '{"cmd":%d,"msgs":[{"gsid":1,"msg":{"cmd":%d,\
-#					    "data":"%s"}}]}'% (cmd1,cmd2,"test echo")
-#				    message = struct.pack('>i',len(buf)) + buf
-#				    self.sock.send(message)
-#				    retmsg = self.sock.recv(4)
-#				    nlen, = struct.unpack('>i',retmsg)
-#				    retmsg = self.sock.recv(nlen)
-#				    print "echo Res:",retmsg
-#				    num = num + 1
+			        num = 0
+				while num < 100000:
+				    cmd1 = Packets.MSGID_REQUEST_DATA2GS
+				    cmd2 = Packets.MSGID_REQUEST_ECHO
+				    buf = '{"cmd":%d,"msgs":[{"gsid":1,"msg":{"cmd":%d,\
+					    "data":"%s"}}]}'% (cmd1,cmd2,"test echo")
+				    message = struct.pack('>i',len(buf)) + buf
+				    self.sock.send(message)
+				    retmsg = self.sock.recv(4)
+				    nlen, = struct.unpack('>i',retmsg)
+				    retmsg = self.sock.recv(nlen)
+				    #print "echo Res:",retmsg
+				    num = num + 1
 				count+=1
 
 			#sleep(1)

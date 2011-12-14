@@ -169,14 +169,15 @@ int cm_logic_data2gs(uint64_t peerid,json_object *jmsg)
 	    uuid2hex(accountid,hexid,sizeof(hexid));
 	    json_object_object_add(jmsg,"accountid",json_object_new_string((const char *)hexid));
 	    const char *msg = json_object_get_string(jmsg);
-	    char buf[4];
-	    memset(buf,0,sizeof(buf));
 	    int len = strlen(msg);
 	    int nlen = htonl(len);
+	    char *buf = (char *)malloc(len+4);
 	    memcpy(buf,&nlen,sizeof(nlen));
+	    memcpy(buf+4,msg,len);
 
-	    gm_send2gs(gspeerid,buf,4);
-	    gm_send2gs(gspeerid,(void *)msg,len);
+	    gm_send2gs(gspeerid,(void *)buf,len+4);
+	    free(buf);
+
 	}
     }
 
