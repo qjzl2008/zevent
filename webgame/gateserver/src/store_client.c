@@ -49,7 +49,6 @@ static int process_msg(void *msg,int len)
     json_object *jmsg = json_tokener_parse(body);
     if(!jmsg)
 	return -1;
-    printf("store client recv msg:%s\n",body);
     json_object *jsccmd = json_util_get(jmsg,"cmd");
     if(!jsccmd)
 	return -1;
