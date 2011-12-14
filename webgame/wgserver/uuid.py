@@ -42,6 +42,14 @@ class uuid(object):
 	ntime = int(time_now)
 	uuid = (ntime << 32) | (self.fudge << 18) | svrid << 30 | idtype
 	return uuid
+    
+    def hex2uuid(self,hexid):
+	uuid = int(hexid,16)
+	return uuid
+
+    def uuid2hex(self,uuid):
+	hexid = '%016x' % uuid
+	return hexid
 
 if __name__ == "__main__":  
     uuid = uuid.instance()

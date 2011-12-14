@@ -22,9 +22,7 @@ class connector(threading.Thread):
 			     #register gs
 				cmd = Packets.MSGID_REQUEST_REGGS
 				buf = '{"cmd":%d,"gsid":1}'% cmd
-				print buf
 			        message = struct.pack('>i',len(buf)) + buf
-				print message
 				self.sock.send(message)
 
 			        retmsg = self.sock.recv(4)

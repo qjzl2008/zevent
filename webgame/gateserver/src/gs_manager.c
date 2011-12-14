@@ -65,6 +65,9 @@ static int process_msg(void *msg,int len,uint64_t peerid)
 	case MSGID_REQUEST_REGGS:
 	    gm_logic_reggs(peerid,jmsg);
 	    break;
+	case MSGID_REQUEST_DATA2CLIENTS:
+	    gm_logic_data2clients(peerid,jmsg);
+	    break;
     }
 
     json_object_put(jmsg);

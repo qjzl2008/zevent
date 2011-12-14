@@ -132,9 +132,9 @@ class StoreClient(threading.Thread):
 		i = 0
 		chars = ''
 		for Char in CharList:
-		    chars += '{"uid":%d,"cid":%d,"cnm":"%s","level":%d}' %\
-			    (Char['AccountID'],
-			    Char['CharacterID'],
+		    chars += '{"uid":"%s","cid":"%s","cnm":"%s","level":%d}' %\
+			    (self.uuid.uuid2hex(Char['AccountID']),
+			    self.uuid.uuid2hex(Char['CharacterID']),
 			    Char['CharName'],
 			    Char['Level'])
 		    i += 1
@@ -152,37 +152,37 @@ class StoreClient(threading.Thread):
 		msg += ']'
 		msg = msg.encode("UTF-8")
 
-		buf = '[{"peerid":%d,"msg":%s}]' % (sender,msg)
+		buf = '[{"peerid":"%s","msg":%s}]' % (sender,msg)
 		self.gatelogic.SendData2Clients(buf)
 
 	def ProcessEnterGameRes(self,obj):
 	    code = obj['code']
-	    sender = obj['msg']['peerid']
+	    hexsender = obj['msg']['peerid']
 	    if code != Packets.DEF_MSGTYPE_CONFIRM:
-		self.gatelogic.SendRes2Request(sender,
+		self.gatelogic.SendRes2Request(hexsender,
 			Packets.MSGID_RESPONSE_ENTERGAME,
 			Packets.DEF_MSGTYPE_REJECT)
 	    else:
 		rv = obj['msg']['sqlout']['@rv']
 		if rv != 0:
-		    self.gatelogic.SendRes2Request(sender,
+		    self.gatelogic.SendRes2Request(hexsender,
 			    Packets.MSGID_RESPONSE_ENTERGAME,
 			    Packets.DEF_MSGTYPE_REJECT)
 		else:
 		    accountid = obj['msg']['sqlout']['@uid']
 		    charid = obj['msg']['sqlout']['@cid']
-		    self.GetCharInfo(sender,accountid,charid,
+		    self.GetCharInfo(hexsender,accountid,charid,
 			    Packets.MSGID_REQUEST_JOINSCENE)
             return True
 	
-	def GetCharInfo(self,sender,accountid,charid,cmd):
+	def GetCharInfo(self,hexsender,accountid,charid,cmd):
 	    sql = "select * from `character` where accountid = %d and characterid = %d" % (accountid,charid)
 
 	    cmd1 = Packets.MSGID_REQUEST_QUERY
 	    cmd2 = cmd
 	    buf = '{"cmd":%d,"msg":{"cmd":%d,\
-		    "peerid":%d,\
-		    "sql":"%s"}}'% (cmd1,cmd2,sender,sql)
+		    "peerid":"%s",\
+		    "sql":"%s"}}'% (cmd1,cmd2,hexsender,sql)
             msg = buf.encode('utf-8')
 	    self.Send2Store(msg)
 	    return True

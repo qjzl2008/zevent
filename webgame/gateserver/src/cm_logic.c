@@ -1,5 +1,8 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <stddef.h>
 #include <string.h>
+
 #include "client_manager.h"
 #include "cm_logic.h"
 #include "gs_manager.h"
@@ -137,5 +140,45 @@ int cm_logic_bindgs(uint64_t peerid,json_object *jmsg)
 
 int cm_logic_data2gs(uint64_t peerid,json_object *jmsg)
 {
+    uint64_t gspeerid,accountid;
+    int rv = cm_getidbycid(peerid,&gspeerid,&accountid);
+    if(rv < 0 || gspeerid == 0)
+    {
+	cm_logic_sendres(peerid,MSGID_RESPONSE_DATA2GS,DEF_MSGTYPE_REJECT);
+	return -1;
+    }
+    json_object *jmsgs = json_util_get(jmsg,"msgs");
+    if(!jmsgs)
+    {
+	return -1;
+    }
+
+    int i;
+    for(i=0; i < json_object_array_length(jmsgs); i++)
+    {
+	json_object *obj = json_object_array_get_idx(jmsgs, i);
+	if(obj)
+	{
+	    json_object *jmsg = json_util_get(obj,"msg");
+	    if(!jmsg)
+		return -1;
+	    unsigned char hexid[64];
+	    uuid2hex(peerid,hexid,sizeof(hexid));
+	    json_object_object_add(jmsg,"peerid",json_object_new_string((const char *)hexid));
+
+	    uuid2hex(accountid,hexid,sizeof(hexid));
+	    json_object_object_add(jmsg,"accountid",json_object_new_string((const char *)hexid));
+	    const char *msg = json_object_get_string(jmsg);
+	    char buf[4];
+	    memset(buf,0,sizeof(buf));
+	    int len = strlen(msg);
+	    int nlen = htonl(len);
+	    memcpy(buf,&nlen,sizeof(nlen));
+
+	    gm_send2gs(gspeerid,buf,4);
+	    gm_send2gs(gspeerid,(void *)msg,len);
+	}
+    }
+
     return 0;
 }

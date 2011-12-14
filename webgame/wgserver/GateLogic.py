@@ -50,7 +50,8 @@ class GateLogic(object):
 	
 	def CreateNewCharacter(self,jsobj):
 	    sender = jsobj['peerid']
-	    accountid = jsobj['accountid']
+	    hexaccountid = jsobj['accountid']
+	    accountid = self.uuid.hex2uuid(hexaccountid)
 	    uuid = self.uuid.gen_uuid(self.serverid,UUID_Type.CHARACTER)
 	    sql = "call create_character(%d,%d,%d,'%s',%d,@rv)"\
 		    % (accountid,uuid,jsobj['professionid'],
@@ -59,7 +60,7 @@ class GateLogic(object):
 	    cmd1 = Packets.MSGID_REQUEST_EXECPROC
 	    cmd2 = Packets.MSGID_REQUEST_NEWCHARACTER
 	    buf = '{"cmd":%d,"msg":{"cmd":%d,\
-		    "peerid":%d,\
+		    "peerid":"%s",\
 		    "sql":"%s",\
 		    "sqlout":["@rv"]}}'% (cmd1,cmd2,sender,
 			    sql)
@@ -69,13 +70,14 @@ class GateLogic(object):
 
 	def ProcessGetCharList(self,jsobj):
 	    sender = jsobj['peerid']
-	    accountid = jsobj['accountid']
+	    hexaccountid = jsobj['accountid']
+	    accountid = self.uuid.hex2uuid(hexaccountid)
 	    sql = "select * from `character` where accountid = %d order by level desc" % (accountid)
 
 	    cmd1 = Packets.MSGID_REQUEST_QUERY
 	    cmd2 = Packets.MSGID_REQUEST_GETCHARLIST
 	    buf = '{"cmd":%d,"msg":{"cmd":%d,\
-		    "peerid":%d,\
+		    "peerid":"%s",\
 		    "sql":"%s"}}'% (cmd1,cmd2,sender,sql)
             msg = buf.encode('utf-8')
 	    self.storeclient.Send2Store(msg)
@@ -92,7 +94,7 @@ class GateLogic(object):
 	    rv = self.nclient.nc_sendmsg(SendData,len(SendData))
 		
 	def SendRes2Request(self,sender,cmd,code):
-	    msg = '[{"peerid":%d,"msg":{"cmd":%d,"code":%d}}]' % (sender,cmd,code)
+	    msg = '[{"peerid":"%s","msg":{"cmd":%d,"code":%d}}]' % (sender,cmd,code)
 	    self.SendData2Clients(msg)
 
 	def Send2Gate(self,message):
@@ -122,15 +124,17 @@ class GateLogic(object):
 
 	def ProcessClientRequestEnterGame(self, jsobj):
 	    sender = jsobj['peerid']
-	    accountid = jsobj['accountid']
-	    cid = jsobj['cid']
+	    hexaccountid = jsobj['accountid']
+	    accountid = self.uuid.hex2uuid(hexaccountid)
+	    hexcid = jsobj['cid']
+	    cid = self.uuid.hex2uuid(hexcid)
 	    sql = "call entergame(%d,%d,@rv,@uid,@cid)"\
 		    % (accountid,cid)
 
 	    cmd1 = Packets.MSGID_REQUEST_EXECPROC
 	    cmd2 = Packets.MSGID_REQUEST_ENTERGAME
 	    buf = '{"cmd":%d,"msg":{"cmd":%d,\
-		    "peerid":%d,\
+		    "peerid":"%s",\
 		    "sql":"%s",\
 		    "sqlout":["@rv,@uid,@cid"]}}'% (cmd1,cmd2,sender,
 			    sql)
@@ -141,7 +145,7 @@ class GateLogic(object):
 	def ProcessEcho(self, jsobj):
 	    sender = jsobj['peerid']
 	    msg = jsobj['data'].encode("UTF-8")
-	    buf = '[{"peerid":%d,"msg":"%s"}]' % (sender,msg)
+	    buf = '[{"peerid":"%s","msg":"%s"}]' % (sender,msg)
 	    self.SendData2Clients(buf)
 
 	def ProcessRequestPlayerData(self, sender, buffer, GS):

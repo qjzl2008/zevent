@@ -186,6 +186,31 @@ int cm_bindgs(uint64_t peerid,uint64_t gspeerid)
     return 0;
 }
 
+int cm_getidbycid(uint64_t peerid,uint64_t *gspeerid,uint64_t *accountid)
+{
+    unsigned char hexpeerid[64]={'\0'};
+    uuid2hex(peerid,hexpeerid,sizeof(hexpeerid));
+
+    void *entry_key,*val;
+
+    thread_mutex_lock(cm->mutex_clients);
+    val = hash_get(cm->clients,hexpeerid,HASH_KEY_STRING,&entry_key); 
+    if(val)
+    {
+	client_t *client = (client_t *)val;
+	*gspeerid = client->gspeerid;
+	*accountid = client->accountid;
+	thread_mutex_unlock(cm->mutex_clients);
+	return 0;
+    }
+    else
+    {
+	thread_mutex_unlock(cm->mutex_clients);
+	return -1;
+    }
+    return 0;
+}
+
 int cm_stop()
 {
     cm->stop_daemon = 1;
