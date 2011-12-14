@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include "client_manager.h"
 #include "cm_logic.h"
 #include "store_client.h"
 #include "uuidservice.h"
@@ -37,7 +38,7 @@ int cm_logic_createaccount(uint64_t peerid,json_object *jmsg)
     int cmd1 = MSGID_REQUEST_EXECPROC;
     int cmd2 = MSGID_REQUEST_NEWACCOUNT;
     char buf[1024] = {'\0'};
-    snprintf(buf+4,sizeof(buf),"{\"cmd\":%d,\"msg\":{\"cmd\":%d,\"cid\":\"%s\",\
+    snprintf(buf+4,sizeof(buf)-4,"{\"cmd\":%d,\"msg\":{\"cmd\":%d,\"cid\":\"%s\",\
 	    \"sql\":\"%s\",\
 	    \"sqlout\":[\"@rv\"]}}",cmd1,cmd2,hexid,
 			   sql);
@@ -74,7 +75,7 @@ int cm_logic_login(uint64_t peerid,json_object *jmsg)
     int cmd1 = MSGID_REQUEST_EXECPROC;
     int cmd2 = MSGID_REQUEST_LOGIN;
     char buf[1024] = {'\0'};
-    snprintf(buf+4,sizeof(buf),"{\"cmd\":%d,\"msg\":{\"cmd\":%d,\"cid\":\"%s\",\
+    snprintf(buf+4,sizeof(buf)-4,"{\"cmd\":%d,\"msg\":{\"cmd\":%d,\"cid\":\"%s\",\
 	    \"sql\":\"%s\",\
 	    \"sqlout\":[\"@rv\",\"@accountid\"]}}",cmd1,cmd2,hexid,
 			   sql);
@@ -88,4 +89,44 @@ int cm_logic_login(uint64_t peerid,json_object *jmsg)
 	return -1;
     }
     return 0;
+}
+
+static int cm_logic_sendres(uint64_t peerid,int cmd,int code)
+{
+    char buf[256]={'\0'};
+    snprintf(buf+4,sizeof(buf)-4,"{\"cmd\":%d,\"code\":%d}",cmd,code);
+    int len = strlen(buf+4);
+    int nlen = htonl(len);
+    memcpy(buf,&nlen,sizeof(nlen));
+
+    int rv = cm_send2client(peerid,buf,len+sizeof(len));
+    if(rv < 0)
+    {
+	return -1;
+    }
+    return 0;
+}
+
+int cm_logic_bindgs(uint64_t peerid,json_object *jmsg)
+{
+    json_object *jgsid = json_util_get(jmsg,"gsid");
+    if(!jgsid)
+	return -1;
+    int gsid = json_object_get_int(jgsid);
+
+    int rv = cm_bindgs(peerid,gsid);
+    if(rv < 0)
+    {
+	cm_logic_sendres(peerid,MSGID_RESPONSE_BINDGS,DEF_MSGTYPE_REJECT);
+	return -1;
+    }
+    else
+    {
+	cm_logic_sendres(peerid,MSGID_RESPONSE_BINDGS,DEF_MSGTYPE_CONFIRM);
+    }
+    return 0;
+}
+
+int cm_logic_send2gs(uint64_t peerid,json_object *jmsg)
+{
 }

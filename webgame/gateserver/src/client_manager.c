@@ -12,6 +12,7 @@
 #include "netcmd.h"
 #include "cm_logic.h"
 #include "allocator.h"
+#include "uuidservice.h"
 
 typedef struct client_manager_t client_manager_t;
 struct client_manager_t{
@@ -65,6 +66,9 @@ static int process_msg(void *msg,int len,uint64_t peerid)
 	    break;
 	case MSGID_REQUEST_LOGIN:
 	    cm_logic_login(peerid,jmsg);
+	    break;
+	case MSGID_REQUEST_BINDGS:
+	    cm_logic_bindgs(peerid,jmsg);
 	    break;
     }
     json_object_put(jmsg);
@@ -130,6 +134,17 @@ int cm_start()
 
 int cm_joinuser(uint64_t peerid,uint64_t uid)
 {
+    const uint32_t hexsize = 64;
+    unsigned char *hexpeerid = mmalloc(cm->allocator,hexsize);
+    uuid2hex(peerid,hexpeerid,hexsize);
+    client_t *client = mmalloc(cm->allocator,sizeof(client_t));
+    client->state = LOGINED_STATE;
+    client->gsid = -1;
+    client->accountid = uid;
+
+    thread_mutex_lock(cm->mutex_clients);
+    hash_set(cm->clients,hexpeerid,HASH_KEY_STRING,client);
+    thread_mutex_unlock(cm->mutex_clients);
     return 0;
 }
 
@@ -144,6 +159,31 @@ int cm_send2client(uint64_t peerid,void *buf,uint32_t len)
     return 0;
 }
 
+int cm_bindgs(uint64_t peerid,int gsid)
+{
+    unsigned char hexpeerid[64]={'\0'};
+    uuid2hex(peerid,hexpeerid,sizeof(hexpeerid));
+
+    void *entry_key,*val;
+
+    thread_mutex_lock(cm->mutex_clients);
+    val = hash_get(cm->clients,hexpeerid,HASH_KEY_STRING,&entry_key); 
+    if(val)
+    {
+	client_t *client = (client_t *)val;
+	if(client->state == LOGINED_STATE)
+	    client->gsid = gsid;
+	thread_mutex_unlock(cm->mutex_clients);
+	return 0;
+    }
+    else
+    {
+	thread_mutex_unlock(cm->mutex_clients);
+	return -1;
+    }
+    return 0;
+}
+
 int cm_stop()
 {
     cm->stop_daemon = 1;
@@ -154,8 +194,19 @@ int cm_stop()
 
 int cm_destroy()
 {
+    hash_index_t *hi;
+    void *key,*val;
+    for (hi = hash_first(cm->clients); hi ; hi = hash_next(hi))
+    {
+	hash_this(hi,(const void **)&key,NULL,(void **)&val); 
+	mfree(cm->allocator,key);
+	mfree(cm->allocator,val);
+    }
     hash_destroy(cm->clients);
     thread_mutex_destroy(cm->mutex_clients);
+
+    thread_mutex_destroy(cm->mutex_mpool);
+    allocator_destroy(cm->allocator);
 
     free(cm);
     cm = NULL;

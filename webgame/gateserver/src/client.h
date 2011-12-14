@@ -15,7 +15,7 @@ typedef struct client_t client_t;
 
 struct client_t{
     int state;
-    int gspeerid;
+    int gsid;
     uint64_t accountid;
 };
 

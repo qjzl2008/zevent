@@ -93,6 +93,7 @@ int sc_logic_login(json_object *jmsg)
 	    const char *hexid = json_object_get_string(juid);
 	    uint64_t uid;
 	    hex2uuid((unsigned char *)hexid,&uid);
+	    cm_joinuser(cid,uid);
 
 	    snprintf(buf+4,sizeof(buf)-4,"{\"cmd\":%d,\"code\":%d}",MSGID_RESPONSE_LOGIN,
 		    rv);
