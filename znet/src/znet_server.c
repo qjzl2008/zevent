@@ -144,8 +144,11 @@ int ns_start_daemon(net_server_t **ns,const ns_arg_t *ns_arg)
 
 	if (((*ns)->ptbl = ptbl_create(3, id_eq, id_hash)) == NULL)
 	{
-		free(*ns);
-		return -1;
+	    thread_mutex_destroy((*ns)->mpool_mutex);
+	    allocator_destroy((*ns)->allocator);
+
+	    free(*ns);
+	    return -1;
 	}
 
 	//BTPDQ_INIT(&(*ns)->recv_queue);
@@ -162,7 +165,17 @@ int ns_start_daemon(net_server_t **ns,const ns_arg_t *ns_arg)
 
 	int epfd = evloop_init();
 	(*ns)->epfd = epfd;
-	start_listen(*ns,ns_arg);
+	int rv = start_listen(*ns,ns_arg);
+	if(rv < 0)
+	{
+	    queue_destroy((*ns)->recv_queue);
+	    thread_mutex_destroy((*ns)->ptbl_mutex);
+	    thread_mutex_destroy((*ns)->mpool_mutex);
+	    allocator_destroy((*ns)->allocator);
+
+	    free(*ns);
+	    return -1;
+	}
 	//pthread_attr_t attr;
 	pthread_t td;
 	//pthread_attr_init(&attr);
