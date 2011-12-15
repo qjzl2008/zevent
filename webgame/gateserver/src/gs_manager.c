@@ -46,6 +46,13 @@ static int init_ns_arg(ns_arg_t *ns_arg)
 	return -1;
     int port = json_object_get_int(jport);
     ns_arg->port = port;
+
+    json_object *jmaxgs = json_util_get(jfile,"CONFIG.max-gs");
+    if(!jmaxgs)
+	return -1;
+    int maxgs = json_object_get_int(jmaxgs);
+    ns_arg->max_peers = (uint32_t)maxgs;
+
     json_object_put(jfile);
     return 0;
 }
@@ -208,6 +215,17 @@ int gm_unreggs(uint64_t peerid)
     }
     thread_mutex_unlock(gm->mutex);
     return rv;
+}
+
+void* gm_malloc(uint32_t size)
+{
+    return mmalloc(gm->allocator,size);
+}
+
+int gm_free(void *memory)
+{
+    mfree(gm->allocator,memory);
+    return 0;
 }
 
 int gm_stop()

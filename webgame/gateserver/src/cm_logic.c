@@ -171,13 +171,12 @@ int cm_logic_data2gs(uint64_t peerid,json_object *jmsg)
 	    const char *msg = json_object_get_string(jmsg);
 	    int len = strlen(msg);
 	    int nlen = htonl(len);
-	    char *buf = (char *)malloc(len+4);
+	    char *buf = (char *)cm_malloc((uint32_t)(len+4));
 	    memcpy(buf,&nlen,sizeof(nlen));
 	    memcpy(buf+4,msg,len);
 
 	    gm_send2gs(gspeerid,(void *)buf,len+4);
-	    free(buf);
-
+	    cm_free(buf);
 	}
     }
 

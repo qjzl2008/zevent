@@ -45,6 +45,12 @@ static int init_ns_arg(ns_arg_t *ns_arg)
 	return -1;
     int port = json_object_get_int(jport);
     ns_arg->port = port;
+
+    json_object *jmaxclients = json_util_get(jfile,"CONFIG.max-clients");
+    if(!jmaxclients)
+	return -1;
+    int maxpeers = json_object_get_int(jmaxclients);
+    ns_arg->max_peers = (uint32_t)maxpeers;
     json_object_put(jfile);
     return 0;
 }
@@ -208,6 +214,17 @@ int cm_getidbycid(uint64_t peerid,uint64_t *gspeerid,uint64_t *accountid)
 	thread_mutex_unlock(cm->mutex_clients);
 	return -1;
     }
+    return 0;
+}
+
+void* cm_malloc(uint32_t size)
+{
+    return mmalloc(cm->allocator,size);
+}
+
+int cm_free(void *memory)
+{
+    mfree(cm->allocator,memory);
     return 0;
 }
 
