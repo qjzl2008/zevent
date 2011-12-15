@@ -1,4 +1,5 @@
 #include <unistd.h>
+#include <linux/tcp.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -43,6 +44,10 @@ net_connection_cb(int sd, short type, void *arg)
         close(nsd);
         return;
     }
+
+    int on=1;
+    setsockopt(nsd, IPPROTO_TCP, TCP_NODELAY,(void *)&on,(socklen_t)sizeof(on));
+
     if (ns->npeers >= ns->max_peers-1) {
         close(nsd);
         return;

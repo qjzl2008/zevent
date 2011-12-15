@@ -1,4 +1,5 @@
 #include <unistd.h>
+#include <linux/tcp.h>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -149,6 +150,9 @@ int nc_connect(net_client_t **nc,const nc_arg_t *nc_arg)
 	rv = nc_nbconnect(&sd,nc_arg);
 	if(rv < 0)
 	    return -1;
+
+	int on=1;
+	setsockopt(sd, IPPROTO_TCP, TCP_NODELAY,(void *)&on,(socklen_t)sizeof(on));
 
 	allocator_t *allocator;
 	if(allocator_create(&allocator) < 0)
