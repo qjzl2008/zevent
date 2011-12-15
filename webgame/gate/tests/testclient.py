@@ -51,7 +51,7 @@ class connector(threading.Thread):
 				cmd2 = Packets.MSGID_REQUEST_NEWCHARACTER
 				buf = '{"cmd":%d,"msgs":[{"gsid":1,"msg":{"cmd":%d,\
 					"professionid":1,\
-					"name":"1周霸姐","gender":0}}]}'% (cmd1,cmd2)
+					"name":"周霸姐","gender":0}}]}'% (cmd1,cmd2)
 			        message = struct.pack('>i',len(buf)) + buf
 				self.sock.send(message)
 				retmsg = self.sock.recv(4)
@@ -73,7 +73,7 @@ class connector(threading.Thread):
 				cmd1 = Packets.MSGID_REQUEST_DATA2GS
 				cmd2 = Packets.MSGID_REQUEST_ENTERGAME
 				buf = '{"cmd":%d,"msgs":[{"gsid":1,"msg":{"cmd":%d,\
-					"cid":"%s"}}]}'% (cmd1,cmd2,"4ed5f09040000001")
+					"cid":"%s"}}]}'% (cmd1,cmd2,"4ee9b2d240000001")
 			        message = struct.pack('>i',len(buf)) + buf
 				self.sock.send(message)
 				retmsg = self.sock.recv(4)
