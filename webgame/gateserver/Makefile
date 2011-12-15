@@ -29,7 +29,7 @@ DEFS = -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -DHAS_THREADS -DEVLOOP_EPOLL
 
 IFLAGS1 = -I$(znet_inc) -I$(main_inc) 
 IFLAGS2 = -I$(common_inc) -I$(common_arch_inc)
-CFLAGS = -g -fpic -Wall $(IFLAGS1) $(IFLAGS2)
+CFLAGS = -O2 -fpic -Wall $(IFLAGS1) $(IFLAGS2)
 SYSLIBS = -lpthread -lrt -lznet -ljson
 LFLAGS = 
 LDFLAGS = 

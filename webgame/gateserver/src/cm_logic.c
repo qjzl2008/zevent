@@ -201,4 +201,5 @@ int cm_logic_disconnect(uint64_t peer_id)
     memcpy(msg,&nlen,sizeof(nlen));
 
     gm_send2gs(gspeerid,(void *)msg,len+4);
+    return 0;
 }

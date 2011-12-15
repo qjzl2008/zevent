@@ -100,6 +100,7 @@ static void *thread_entry(void *arg)
 	if(rv == 0)
 	{
 	    process_msg(msg,len,peer_id);
+	    //cm_send2client(peer_id,msg,len);
 	    //process msg
 	    ns_free(ns,msg);
 	}
