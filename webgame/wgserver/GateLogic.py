@@ -105,14 +105,15 @@ class GateLogic(object):
 	def ProcessClientDisconnect(self,obj):
 	    cid = self.scmanager.ProcessClientDisconnect(obj)
 	    if cid:
-		sender = obj['peerid']
+		hexsender = obj['peerid']
+		sender = self.uuid.hex2uuid(hexsender)
 		sql = "call leavegame(%d,@rv,@cid)"\
 			% (cid)
 
 		cmd1 = Packets.MSGID_REQUEST_EXECPROC
 		cmd2 = Packets.MSGID_REQUEST_LEAVEGAME
 		buf = '{"cmd":%d,"msg":{"cmd":%d,\
-			"peerid":%d,\
+			"peerid":"%s",\
 			"sql":"%s",\
 			"sqlout":["@rv,@cid"]}}'% (cmd1,cmd2,sender,
 				sql)

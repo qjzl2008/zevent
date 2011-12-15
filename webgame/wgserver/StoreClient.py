@@ -201,7 +201,7 @@ class StoreClient(threading.Thread):
 	    sender = obj['msg']['peerid']
 
 	    if code != Packets.DEF_MSGTYPE_CONFIRM:
-		PutLogList("(*) peerid: %d Leave Game failed!"\
+		PutLogList("(*) peerid: %s Leave Game failed!"\
 			    % (sender))
 	    else:
 	        charid = obj['msg']['sqlout']['@cid']
