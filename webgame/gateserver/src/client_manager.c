@@ -105,6 +105,7 @@ static void *thread_entry(void *arg)
 	}
 	if(rv == 1)
 	{
+	    cm_logic_disconnect(peer_id);
 	    //disconnect
 	}
     }

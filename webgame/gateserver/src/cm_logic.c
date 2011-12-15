@@ -182,3 +182,23 @@ int cm_logic_data2gs(uint64_t peerid,json_object *jmsg)
 
     return 0;
 }
+
+int cm_logic_disconnect(uint64_t peer_id)
+{
+    uint64_t gspeerid,accountid;
+    int rv = cm_getidbycid(peer_id,&gspeerid,&accountid);
+    if(rv < 0 || gspeerid == 0)
+    {
+	return 0;
+    }
+    unsigned char hexpeerid[64]={'\0'};
+    uuid2hex(peer_id,hexpeerid,sizeof(hexpeerid));
+    char msg[128] = {'\0'};
+    snprintf(msg+4,sizeof(msg)-4,"{\"cmd\":%d,\"peerid\":\"%s\"}",
+	    MSGID_NOTIFY_DISCONNECT,hexpeerid);
+    int len = strlen(msg+4);
+    int nlen = htonl(len);
+    memcpy(msg,&nlen,sizeof(nlen));
+
+    gm_send2gs(gspeerid,(void *)msg,len+4);
+}

@@ -10,11 +10,9 @@ class connector(threading.Thread):
     def __init__(self,num):
         threading.Thread.__init__(self)
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.num = num
-
+	self.sock.connect(("127.0.0.1",8887))
     def run(self):
         try:
-		self.sock.connect(("127.0.0.1",8887))
 		n = 0;
 		while(True):
 			count = 0
@@ -82,11 +80,10 @@ class connector(threading.Thread):
 				nlen, = struct.unpack('>i',retmsg)
 				retmsg = self.sock.recv(nlen)
 				print "enter game Res:",retmsg
-				count+=1
 #
 #			    #send echo
 			        num = 0
-				while num < 100000:
+				while num < 1:
 				    cmd1 = Packets.MSGID_REQUEST_DATA2GS
 				    cmd2 = Packets.MSGID_REQUEST_ECHO
 				    buf = '{"cmd":%d,"msgs":[{"gsid":1,"msg":{"cmd":%d,\
@@ -100,7 +97,6 @@ class connector(threading.Thread):
 				    num = num + 1
 				count+=1
 
-			#sleep(1)
 			n+=1
 			self.sock.close()
 			print "close"
