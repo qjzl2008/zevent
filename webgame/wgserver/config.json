@@ -3,6 +3,7 @@
 	    "gsid" : 1,
 	    "game-server-name": "wgs1", 
 	    "net-lib": "/home/zhoubug/dev/svn_work/zevent/znet/bin/libznet.so",
+	    "qdtree-lib":"./quadtree/libquadtree.so",
 	    "sqlstore-address":"127.0.0.1",
 	    "sqlstore-port":7766,
 	    "gate-server-address": "127.0.0.1", 

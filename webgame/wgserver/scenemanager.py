@@ -3,7 +3,10 @@ import os
 import threading 
 import simplejson as json 
 from log import *
+
+from GlobalConfig import GlobalConfig
 from npcmanager import NPC,NPCManager
+from quadtree import quadtree
 
 class  Player(object):
 
@@ -27,7 +30,11 @@ class  Scene(object):
 	self.players = {}
 	self.npc_manager = NPCManager()
 
+        self.gconfig = GlobalConfig.instance()
+	self.qdtreelib = self.gconfig.GetValue('CONFIG','qdtree-lib')
+
 	self.load_scene(scene_cfg)
+	self.quadtree = quadtree.quadtree(self.qdtreelib);
 
     def load_scene(self,scene_cfg):
 	self.scene_json = json.load(open(self.scene_cfg))
