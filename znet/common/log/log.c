@@ -11,7 +11,10 @@
 #include <errno.h>
 #include "log.h"
 
-static int logfile;
+struct log_t{
+    int logfile;//fd
+};
+//static int logfile;
 
 char *cpystrn(char *dst, const char *src, size_t dst_size)
 {
@@ -227,21 +230,25 @@ static int log_child(const char *progname,
     return 0;
 }
 
-int open_log(const char *filename)
+int open_log(log_t **log,const char *filename)
 {
     int rc;
+    *log = NULL;
+    (*log) = (log_t *)malloc(sizeof(log_t));
     if(!filename){
 	return -1;
     }
 
     if (*filename == '|') {
-	rc = log_child(filename + 1, &logfile);
-	log_error(LOG_MARK,
+	rc = log_child(filename + 1, &((*log)->logfile));
+	log_error(*log,LOG_MARK,
 		"Start ErrorLog process!");
+	if(rc != 0)
+	    return -1;
     }
     else{
-	logfile = open(filename,O_CREAT|O_RDWR|O_APPEND|O_LARGEFILE,0644);
-	if(logfile != -1)
+	(*log)->logfile = open(filename,O_CREAT|O_RDWR|O_APPEND|O_LARGEFILE,0644);
+	if((*log)->logfile != -1)
 	{
 	    return 0;
 	}
@@ -383,7 +390,7 @@ int64_t time_now(void)
 
 #define EOL_STR 	"\n"
 #define CTIME_LEN	25
-static void log_error_core(const char *file, int line,
+static void log_error_core(int logfile,const char *file, int line,
 	const char *fmt, va_list args)
 {
     char errstr[MAX_LOG_LEN];
@@ -415,20 +422,24 @@ static void log_error_core(const char *file, int line,
     }
 }
 
-void log_error(const char *file, int line,
-	const char *fmt, ...)
+void log_error(log_t *log,const char *file, 
+		             int line,
+                             const char *fmt, ...)
 {
     va_list args;
 
     va_start(args, fmt);
-    log_error_core(file, line,fmt, args);
+    log_error_core(log->logfile,file, line,fmt, args);
     va_end(args);
 }
 
-void log_close()
+void log_close(log_t *log)
 {
-    if(logfile)
-	close(logfile);
+    if(log)
+    {
+	close(log->logfile);
+	free(log);
+    }
 }
 
 /*
@@ -436,11 +447,12 @@ void log_close()
 #include "log.h"
 int main(void)
 {
-    open_log("|/usr/bin/cronolog logs/%Y-%m-%d.%H.log");
-    while(1)
-    log_error(LOG_MARK,"testlog:%d",1);
-    log_close();
-    sleep(111111);
+    log_t *log;
+    open_log(&log,"|/usr/bin/cronolog logs/%Y-%m-%d.%H.log");
+ //   while(1)
+    log_error(log,LOG_MARK,"testlog:%d",1);
+    log_close(log);
+  //  sleep(111111);
     return 0;
 }
 */

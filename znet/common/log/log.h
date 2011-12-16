@@ -8,14 +8,16 @@ extern "C" {
 #define LOG_MARK  __FILE__,__LINE__
 #define MAX_LOG_LEN (8192)
 
-int open_log(const char *filename);
+typedef struct log_t log_t;
 
-void log_error(const char *file, 
+int open_log(log_t **log,const char *filename);
+
+void log_error(log_t *log,const char *file, 
 		             int line,
                              const char *fmt, ...)
-			    __attribute__((format(printf,3,4)));
+			    __attribute__((format(printf,4,5)));
 
-void log_close();
+void log_close(log_t *log);
 #ifdef __cplusplus
 }
 #endif
