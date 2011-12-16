@@ -39,12 +39,13 @@ class SceneManager(object):
 
 	scenes = json.load(open(self.scenescfg))
 	path = scenes['path']
-	scenelist = scenes['scenes'].split(',')
+	self.scenelist = scenes['scenes'].split(',')
 	start_scene = scenes['start_scene']
-	for scenecfg in scenelist:
-	    scenecfg = path + os.sep + scenecfg
+	for scenename in self.scenelist:
+	    scenecfg = path + os.sep + scenename
 	    if not os.path.exists(scenecfg) and not os.path.isfile(scenecfg):
 		PutLogList("(!) Cannot open configuration file:%s" % scenecfg)
+		self.scenelist.remove(scenename)
 		continue
 	    scene = Scene(scenecfg)
 	    self.scenes[scene.sceneid] = scene
