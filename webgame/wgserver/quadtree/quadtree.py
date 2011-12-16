@@ -70,7 +70,7 @@ class quadtree(object):
 	    i+=1
 
     def quadtree_del_object(self,qobject):
-	self.lib.quadtree_search.argtypes = [POINTER(quadtree_object_t)]
+	self.lib.quadtree_del_object.argtypes = [POINTER(quadtree_object_t)]
 	self.lib.quadtree_del_object(qobject)
 
     def quadtree_update(self,qobject,box):

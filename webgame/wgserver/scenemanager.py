@@ -19,28 +19,75 @@ class  Player(object):
 	#hex
 	self.peerid = -1
 	self.character = None
+	self.qobject = None
 
 class  Scene(object):
     """
         	
     """
     def __init__(self,scene_cfg):
+	self.mutex_players = threading.Lock() 
 	self.scene_cfg = scene_cfg
 	self.scene = {}
 	self.players = {}
+	self.qobjects = {}
 	self.npc_manager = NPCManager()
 
         self.gconfig = GlobalConfig.instance()
 	self.qdtreelib = self.gconfig.GetValue('CONFIG','qdtree-lib')
 
 	self.load_scene(scene_cfg)
-	self.quadtree = quadtree.quadtree(self.qdtreelib);
+	self.qdtree = quadtree.quadtree(self.qdtreelib);
+	box = quadtree.quad_box_t()
+	box._xmin = self.xmin
+	box._xmax = self.xmax
+	box._ymin = self.ymin
+	box._ymax = self.ymax
+	self.qdtree.quadtree_create(box,5,0.1)
 
     def load_scene(self,scene_cfg):
 	self.scene_json = json.load(open(self.scene_cfg))
 	self.sceneid = self.scene_json['id']
+	self.xmin = self.scene_json['xmin']
+	self.xmax = self.scene_json['xmax']
+	self.ymin = self.scene_json['ymin']
+	self.ymax = self.scene_json['ymax']
 	self.npc_manager.load_npcs(self.scene_json)
 	pass
+    
+    def add_player(self,sender,character):
+	self.mutex_players.acquire()
+	try:
+	    objbox = quadtree.quad_box_t();
+
+	    objbox._xmin = character.LocX - character.XScale
+	    objbox._xmax = character.LocX + character.XScale
+	    objbox._ymin = character.LocY - character.YScale
+	    objbox._ymax = character.LocY + character.YScale
+	    qobject = self.qdtree.quadtree_insert(character.CharacterID,objbox)
+
+	    player = Player()
+	    character.State = Player.ENTERED_STATE
+	    player.character = character
+	    player.peerid = sender
+	    player.qobject = qobject
+	    self.players[character.CharacterID] = player
+        finally:
+	    self.mutex_players.release()
+
+    def del_player(self,cid):
+	self.mutex_players.acquire()
+	try:
+	    if not self.players.has_key(cid):
+		self.mutex_players.release()
+		return False
+	    player = self.players[cid]
+	    qobject = player.qobject
+	    self.qdtree.quadtree_del_object(qobject)
+	    del self.players[cid]
+	finally:
+		self.mutex_players.release()
+		return True
 
     def get_object(self,key,objectid):
 	pass
@@ -111,27 +158,23 @@ class SceneManager(object):
 	    self.mutex.release()
 	    return False
 	scene = self.scenes[sceneid]
-	
-	if not scene.players.has_key(cid):
-	    self.mutex.release()
-	    return False
-	del scene.players[cid]
 	self.mutex.release()
+	scene.del_player(cid)
+	
 	return cid
 
     def ProcessEnterGame(self,sender,character):
+	if character.Scene == 0:
+	    character.Scene = self.newbie_scene
+	scene = self.scenes[character.Scene]
+	scene.add_player(sender,character)
+
         self.mutex.acquire()   
 	try:
 	    if character.Scene == 0:
 		character.Scene = self.newbie_scene
 	    scene = self.scenes[character.Scene]
 
-	    player = Player()
-	    character.State = Player.ENTERED_STATE
-	    player.character = character
-	    player.peerid = sender
-
-	    scene.players[character.CharacterID] = player
 	    self.c2scene[character.CharacterID] = scene.sceneid
 	    self.peer2cid[sender] = character.CharacterID
 	except:

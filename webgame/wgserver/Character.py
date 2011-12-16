@@ -15,6 +15,8 @@ class Character(object):
 	self.Scene = jsobj['Scene']
 	self.LocX = jsobj['LocX']
 	self.LocY = jsobj['LocY']
+	self.XScale = jsobj['XScale']
+	self.YScale = jsobj['YScale']
 	self.Profile = jsobj['Profile']
 	self.CreateDate = jsobj['CreateDate']
 	self.LogoutDate = jsobj['LogoutDate']
