@@ -5,6 +5,7 @@
 #include <sys/mman.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <stdio.h>
 #include <stdint.h>
 #include <string.h>
 #include <errno.h>
@@ -26,7 +27,7 @@ int shm_create(shm_t *new_m,
     new_m->filename = strdup(filename);
 
     int fd = open(filename, 
-	    O_RDWR | O_CREAT | O_EXCL,0666);
+	    O_RDWR | O_CREAT /*| O_EXCL*/,0666);
     if (fd < 0) {
 	return errno;
     }
@@ -90,6 +91,7 @@ int shm_attach(shm_t *new_m,const char *filename)
 
     if ((new_m->shmid = shmget(shmkey, new_m->reqsize,
 		    SHM_R | SHM_W)) < 0) {
+	printf("%d.%s\n",errno,strerror(errno));
 	return errno;
     }
 
