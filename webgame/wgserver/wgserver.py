@@ -32,9 +32,10 @@ class WGServer(threading.Thread):
 	"""
             message = (rv,msg,len,void_pointer)
 	"""
+	delay = 100000
 	while(True):
 	    sleep = True
-	    message = self.nclient.nc_recvmsg(0)
+	    message = self.nclient.nc_recvmsg(delay)
 	    if message:
 		if message[0] == 0:
 		    self.ProcessMsg(message)
@@ -43,6 +44,7 @@ class WGServer(threading.Thread):
 		    #disconneted to gate
 		    PutLogList("(!) Disconnected to gate server!")
 		    break;
+	    self.MainLogic()
 	    continue
 
     def Init(self):

@@ -5,100 +5,7 @@ import simplejson as json
 from log import *
 
 from GlobalConfig import GlobalConfig
-from npcmanager import NPC,NPCManager
-from quadtree import quadtree
-
-class  Player(object):
-
-    INIT_STATE = 0x00
-    ENTERED_STATE = 0x01
-
-    def __init__(self):
-	#0 1 logined 2 entered
-	self.state = self.INIT_STATE
-	#hex
-	self.peerid = -1
-	self.character = None
-	self.qobject = None
-
-class  Scene(object):
-    """
-        	
-    """
-    def __init__(self,scene_cfg):
-	self.mutex_players = threading.Lock() 
-	self.scene_cfg = scene_cfg
-	self.scene = {}
-	self.players = {}
-	self.qobjects = {}
-	self.npc_manager = NPCManager()
-
-        self.gconfig = GlobalConfig.instance()
-	self.qdtreelib = self.gconfig.GetValue('CONFIG','qdtree-lib')
-
-	self.load_scene(scene_cfg)
-	self.qdtree = quadtree.quadtree(self.qdtreelib);
-	box = quadtree.quad_box_t()
-	box._xmin = self.xmin
-	box._xmax = self.xmax
-	box._ymin = self.ymin
-	box._ymax = self.ymax
-	self.qdtree.quadtree_create(box,5,0.1)
-
-    def load_scene(self,scene_cfg):
-	self.scene_json = json.load(open(self.scene_cfg))
-	self.sceneid = self.scene_json['id']
-	self.xmin = self.scene_json['xmin']
-	self.xmax = self.scene_json['xmax']
-	self.ymin = self.scene_json['ymin']
-	self.ymax = self.scene_json['ymax']
-	self.npc_manager.load_npcs(self.scene_json)
-	pass
-    
-    def add_player(self,sender,character):
-	self.mutex_players.acquire()
-	try:
-	    objbox = quadtree.quad_box_t();
-
-	    rv = True
-
-	    objbox._xmin = character.LocX - character.XScale
-	    objbox._xmax = character.LocX + character.XScale
-	    objbox._ymin = character.LocY - character.YScale
-	    objbox._ymax = character.LocY + character.YScale
-	    qobject = self.qdtree.quadtree_insert(character.CharacterID,objbox)
-	    if not qobject:
-		rv = False
-	    else:
-		player = Player()
-		character.State = Player.ENTERED_STATE
-		player.character = character
-		player.peerid = sender
-		player.qobject = qobject
-		self.players[character.CharacterID] = player
-		rv = True
-        finally:
-	    self.mutex_players.release()
-	    return rv
-
-    def del_player(self,cid):
-	self.mutex_players.acquire()
-	rv = True
-	try:
-	    if not self.players.has_key(cid):
-		rv = False
-	    else:
-		player = self.players[cid]
-		qobject = player.qobject
-		if qobject:
-		    self.qdtree.quadtree_del_object(qobject)
-		del self.players[cid]
-	finally:
-		self.mutex_players.release()
-		return rv
-
-    def get_object(self,key,objectid):
-	pass
+from Scene import Scene
 
 class SceneManager(object):
     def __init__(self):
@@ -196,7 +103,6 @@ class SceneManager(object):
     def MainLogic(self):
 	for key in self.scenes.keys():
 	    scene = self.scenes[key]
-	    for cid in scene.players.keys():
-		print "cid:%d" % (cid)
-	pass
+	    scene.MainLogic()
+	
 

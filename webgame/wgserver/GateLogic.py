@@ -8,7 +8,7 @@ from NetMessages import Packets
 from scenemanager import SceneManager
 from uuid import uuid
 from GlobalConfig import GlobalConfig
-from scenemanager import Player
+from Player import Player
 
 #reload(sys)
 #sys.setdefaultencoding('utf-8')
