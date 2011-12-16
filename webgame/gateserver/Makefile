@@ -7,6 +7,7 @@ common_arch_inc =$(COMMON_ROOT)/common/include/arch/unix
 common_mem_src = $(COMMON_ROOT)/common/memory
 common_locks_src = $(COMMON_ROOT)/common/locks/unix
 common_misc_src = $(COMMON_ROOT)/common/misc
+common_log_src = $(COMMON_ROOT)/common/log
 
 znet_inc = $(COMMON_ROOT)/src
 main_src = $(ROOT)/src
@@ -60,7 +61,11 @@ common_locks_objs = $(patsubst $(common_locks_src)/%.c,$(obj)/%.o,$(common_locks
 common_misc_srcs = $(wildcard $(common_misc_src)/*.c)
 common_misc_objs = $(patsubst $(common_misc_src)/%.c,$(obj)/%.o,$(common_misc_srcs))
 
-objs =  $(common_mem_objs) $(common_locks_objs) $(main_objs) $(common_misc_objs)
+common_log_srcs = $(wildcard $(common_log_src)/*.c)
+common_log_objs = $(patsubst $(common_log_src)/%.c,$(obj)/%.o,$(common_log_srcs))
+
+objs =  $(common_mem_objs) $(common_locks_objs) $(main_objs) $(common_misc_objs) \
+	$(common_log_objs)
 
 dbgobjs = $(patsubst $(obj)/%.o,$(dbgobj)/%.o,$(objs))
 
@@ -84,6 +89,9 @@ $(obj)/%.o: $(common_mem_src)/%.c $(common_incs)
 	$(COMPILE.c) $< -o $@
 
 $(obj)/%.o: $(common_misc_src)/%.c $(common_incs) $(common_arch_incs)
+	$(COMPILE.c) $< -o $@
+
+$(obj)/%.o: $(common_log_src)/%.c $(common_incs)
 	$(COMPILE.c) $< -o $@
 
 $(obj)/%.o: $(common_locks_src)/%.c $(common_incs) $(common_arch_incs)

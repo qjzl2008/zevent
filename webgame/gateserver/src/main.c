@@ -13,6 +13,7 @@
 #include "client_manager.h"
 #include "gs_manager.h"
 #include "uuidservice.h"
+#include "log.h"
 
 static int stop_daemon = 0;
 
