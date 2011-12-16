@@ -60,34 +60,42 @@ class  Scene(object):
 	try:
 	    objbox = quadtree.quad_box_t();
 
+	    rv = True
+
 	    objbox._xmin = character.LocX - character.XScale
 	    objbox._xmax = character.LocX + character.XScale
 	    objbox._ymin = character.LocY - character.YScale
 	    objbox._ymax = character.LocY + character.YScale
 	    qobject = self.qdtree.quadtree_insert(character.CharacterID,objbox)
-
-	    player = Player()
-	    character.State = Player.ENTERED_STATE
-	    player.character = character
-	    player.peerid = sender
-	    player.qobject = qobject
-	    self.players[character.CharacterID] = player
+	    if not qobject:
+		rv = False
+	    else:
+		player = Player()
+		character.State = Player.ENTERED_STATE
+		player.character = character
+		player.peerid = sender
+		player.qobject = qobject
+		self.players[character.CharacterID] = player
+		rv = True
         finally:
 	    self.mutex_players.release()
+	    return rv
 
     def del_player(self,cid):
 	self.mutex_players.acquire()
+	rv = True
 	try:
 	    if not self.players.has_key(cid):
-		self.mutex_players.release()
-		return False
-	    player = self.players[cid]
-	    qobject = player.qobject
-	    self.qdtree.quadtree_del_object(qobject)
-	    del self.players[cid]
+		rv = False
+	    else:
+		player = self.players[cid]
+		qobject = player.qobject
+		if qobject:
+		    self.qdtree.quadtree_del_object(qobject)
+		del self.players[cid]
 	finally:
 		self.mutex_players.release()
-		return True
+		return rv
 
     def get_object(self,key,objectid):
 	pass
@@ -167,9 +175,11 @@ class SceneManager(object):
 	if character.Scene == 0:
 	    character.Scene = self.newbie_scene
 	scene = self.scenes[character.Scene]
-	scene.add_player(sender,character)
+	if not scene.add_player(sender,character):
+	    return False
 
         self.mutex.acquire()   
+	rv = True
 	try:
 	    if character.Scene == 0:
 		character.Scene = self.newbie_scene
@@ -178,10 +188,10 @@ class SceneManager(object):
 	    self.c2scene[character.CharacterID] = scene.sceneid
 	    self.peer2cid[sender] = character.CharacterID
 	except:
-	    character = None
+	    rv = False
 	finally:
 	    self.mutex.release()
-	    return character
+	    return rv
     
     def MainLogic(self):
 	for key in self.scenes.keys():

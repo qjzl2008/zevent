@@ -106,7 +106,7 @@ class GateLogic(object):
 	    cid = self.scmanager.ProcessClientDisconnect(obj)
 	    if cid:
 		hexsender = obj['peerid']
-		sender = self.uuid.hex2uuid(hexsender)
+#		sender = self.uuid.hex2uuid(hexsender)
 		sql = "call leavegame(%d,@rv,@cid)"\
 			% (cid)
 
@@ -115,7 +115,7 @@ class GateLogic(object):
 		buf = '{"cmd":%d,"msg":{"cmd":%d,\
 			"peerid":"%s",\
 			"sql":"%s",\
-			"sqlout":["@rv,@cid"]}}'% (cmd1,cmd2,sender,
+			"sqlout":["@rv,@cid"]}}'% (cmd1,cmd2,hexsender,
 				sql)
 		msg = buf.encode('utf-8')
 		self.storeclient.Send2Store(msg)

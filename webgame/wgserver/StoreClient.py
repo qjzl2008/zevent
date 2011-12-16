@@ -187,14 +187,36 @@ class StoreClient(threading.Thread):
 	    self.Send2Store(msg)
 	    return True
 
+	def SC_LeaveGame(self,hexsender,cid):
+	    sql = "call leavegame(%d,@rv,@cid)"\
+		    % (cid)
+
+	    cmd1 = Packets.MSGID_REQUEST_EXECPROC
+	    cmd2 = Packets.MSGID_REQUEST_LEAVEGAME
+	    buf = '{"cmd":%d,"msg":{"cmd":%d,\
+		    "peerid":"%s",\
+		    "sql":"%s",\
+		    "sqlout":["@rv,@cid"]}}'% (cmd1,cmd2,hexsender,
+			    sql)
+	    msg = buf.encode('utf-8')
+	    self.Send2Store(msg)
+	    return True
+
         def ProcessJoinSceneRes(self,obj):
 	    character = Character()
 	    character.Init(obj['msg']['res'][0])
 	    peerid = obj['msg']['peerid']
-            self.scene_manager.ProcessEnterGame(peerid,character)
-	    self.gatelogic.SendRes2Request(peerid,
-		    Packets.MSGID_RESPONSE_ENTERGAME,
-		    Packets.DEF_MSGTYPE_CONFIRM)
+            rv = self.scene_manager.ProcessEnterGame(peerid,character)
+	    if not rv:
+		self.gatelogic.SendRes2Request(peerid,
+			Packets.MSGID_RESPONSE_ENTERGAME,
+			Packets.DEF_MSGTYPE_REJECT)
+		cid = character.CharacterID
+		self.SC_LeaveGame(peerid,cid)
+	    else:
+		self.gatelogic.SendRes2Request(peerid,
+			Packets.MSGID_RESPONSE_ENTERGAME,
+			Packets.DEF_MSGTYPE_CONFIRM)
 
 	def ProcessLeaveGameRes(self,obj):
 	    code = obj['code']

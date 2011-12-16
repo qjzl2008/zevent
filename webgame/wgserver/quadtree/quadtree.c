@@ -278,6 +278,7 @@ quadtree_insert (IN  quadtree_t *qtree,
     if(!node)
     {
 	free(qobject);
+
 	return NULL;
     }
     else
