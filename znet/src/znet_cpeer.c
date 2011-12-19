@@ -180,6 +180,8 @@ static void net_io_cb(int sd, short type, void *arg)
 
 int cpeer_kill(struct cpeer *p)
 {
+        if(!p)
+	    return 0;
 	if(__sync_bool_compare_and_swap(&p->status,CPEER_CONNECTED,CPEER_DISCONNECTED))
 	{
 		printf("ref:%d,close peer id:%llu,peer:%p,nc:%p\n",p->refcount,p->id,p,p->nc);
