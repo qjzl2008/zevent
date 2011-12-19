@@ -207,17 +207,6 @@ int nc_disconnect(net_client_t *nc)
     allocator_destroy(nc->allocator);
     free(nc);
 
-    /*
-       thread_mutex_lock(nc->peer_mutex);
-       struct cpeer *p = nc->peer;
-       if(!p || p->status == CPEER_DISCONNECTED)
-       {
-       thread_mutex_unlock(nc->peer_mutex);
-       return -1;
-       }
-       shutdown(p->sd,SHUT_RDWR);
-       thread_mutex_unlock(nc->peer_mutex);
-       */
     return 0;
 }
 
