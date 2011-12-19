@@ -132,8 +132,9 @@ class StoreClient(threading.Thread):
 		i = 0
 		chars = ''
 		for Char in CharList:
-		    chars += '{"uid":"%s","cid":"%s","cnm":"%s","level":%d}' %\
+		    chars += '{"uid":"%s","pid":%d,"cid":"%s","cnm":"%s","level":%d}' %\
 			    (self.uuid.uuid2hex(Char['AccountID']),
+		             Char['ProfessionID'],
 			    self.uuid.uuid2hex(Char['CharacterID']),
 			    Char['CharName'],
 			    Char['Level'])

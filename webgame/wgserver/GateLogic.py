@@ -72,7 +72,7 @@ class GateLogic(object):
 	    sender = jsobj['peerid']
 	    hexaccountid = jsobj['accountid']
 	    accountid = self.uuid.hex2uuid(hexaccountid)
-	    sql = "select * from `character` where accountid = %d order by level desc" % (accountid)
+	    sql = "select * from `profession` A inner join(select * from `character` where accountid = %d order by level desc) B on A.professionid = B.professionid" % (accountid)
 
 	    cmd1 = Packets.MSGID_REQUEST_QUERY
 	    cmd2 = Packets.MSGID_REQUEST_GETCHARLIST

@@ -93,6 +93,8 @@ class Connection(object):
             return [Row(itertools.izip(column_names, row)) for row in cursor]
         except OperationalError:
 	    return False
+	except:
+	    return False
         finally:
             cursor.close()
 
