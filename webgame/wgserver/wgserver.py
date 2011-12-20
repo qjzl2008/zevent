@@ -82,8 +82,9 @@ class WGServer(threading.Thread):
     
     def RegisterGS(self):
         #register gs
+	scenes = str(list(self.scmanager.scenes.keys()))
 	cmd = Packets.MSGID_REQUEST_REGGS
-	buf = '{"cmd":%d,"gsid":%d}'% (cmd,self.gconfig.GetValue('CONFIG','gsid'))
+	buf = '{"cmd":%d,"gsid":%d, "scenes":%s}'% (cmd,self.gconfig.GetValue('CONFIG','gsid'),scenes)
 	msg = struct.pack('>i',len(buf)) + buf
 	self.nclient.nc_sendmsg(msg,len(msg))
 	#timeout 3seconds

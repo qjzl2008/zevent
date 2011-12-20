@@ -215,9 +215,12 @@ class StoreClient(threading.Thread):
 		cid = character.CharacterID
 		self.SC_LeaveGame(peerid,cid)
 	    else:
-		self.gatelogic.SendRes2Request(peerid,
-			Packets.MSGID_RESPONSE_ENTERGAME,
-			Packets.DEF_MSGTYPE_CONFIRM)
+		msg = '{"cmd":%d,"code":%d,"sceneid":%d}' % \
+			(Packets.MSGID_RESPONSE_ENTERGAME,
+			Packets.DEF_MSGTYPE_CONFIRM,
+			character.Scene)
+		buf = '[{"peerid":"%s","msg":%s}]' % (peerid,msg)
+		self.gatelogic.SendData2Clients(buf)
 
 	def ProcessLeaveGameRes(self,obj):
 	    code = obj['code']
