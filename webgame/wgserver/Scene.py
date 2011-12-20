@@ -92,7 +92,7 @@ class  Scene(object):
 	box._ymax = 600.0
 
 	self.qdtree.quadtree_search(box,objs,1000)
-	print objs
+	#print objs
 	self.mutex_players.release()
 
 
