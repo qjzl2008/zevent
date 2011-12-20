@@ -145,12 +145,9 @@ int gm_send2gs(uint64_t peerid,void *buf,uint32_t len)
     return 0;
 }
 
-int gm_reggs(uint64_t peerid,int gsid)
+int gm_reggs(uint64_t peerid,gs_t *gs)
 {
-    const uint32_t hexidsize = 64;
-    unsigned char *hexpeerid = mmalloc(gm->allocator,hexidsize);
-    uuid2hex(peerid,hexpeerid,hexidsize);
-
+    int gsid = gs->gsid;
     void *entry_key,*val;
 
     int rv = 0;
@@ -158,14 +155,21 @@ int gm_reggs(uint64_t peerid,int gsid)
     val = hash_get(gm->gs2peer,&gsid,sizeof(int),&entry_key); 
     if(!val)
     {
-	int *pgsid = mmalloc(gm->allocator,sizeof(gsid));
+	//set peerid->gs
+	const uint32_t hexidsize = 64;
+	unsigned char *hexpeerid = mmalloc(gm->allocator,hexidsize);
+	uuid2hex(peerid,hexpeerid,hexidsize);
+	hash_set(gm->peer2gs,hexpeerid,HASH_KEY_STRING,gs);
+
+	//set gs->peerid
+        hexpeerid = mmalloc(gm->allocator,hexidsize);
+	uuid2hex(peerid,hexpeerid,hexidsize);
+	int *pgsid = mmalloc(gm->allocator,sizeof(int));
 	memcpy(pgsid,&gsid,sizeof(gsid));
-	hash_set(gm->peer2gs,hexpeerid,HASH_KEY_STRING,pgsid);
 	hash_set(gm->gs2peer,pgsid,sizeof(int),hexpeerid);
 	rv = 0;
     }
     else{
-	mfree(gm->allocator,hexpeerid);
 	rv = -1;
     }
     thread_mutex_unlock(gm->mutex);
@@ -206,12 +210,22 @@ int gm_unreggs(uint64_t peerid)
     {
 	rv = -1;
     }
-    else{
+    else
+    {
+	gs_t *gs = (gs_t*)val;
+	int gsid = gs->gsid;
+
 	hash_set(gm->peer2gs,hexpeerid,HASH_KEY_STRING,NULL);
-	hash_set(gm->gs2peer,val,sizeof(int),NULL);
 	mfree(gm->allocator,entry_key);
 	mfree(gm->allocator,val);
-	rv = 0;
+
+	val = hash_get(gm->gs2peer,&gsid,sizeof(int),&entry_key); 
+	if(val)
+	{
+	    hash_set(gm->gs2peer,&gsid,sizeof(int),NULL);
+	    mfree(gm->allocator,entry_key);
+	    mfree(gm->allocator,val);
+	}
     }
     thread_mutex_unlock(gm->mutex);
     return rv;
@@ -241,6 +255,12 @@ int gm_destroy()
     hash_index_t *hi;
     void *key,*val;
     for (hi = hash_first(gm->peer2gs); hi ; hi = hash_next(hi))
+    {
+	hash_this(hi,(const void **)&key,NULL,(void **)&val); 
+	mfree(gm->allocator,key);
+	mfree(gm->allocator,val);
+    }
+    for (hi = hash_first(gm->gs2peer); hi ; hi = hash_next(hi))
     {
 	hash_this(hi,(const void **)&key,NULL,(void **)&val); 
 	mfree(gm->allocator,key);
