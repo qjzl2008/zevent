@@ -142,15 +142,9 @@ class StoreClient(threading.Thread):
 		    if i < num:
 			chars += ','
 
-		msg = '['
-		msg += '{"cmd":%d,"code":%d,"num":%d}' % (Packets.MSGID_RESPONSE_GETCHARLIST,
-			Packets.DEF_MSGTYPE_CONFIRM,num)
+		msg = '{"cmd":%d,"code":%d,"num":%d,"chars":[%s]}' % (Packets.MSGID_RESPONSE_GETCHARLIST,
+			Packets.DEF_MSGTYPE_CONFIRM,num,chars)
 
-		if chars != '':
-		    msg += ','
-		    msg += chars
-
-		msg += ']'
 		msg = msg.encode("UTF-8")
 
 		buf = '[{"peerid":"%s","msg":%s}]' % (sender,msg)
