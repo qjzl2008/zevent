@@ -137,6 +137,8 @@ class WGServer(threading.Thread):
 	    self.gatelogic.ProcessClientDisconnect(obj)
 	elif obj['cmd'] == Packets.MSGID_REQUEST_ECHO:
 	    self.gatelogic.ProcessEcho(obj)
+	elif obj['cmd'] == Packets.MSGID_REQUEST_SYNPOS:
+	    self.scmanager.ProcessSynPos(obj)
 	else:
 	    PutLogFileList("MsgID: (0x%08X) %db * %s" % (obj['cmd'], len(message[1][4:]),
 		repr(message[1][4:])), Logfile.PACKETMS)

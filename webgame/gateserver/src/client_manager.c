@@ -59,6 +59,7 @@ static int init_ns_arg(ns_arg_t *ns_arg)
 static int process_msg(void *msg,int len,uint64_t peerid)
 {
     char *body = (char *)msg + HEADER_LEN;
+    printf("recv body:%s\n",body);
     json_object *jmsg = json_tokener_parse(body);
     if(!jmsg)
 	return -1;

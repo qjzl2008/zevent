@@ -100,6 +100,9 @@ class SceneManager(object):
 	finally:
 	    self.mutex.release()
 	    return rv
+
+    def ProcessSynPos(self,obj):
+	pass
     
     def MainLogic(self):
 	for key in self.scenes.keys():
