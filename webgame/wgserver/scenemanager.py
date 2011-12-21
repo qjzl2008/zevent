@@ -101,8 +101,28 @@ class SceneManager(object):
 	    self.mutex.release()
 	    return rv
 
+    def GetSceneByPID(self,hexpeerid):
+        self.mutex.acquire()   
+	scene = None
+	cid = None
+	try:
+	    if self.peer2cid.has_key(hexpeerid):
+		cid = self.peer2cid[hexpeerid];
+		if self.c2scene.has_key(cid):
+		    sceneid = self.c2scene[cid]
+		    if self.scenes.has_key(sceneid):
+			scene = self.scenes[sceneid]
+	finally:
+	    self.mutex.release()
+	    return (scene,cid)
+
     def ProcessSynPos(self,obj):
-	pass
+        hexpeerid = obj['peerid']	
+	(scene,cid) = self.GetSceneByPID(hexpeerid)
+	if scene:
+	    x = obj['x']
+	    y = obj['y']
+	    scene.update_pos(cid,x,y)
     
     def MainLogic(self):
 	for key in self.scenes.keys():

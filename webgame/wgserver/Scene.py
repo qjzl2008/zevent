@@ -65,6 +65,38 @@ class  Scene(object):
 	    self.mutex_players.release()
 	    return rv
 
+    def update_pos(self,cid,x,y):
+	self.mutex_players.acquire()
+	rv = True
+	try:
+	     if not self.players.has_key(cid):
+		 rv = False
+	     else:
+		 player = self.players[cid]
+		 qobject = player.qobject
+		 player.character.LocX = x
+		 player.character.LocY = y
+	         objbox = quadtree.quad_box_t()
+		 objbox._xmin = x - player.character.XScale
+	       	 objbox._xmax = x + player.character.XScale
+		 objbox._ymin = y - player.character.YScale
+		 objbox._ymax = y + player.YScale
+                 quadtree.quadtree_update(qobject,objbox)
+		 rv = True
+	finally:
+	    self.mutex_players.release()
+	    return rv
+	
+    def get_player(self,cid):
+	self.mutex_players.acquire()
+	player = None
+	try:
+	    if self.players.has_key(cid):
+		player = self.players[cid]
+	finally:
+	    self.mutex_players.release()
+	    return player
+		
     def del_player(self,cid):
 	self.mutex_players.acquire()
 	rv = True
@@ -82,8 +114,6 @@ class  Scene(object):
 		return rv
 
     def MainLogic(self):
-	self.mutex_players.acquire()
-
 	box = quadtree.quad_box_t();
 	objs = []
 	box._xmin = 0.0
@@ -92,7 +122,8 @@ class  Scene(object):
 	box._ymax = 600.0
 
 	self.qdtree.quadtree_search(box,objs,1000)
-	#print objs
-	self.mutex_players.release()
-
+	for cid in objs:
+	    player = self.get_player(cid)
+	    print player.character.LocX
+	    print player.character.LocY
 

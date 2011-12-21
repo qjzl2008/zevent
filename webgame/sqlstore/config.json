@@ -2,7 +2,7 @@
     "CONFIG": {
 	    "net-lib": "/home/zhoubug/dev/svn_work/zevent/znet/bin/libznet.so",
 	    "sqlstore-ip":"127.0.0.1",
-	    "sqlstore-port":7766,
+	    "sqlstore-port":4766,
 	    "dbaddr":"127.0.0.1",
 	    "db":"playerdb",
 	    "charset":"utf8",
