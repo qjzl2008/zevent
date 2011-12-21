@@ -140,13 +140,32 @@ int cm_logic_bindgs(uint64_t peerid,json_object *jmsg)
 
 int cm_logic_data2gs(uint64_t peerid,json_object *jmsg)
 {
-    uint64_t gspeerid,accountid;
+    uint64_t gspeerid = 0,accountid;
     int rv = cm_getidbycid(peerid,&gspeerid,&accountid);
-    if(rv < 0 || gspeerid == 0)
+    if(rv < 0)
     {
 	cm_logic_sendres(peerid,MSGID_RESPONSE_DATA2GS,DEF_MSGTYPE_REJECT);
 	return -1;
     }
+    if(gspeerid == 0)
+    {
+	rv = gm_getgs(&gspeerid);
+	if(rv != 0)
+	{
+	    cm_logic_sendres(peerid,MSGID_RESPONSE_DATA2GS,DEF_MSGTYPE_REJECT);
+	    return -1;
+	}
+	else
+	{
+	    rv = cm_bindgs(peerid,gspeerid);
+	    if(rv != 0)
+	    {
+		cm_logic_sendres(peerid,MSGID_RESPONSE_DATA2GS,DEF_MSGTYPE_REJECT);
+		return -1;
+	    }
+	}
+    }
+
     json_object *jmsgs = json_util_get(jmsg,"msgs");
     if(!jmsgs)
     {
@@ -185,11 +204,16 @@ int cm_logic_data2gs(uint64_t peerid,json_object *jmsg)
 
 int cm_logic_disconnect(uint64_t peer_id)
 {
-    uint64_t gspeerid,accountid;
+    uint64_t gspeerid = 0,accountid;
     int rv = cm_getidbycid(peer_id,&gspeerid,&accountid);
-    if(rv < 0 || gspeerid == 0)
+    if(rv < 0)
     {
-	return 0;
+	return -1;
+    }
+    cm_rmclient(peer_id);
+    if(gspeerid == 0)
+    {
+	return -1;
     }
     unsigned char hexpeerid[64]={'\0'};
     uuid2hex(peer_id,hexpeerid,sizeof(hexpeerid));

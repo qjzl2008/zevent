@@ -15,6 +15,8 @@ int cm_bindgs(uint64_t peerid,uint64_t gspeerid);
 int cm_getidbycid(uint64_t peerid,uint64_t *gspeerid,uint64_t *accountid);
 void* cm_malloc(uint32_t size);
 int cm_free(void *memory);
+int cm_rmclients(uint64_t gspeerid);
+int cm_rmclient(uint64_t peerid);
 int cm_stop();
 int cm_destroy();
 

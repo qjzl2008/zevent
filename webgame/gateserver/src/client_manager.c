@@ -238,6 +238,59 @@ int cm_stop()
     return 0;
 }
 
+int cm_rmclient(uint64_t peerid)
+{
+    unsigned char hexpeerid[64]={'\0'};
+    uuid2hex(peerid,hexpeerid,sizeof(hexpeerid));
+
+    ns_disconnect(cm->ns,peerid);
+    void *entry_key,*val;
+
+    thread_mutex_lock(cm->mutex_clients);
+
+    val = hash_get(cm->clients,hexpeerid,HASH_KEY_STRING,&entry_key); 
+    if(val)
+    {
+	hash_set(cm->clients,hexpeerid,HASH_KEY_STRING,NULL);
+	mfree(cm->allocator,entry_key);
+	mfree(cm->allocator,val);
+
+	thread_mutex_unlock(cm->mutex_clients);
+	return 0;
+    }
+    else
+    {
+	thread_mutex_unlock(cm->mutex_clients);
+	return -1;
+    }
+    return 0;
+}
+
+int cm_rmclients(uint64_t gspeerid)
+{
+    thread_mutex_lock(cm->mutex_clients);
+    hash_index_t *hi;
+    void *key,*val;
+    for (hi = hash_first(cm->clients); hi ; hi = hash_next(hi))
+    {
+	hash_this(hi,(const void **)&key,NULL,(void **)&val); 
+        client_t *client = (client_t *)val; 
+	if(client->gspeerid == gspeerid)
+	{
+	    uint64_t peerid = 0;
+	    unsigned char *pid = (unsigned char *)key;
+	    hex2uuid(pid,&peerid);
+	    ns_disconnect(cm->ns,peerid);
+
+            hash_set(cm->clients,key,HASH_KEY_STRING,NULL);
+	    mfree(cm->allocator,key);
+	    mfree(cm->allocator,val);
+	}
+    }
+    thread_mutex_unlock(cm->mutex_clients);
+    return 0;
+}
+
 int cm_destroy()
 {
     hash_index_t *hi;

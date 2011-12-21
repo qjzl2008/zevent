@@ -12,6 +12,7 @@
 #include "client.h"
 #include "netcmd.h"
 #include "gm_logic.h"
+#include "client_manager.h"
 #include "uuidservice.h"
 
 typedef struct gs_manager_t gs_manager_t;
@@ -24,6 +25,7 @@ struct gs_manager_t{
     thread_mutex_t *mutex;
     hash_t *gs2peer;
     hash_t *peer2gs;
+    hash_t *scene2peer;
 
     pthread_t thread_id;
     int stop_daemon;
@@ -104,6 +106,7 @@ static void *thread_entry(void *arg)
 	if(rv == 1)
 	{
 	    //disconnect
+	    cm_rmclients(peer_id);
 	    gm_unreggs(peer_id);
 	}
     }
@@ -129,6 +132,7 @@ int gm_start()
     thread_mutex_create(&gm->mutex,THREAD_MUTEX_DEFAULT);
     gm->peer2gs = hash_make();
     gm->gs2peer = hash_make();
+    gm->scene2peer = hash_make();
     gm->stop_daemon = 0;
     //start the main loop thread
     pthread_attr_t attr;
@@ -167,6 +171,17 @@ int gm_reggs(uint64_t peerid,gs_t *gs)
 	int *pgsid = mmalloc(gm->allocator,sizeof(int));
 	memcpy(pgsid,&gsid,sizeof(gsid));
 	hash_set(gm->gs2peer,pgsid,sizeof(int),hexpeerid);
+
+	//set gs-scene->peerid
+	int i = 0;
+	for(i = 0; i < gs->nscenes; ++i)
+	{
+	    char *sceneid = mmalloc(gm->allocator,64);
+	    snprintf(sceneid,64,"%d-%d",gsid,gs->scenes[i]);
+	    hexpeerid = mmalloc(gm->allocator,hexidsize);
+	    uuid2hex(peerid,hexpeerid,hexidsize);
+	    hash_set(gm->scene2peer,sceneid,HASH_KEY_STRING,hexpeerid);
+	}
 	rv = 0;
     }
     else{
@@ -212,12 +227,11 @@ int gm_unreggs(uint64_t peerid)
     }
     else
     {
+	void *p2gs_key = entry_key;
+	void *p2gs_val = val;
+
 	gs_t *gs = (gs_t*)val;
 	int gsid = gs->gsid;
-
-	hash_set(gm->peer2gs,hexpeerid,HASH_KEY_STRING,NULL);
-	mfree(gm->allocator,entry_key);
-	mfree(gm->allocator,val);
 
 	val = hash_get(gm->gs2peer,&gsid,sizeof(int),&entry_key); 
 	if(val)
@@ -225,8 +239,58 @@ int gm_unreggs(uint64_t peerid)
 	    hash_set(gm->gs2peer,&gsid,sizeof(int),NULL);
 	    mfree(gm->allocator,entry_key);
 	    mfree(gm->allocator,val);
+
+	    int i = 0;
+	    char sceneid[64]={0};
+	    for(i = 0; i < gs->nscenes; ++i)
+	    {
+		snprintf(sceneid,sizeof(sceneid),"%d-%d",gsid,gs->scenes[i]);
+		val = hash_get(gm->scene2peer,sceneid,HASH_KEY_STRING,&entry_key); 
+		if(val)
+		{
+		    hash_set(gm->scene2peer,sceneid,HASH_KEY_STRING,NULL);
+		    mfree(gm->allocator,entry_key);
+		    mfree(gm->allocator,val);
+		}
+	    }
 	}
+
+	hash_set(gm->peer2gs,hexpeerid,HASH_KEY_STRING,NULL);
+	mfree(gm->allocator,p2gs_key);
+	mfree(gm->allocator,p2gs_val);
     }
+    thread_mutex_unlock(gm->mutex);
+    return rv;
+}
+
+int gm_getgs(uint64_t *peerid)
+{
+    thread_mutex_lock(gm->mutex);
+    unsigned int count = hash_count(gm->peer2gs);
+    if(count == 0)
+    {
+	thread_mutex_unlock(gm->mutex);
+	return -1;
+    }
+    srandom(time(NULL));
+    int idx = random() % count;
+    hash_index_t *hi;
+    void *key,*val;
+    int i = 0,rv = 0;
+    for (hi = hash_first(gm->peer2gs); hi && i != idx ; hi = hash_next(hi));
+
+    if(hi)
+    {
+	hash_this(hi,(const void **)&key,NULL,(void **)&val); 
+	unsigned char *pid = (unsigned char *)key;
+	hex2uuid(pid,peerid);
+	rv = 0;
+    }
+    else
+    {
+	rv = -1;
+    }
+
     thread_mutex_unlock(gm->mutex);
     return rv;
 }
@@ -266,9 +330,16 @@ int gm_destroy()
 	mfree(gm->allocator,key);
 	mfree(gm->allocator,val);
     }
+    for (hi = hash_first(gm->scene2peer); hi ; hi = hash_next(hi))
+    {
+	hash_this(hi,(const void **)&key,NULL,(void **)&val); 
+	mfree(gm->allocator,key);
+	mfree(gm->allocator,val);
+    }
 
     hash_destroy(gm->peer2gs);
     hash_destroy(gm->gs2peer);
+    hash_destroy(gm->scene2peer);
 
     thread_mutex_destroy(gm->mutex);
 
