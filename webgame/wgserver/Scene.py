@@ -188,7 +188,6 @@ class  Scene(object):
 		    diffaoilist =list(set(oldaoilist) - (set(oldaoilist).intersection(set(player.aoilist))))
                	    num = len(objs)
 		    buf = '['
-		    print objs
 		    for cid in objs:
 			if cid == key:
 			    continue
