@@ -12,6 +12,6 @@ class  Player(object):
 	self.qobject = None
 	self.active = False
 	self.aoilist = []
-	self.buf = ''
+	self.sendmsgs = []
 
 

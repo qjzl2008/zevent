@@ -17,6 +17,8 @@ class  Scene(object):
 	self.scene_cfg = scene_cfg
 	self.scene = {}
 	self.players = {}
+	self.offline_players = []
+
 	self.qobjects = {}
 	self.npc_manager = NPCManager()
 
@@ -133,7 +135,8 @@ class  Scene(object):
 		if qobject:
 		    print "del object!"
 		    self.qdtree.quadtree_del_object(qobject)
-		    qobject = None
+		    #qobject = None
+		self.offline_players.append(player)
 		del self.players[cid]
 	finally:
 		self.mutex_players.release()
@@ -149,7 +152,7 @@ class  Scene(object):
 			    splayer.character.PName,
 			    x,y)
 
-	self.PushMsg2PlayerBuf(dplayer,msg)
+	dplayer.sendmsgs.append(msg)
 
     def PackLeaveAOIMsg(self,cid,splayer,dplayer):
 	x = splayer.character.LocX
@@ -159,15 +162,7 @@ class  Scene(object):
 			    self.uuid.uuid2hex(cid),
 			    splayer.character.PName,
 			    x,y)
-
-	self.PushMsg2PlayerBuf(dplayer,msg)
-
-    def PushMsg2PlayerBuf(self,player,msg):
-	if player.buf != '':
-	    player.buf += ','
-	    player.buf += msg
-	else:
-	    player.buf = msg
+	dplayer.sendmsgs.append(msg)
 
     def MainLogic(self):
 	self.mutex_players.acquire()
@@ -193,26 +188,40 @@ class  Scene(object):
 		    diffaoilist =list(set(oldaoilist) - (set(oldaoilist).intersection(set(player.aoilist))))
                	    num = len(objs)
 		    buf = '['
+		    print objs
 		    for cid in objs:
-			#if cid == key:
-			#    continue
+			if cid == key:
+			    continue
 		        one_player = self.players[cid]
-			self.PackSynPosMsg(cid,player,one_player)
+			self.PackSynPosMsg(key,player,one_player)
+			self.PackSynPosMsg(cid,one_player,player)
+			one_player.aoilist.append(key)
 
 		    for cid in diffaoilist:
-		        one_player = self.players[cid]
-			self.PackLeaveAOIMsg(cid,player,one_player)
+			if self.players.has_key(cid):
+			    one_player = self.players[cid]
+			    self.PackLeaveAOIMsg(key,player,one_player)
+
+	    for player in self.offline_players:
+		offline_cid = player.character.CharacterID
+		for cid in set(player.aoilist):
+		    if self.players.has_key(cid):
+			one_player = self.players[cid]
+			self.PackLeaveAOIMsg(offline_cid,player,one_player)
+		del player.aoilist[:]
+	    del self.offline_players[:]
 
 	    buf = '['
 	    i = 0
 	    for key in self.players.keys():
 		player = self.players[key]
-		if player.buf != '':
-		    if i > 0:
+		if len(player.sendmsgs) > 0:
+		    if i>0:
 			buf += ','
-		    buf += '{"peerid":"%s","msg":{"cmd":%d,"msgs":[%s]}}' % (one_player.peerid,Packets.MSGID_SCENE_FRAME,player.buf)
-		    player.buf = ''
+		    msgs = ','.join(player.sendmsgs)
+		    buf += '{"peerid":"%s","msg":{"cmd":%d,"msgs":[%s]}}' % (player.peerid,Packets.MSGID_SCENE_FRAME,msgs)
 		    i += 1
+		    del player.sendmsgs[:] 
             buf += ']'
 	    if buf != '[]':
 		buf = buf.encode("UTF-8")

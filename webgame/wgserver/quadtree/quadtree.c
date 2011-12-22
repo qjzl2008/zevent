@@ -344,9 +344,19 @@ quadtree_update (IN  quadtree_t            *qtree,
     {
 	return -1;
     }
-    void *obj = object->object;
-    quadtree_del_object(object);
-    quadtree_object_t *pobject = quadtree_insert(qtree,obj,object->objectid,node_box);
+
+    list_del(&object->quad_lst);
+
+    int        depth = -1;
+    quadnode_t *node = NULL;
+    node = quadtree_insert_node (qtree, qtree->_root, &object->quad_lst, 
+	    node_box, &depth);
+    object->node = node;
+    object->_box = *node_box;
+
+    //void *obj = object->object;
+    //quadtree_del_object(object);
+    //quadtree_object_t *pobject = quadtree_insert(qtree,obj,object->objectid,node_box);
     return 0;
 }
 
