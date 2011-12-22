@@ -32,7 +32,7 @@ class WGServer(threading.Thread):
 	"""
             message = (rv,msg,len,void_pointer)
 	"""
-	delay = 100000
+	delay = 30000
 	while(True):
 	    sleep = True
 	    message = self.nclient.nc_recvmsg(delay)

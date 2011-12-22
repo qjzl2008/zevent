@@ -210,10 +210,12 @@ class StoreClient(threading.Thread):
 		cid = character.CharacterID
 		self.SC_LeaveGame(peerid,cid)
 	    else:
-		msg = '{"cmd":%d,"code":%d,"sceneid":%d}' % \
+		msg = '{"cmd":%d,"code":%d,"sceneid":%d,"x":%d,"y":%d}' % \
 			(Packets.MSGID_RESPONSE_ENTERGAME,
 			Packets.DEF_MSGTYPE_CONFIRM,
-			character.Scene)
+			character.Scene,
+			character.LocX,
+			character.LocY)
 		buf = '[{"peerid":"%s","msg":%s}]' % (peerid,msg)
 		self.gatelogic.SendData2Clients(buf)
 
