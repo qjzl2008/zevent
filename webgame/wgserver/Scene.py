@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*- 
 import threading 
 import simplejson as json 
 from GlobalConfig import GlobalConfig
@@ -43,12 +44,20 @@ class  Scene(object):
 	self.xmax = self.scene_json['xmax']
 	self.ymin = self.scene_json['ymin']
 	self.ymax = self.scene_json['ymax']
-	self.npc_manager.load_npcs(self.scene_json)
 
+	self.startloc_x = self.scene_json['start']['loc_x']
+	self.startloc_y = self.scene_json['start']['loc_y']
+	self.startrange_x = self.scene_json['start']['range_x']
+	self.startrange_y = self.scene_json['start']['range_y']
+	self.npc_manager.load_npcs(self.scene_json)
     
     def add_player(self,sender,character):
 	self.mutex_players.acquire()
 	try:
+	    if character.LocX <= 0:
+		character.LocX = self.startloc_x
+	    if character.LocY <= 0:
+		character.LocY = self.startloc_y
 	    objbox = quadtree.quad_box_t();
 
 	    rv = True
@@ -68,6 +77,7 @@ class  Scene(object):
 		player.character = character
 		player.peerid = sender
 		player.qobject = qobject
+		player.active = True
 		self.players[character.CharacterID] = player
 		rv = True
         finally:
@@ -127,12 +137,32 @@ class  Scene(object):
 		self.mutex_players.release()
 		return rv
 
+    def PackSynPosMsg(self,cid,splayer,dplayer):
+	x = splayer.character.LocX
+	y = splayer.character.LocY
+
+	msg = '{"cmd":%d,"cid":"%s","pnm":"%s","x":%d,"y":%d}' % \
+		(Packets.MSGID_NOTIFY_SYNPOS,
+			    self.uuid.uuid2hex(cid),
+			    splayer.character.PName,
+			    x,y)
+
+	self.PushMsg2PlayerBuf(dplayer,msg)
+
+    def PushMsg2PlayerBuf(self,player,msg):
+	if player.buf != '':
+	    player.buf += ','
+	    player.buf += msg
+	else:
+	    player.buf = msg
+
     def MainLogic(self):
 	self.mutex_players.acquire()
 	try:
 	    for key in self.players.keys():
 		player = self.players[key]
 		if player.active:
+		    player.active = False
 		    qobject = player.qobject
 		    x = player.character.LocX
 		    y = player.character.LocY
@@ -144,27 +174,33 @@ class  Scene(object):
 		    box._ymax = y+1000.0
 
 		    self.qdtree.quadtree_search(box,objs,1000)
+		    oldaoilist = player.aoilist
+
+		    player.aoilist = objs
+		    diffaoilist =list(set(oldaoilist) - (set(oldaoilist).intersection(set(player.aoilist))))
                	    num = len(objs)
-		    i = 0
 		    buf = '['
 		    for cid in objs:
-			if cid == key:
-			    continue
+			#if cid == key:
+			#    continue
 		        one_player = self.players[cid]
-			msg = '{"cmd":%d,"msgs":[{"cmd":%d,"cid":"%s","pnm":"%s",\
-				"x":%d,"y":%d}]}' %\
-				(Packets.MSGID_SCENE_FRAME,
-					Packets.MSGID_NOTIFY_SYNPOS,
-					self.uuid.uuid2hex(cid),
-					one_player.character.PName,
-					x,y)
-		        msg = msg.encode("UTF-8")
-		        buf+= '{"peerid":"%s","msg":%s}' % (one_player.peerid,msg)
-		        i+=1
-			if i < num:
-			    buf += ','
-	            buf += ']' 
-		    self.gatelogic.SendData2Clients(buf)
+			self.PackSynPosMsg(cid,player,one_player)
+
+	    buf = '['
+	    i = 0
+	    for key in self.players.keys():
+		player = self.players[key]
+		if player.buf != '':
+		    if i > 0:
+			buf += ','
+		    buf += '{"peerid":"%s","msg":{"cmd":%d,"msgs":[%s]}}' % (one_player.peerid,Packets.MSGID_SCENE_FRAME,player.buf)
+		    player.buf = ''
+		    i += 1
+            buf += ']'
+	    if buf != '[]':
+		buf = buf.encode("UTF-8")
+		print buf
+		self.gatelogic.SendData2Clients(buf)
 	finally:
 	    self.mutex_players.release()
 

@@ -11,5 +11,7 @@ class  Player(object):
 	self.character = None
 	self.qobject = None
 	self.active = False
+	self.aoilist = []
+	self.buf = ''
 
 
