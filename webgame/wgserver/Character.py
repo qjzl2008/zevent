@@ -2,6 +2,7 @@ class Character(object):
     def Init(self,jsobj):
 	self.AccountID = jsobj['AccountID']
 	self.ProfessionID = jsobj['ProfessionID']
+	self.PName = jsobj['PName']
 	self.CharacterID = jsobj['CharacterID']
 	self.CharName = jsobj['CharName']
 	self.Level = jsobj['Level']

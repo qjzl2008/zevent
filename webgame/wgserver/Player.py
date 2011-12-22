@@ -10,5 +10,6 @@ class  Player(object):
 	self.peerid = -1
 	self.character = None
 	self.qobject = None
+	self.active = False
 
 

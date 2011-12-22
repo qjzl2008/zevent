@@ -328,20 +328,26 @@ void quadtree_del_object (quadtree_object_t *object)
 	free(object);
 }
 
-void
+int
 quadtree_update (IN  quadtree_t            *qtree,
         IN  quadtree_object_t *object,
         IN  quadbox_t            *node_box
                  )
 {
-    object->_box = *node_box;
-    if ( quadbox_is_inside (node_box, &(object->node->_box)) )
+    quadbox_t rootbox = qtree->_root->_box;
+    /*printf("node box xmin:%f,xmax:%f,ymin:%f,ymax:%f root xmin:%f,xmax:%f,\
+	    ymin:%f,ymax:%f\n",node_box->_xmin,node_box->_xmax,node_box->_ymin,
+	    node_box->_ymax,rootbox._xmin,rootbox._xmax,rootbox._ymin,
+	    rootbox._ymax);*/
+    //object->_box = *node_box;
+    if ( !quadbox_is_inside (node_box, &(qtree->_root->_box)/*&(object->node->_box)*/) )
     {
-	return;
+	return -1;
     }
     void *obj = object->object;
     quadtree_del_object(object);
     quadtree_object_t *pobject = quadtree_insert(qtree,obj,object->objectid,node_box);
+    return 0;
 }
 
 void quad_travel(quadnode_t *current_node, quad_travel_func f, void *param)

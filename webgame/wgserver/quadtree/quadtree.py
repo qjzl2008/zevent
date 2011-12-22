@@ -77,7 +77,11 @@ class quadtree(object):
 	self.lib.quadtree_update.argtypes = [POINTER(quadtree_t),
 		POINTER(quadtree_object_t),POINTER(quad_box_t)]
 	pbox = pointer(box)
-	self.lib.quadtree_update(self.quadtree,qobject,pbox)
+	rv = self.lib.quadtree_update(self.quadtree,qobject,pbox)
+	if rv < 0:
+	    return False
+	else:
+	    return True
 
 if __name__ == "__main__":
     import random
@@ -101,24 +105,21 @@ if __name__ == "__main__":
 		objbox._ymin,objbox._ymax)
 	pobject = quadtree.quadtree_insert(count,objbox)
 #	quadtree.quadtree_del_object(pobject)
-        objbox._xmin = 1000.0
-	objbox._xmax = 1100.0
-        objbox._ymin = 1000.0
-	objbox._ymax = 1100.0
-        quadtree.quadtree_update(pobject,objbox)
+        objbox._xmin = 4000.0
+	objbox._xmax = 4010.0
+        objbox._ymin = 4000.0
+	objbox._ymax = 4010.0
+        rv = quadtree.quadtree_update(pobject,objbox)
+	print rv
+	if rv:
+	    print "update success!"
 	count+=1
 
     objs = []
     objbox._xmin = 0.0
-    objbox._xmax = 400.0
+    objbox._xmax = 5000.0
     objbox._ymin = 0.0
-    objbox._ymax = 600.0
-
-    objbox._xmin = 1130.0
-    objbox._xmax = 1200.0
-    objbox._ymin = 1130.0
-    objbox._ymax = 1200.0
-
+    objbox._ymax = 5000.0
 
     quadtree.quadtree_search(objbox,objs,1000)
     print objs

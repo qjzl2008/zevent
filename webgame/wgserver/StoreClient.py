@@ -172,7 +172,7 @@ class StoreClient(threading.Thread):
             return True
 	
 	def GetCharInfo(self,hexsender,accountid,charid,cmd):
-	    sql = "select * from `character` where accountid = %d and characterid = %d" % (accountid,charid)
+	    sql = "select * from `profession` A inner join(select * from `character` where accountid = %d and characterid = %d) B on A.professionid = B.professionid " % (accountid,charid)
 
 	    cmd1 = Packets.MSGID_REQUEST_QUERY
 	    cmd2 = cmd

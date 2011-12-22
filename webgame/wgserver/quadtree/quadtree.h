@@ -109,7 +109,7 @@ quadtree_search (IN  const quadtree_t    *qtree,
 	OUT int *num
 	);
 
-extern  void
+extern  int
 quadtree_update (IN  quadtree_t            *qtree,
         IN  quadtree_object_t *object,
         IN  quadbox_t            *node_box
