@@ -15,6 +15,7 @@ static void printbox(quadnode_t *node)
 {
    printf("box:minx:%f,miny:%f,maxx:%f,maxy:%f\n",node->_box._xmin,
 	    node->_box._ymin,node->_box._xmax,node->_box._ymax);
+
 }
 
 
