@@ -203,25 +203,41 @@ class  Scene(object):
 		    oldaoilist = player.aoilist
 
 		    player.aoilist = objs
-		    diffaoilist =list(set(oldaoilist) - (set(oldaoilist).intersection(set(player.aoilist))))
-               	    num = len(objs)
+		    #交集 需要同步
+		    interaoilist = list(set(oldaoilist).intersection(set(player.aoilist)))
+		    #离开的集合 需要发离开消息
+		    leaveaoilist =list(set(oldaoilist) - (set(oldaoilist).intersection(set(player.aoilist))))
+		    #新增的集合 需要发创建消息
+		    newaoilist =list(set(player.aoilist) - (set(oldaoilist).intersection(set(player.aoilist))))
 		    buf = '['
-		    for cid in objs:
+		    for cid in interaoilist:
 			if cid == key:
 			    continue
 		        one_player = self.players[cid]
 			#告诉对方
 			self.PackSynPosMsg(key,player,one_player)
-			#告诉自己
+			print "interaoilist"
+
+		    for cid in newaoilist:
+			if cid == key:
+			    continue
+		        one_player = self.players[cid]
+			#告诉对方
+			self.PackSynPosMsg(key,player,one_player)
+			#告诉自己一玩家入视野
 			self.PackSynPosMsg(cid,one_player,player)
 			#将自己加入一玩家兴趣列表
 			one_player.aoilist.append(key)
+			print "newaoilist"
 
                     #离开某些人的兴趣区域告知她们
-		    for cid in diffaoilist:
+		    for cid in leaveaoilist:
+			if cid == key:
+			    continue
 			if self.players.has_key(cid):
 			    one_player = self.players[cid]
 			    self.PackLeaveAOIMsg(key,player,one_player)
+			    print "leaveaoilist"
             #处理离线玩家的同步信息
 	    for player in self.offline_players:
 		offline_cid = player.character.CharacterID

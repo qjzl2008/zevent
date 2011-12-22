@@ -96,32 +96,37 @@ class connector(threading.Thread):
 				print "synpos req:%s" % buf
 			        message = struct.pack('>i',len(buf)) + buf
 				self.sock.send(message)
-				retmsg = self.sock.recv(4)
-				nlen, = struct.unpack('>i',retmsg)
-				retmsg = self.sock.recv(nlen)
-				print "synpos Res:",retmsg
 #
 #			    #send echo
-			        num = 0
-				while num < 1:
-				    cmd1 = Packets.MSGID_REQUEST_DATA2GS
-				    cmd2 = Packets.MSGID_REQUEST_ECHO
-				    buf = '{"cmd":%d,"msgs":[{"msg":{"cmd":%d,\
-					    "data":"%s"}}]}'% (cmd1,cmd2,"test echo")
-				    message = struct.pack('>i',len(buf)) + buf
-				    self.sock.send(message)
-				    retmsg = self.sock.recv(4)
-				    nlen, = struct.unpack('>i',retmsg)
-				    retmsg = self.sock.recv(nlen)
-				    print "echo Res:",retmsg
-				    num = num + 1
+#			        num = 0
+#				while num < 1:
+#				    cmd1 = Packets.MSGID_REQUEST_DATA2GS
+#				    cmd2 = Packets.MSGID_REQUEST_ECHO
+#				    buf = '{"cmd":%d,"msgs":[{"msg":{"cmd":%d,\
+#					    "data":"%s"}}]}'% (cmd1,cmd2,"test echo")
+#				    message = struct.pack('>i',len(buf)) + buf
+#				    self.sock.send(message)
+#				    retmsg = self.sock.recv(4)
+#				    nlen, = struct.unpack('>i',retmsg)
+#				    retmsg = self.sock.recv(nlen)
+#				    print "echo Res:",retmsg
+#				    num = num + 1
 				
 				while True:
 				    retmsg = self.sock.recv(4)
 				    nlen, = struct.unpack('>i',retmsg)
                                     retmsg = self.sock.recv(nlen)
 				    print "Scene Frame msg:",retmsg
-				#sleep(100000);
+				#send syn pos
+				    cmd1 = Packets.MSGID_REQUEST_DATA2GS
+				    cmd2 = Packets.MSGID_REQUEST_SYNPOS
+				    buf = '{"cmd":%d,"msgs":[{"msg":{"cmd":%d,\
+					    "x":%d,"y":%d}}]}'% (cmd1,cmd2,100,800)
+
+				    print "synpos req:%s" % buf
+				    message = struct.pack('>i',len(buf)) + buf
+				    self.sock.send(message)
+				    sleep(1);
 				count+=1
 
 			n+=1
