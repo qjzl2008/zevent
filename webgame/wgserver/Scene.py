@@ -164,7 +164,7 @@ class  Scene(object):
 			    x,y)
 	dplayer.sendmsgs.append(msg)
 
-    def MainLogic(self):
+    def PushSynPosMsgs(self):
 	self.mutex_players.acquire()
 	try:
 	    for key in self.players.keys():
@@ -193,15 +193,19 @@ class  Scene(object):
 			if cid == key:
 			    continue
 		        one_player = self.players[cid]
+			#告诉对方
 			self.PackSynPosMsg(key,player,one_player)
+			#告诉自己
 			self.PackSynPosMsg(cid,one_player,player)
+			#将自己加入一玩家兴趣列表
 			one_player.aoilist.append(key)
 
+                    #离开某些人的兴趣区域告知她们
 		    for cid in diffaoilist:
 			if self.players.has_key(cid):
 			    one_player = self.players[cid]
 			    self.PackLeaveAOIMsg(key,player,one_player)
-
+            #处理离线玩家的同步信息
 	    for player in self.offline_players:
 		offline_cid = player.character.CharacterID
 		for cid in set(player.aoilist):
@@ -210,7 +214,12 @@ class  Scene(object):
 			self.PackLeaveAOIMsg(offline_cid,player,one_player)
 		del player.aoilist[:]
 	    del self.offline_players[:]
-
+	finally:
+	    self.mutex_players.release()
+    
+    def SendSceneFrame(self):
+	self.mutex_players.acquire()
+	try:
 	    buf = '['
 	    i = 0
 	    for key in self.players.keys():
@@ -229,4 +238,8 @@ class  Scene(object):
 		self.gatelogic.SendData2Clients(buf)
 	finally:
 	    self.mutex_players.release()
+
+    def MainLogic(self):
+	self.PushSynPosMsgs()
+	self.SendSceneFrame()
 
