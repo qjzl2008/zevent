@@ -149,6 +149,17 @@ class  Scene(object):
 
 	self.PushMsg2PlayerBuf(dplayer,msg)
 
+    def PackLeaveAOIMsg(self,cid,splayer,dplayer):
+	x = splayer.character.LocX
+	y = splayer.character.LocY
+	msg = '{"cmd":%d,"cid":"%s","pnm":"%s","x":%d,"y":%d}' % \
+		(Packets.MSGID_NOTIFY_LEAVEAOI,
+			    self.uuid.uuid2hex(cid),
+			    splayer.character.PName,
+			    x,y)
+
+	self.PushMsg2PlayerBuf(dplayer,msg)
+
     def PushMsg2PlayerBuf(self,player,msg):
 	if player.buf != '':
 	    player.buf += ','
@@ -185,6 +196,10 @@ class  Scene(object):
 			#    continue
 		        one_player = self.players[cid]
 			self.PackSynPosMsg(cid,player,one_player)
+
+		    for cid in diffaoilist:
+		        one_player = self.players[cid]
+			self.PackLeaveAOIMsg(cid,player,one_player)
 
 	    buf = '['
 	    i = 0
