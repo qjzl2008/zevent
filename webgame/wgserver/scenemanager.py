@@ -123,6 +123,11 @@ class SceneManager(object):
 	    x = obj['x']
 	    y = obj['y']
 	    scene.update_pos(cid,x,y)
+
+    def SetPlayerReady(self,hexpeerid):
+	(scene,cid) = self.GetSceneByPID(hexpeerid)
+	if scene:
+	    scene.SetPlayerReady(cid)
     
     def MainLogic(self):
 	for key in self.scenes.keys():

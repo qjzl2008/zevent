@@ -2,6 +2,7 @@ class  Player(object):
 
     INIT_STATE = 0x00
     ENTERED_STATE = 0x01
+    READY_STATE = 0x02
 
     def __init__(self):
 	#0 1 logined 2 entered

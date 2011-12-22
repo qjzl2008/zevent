@@ -76,6 +76,7 @@ class  Scene(object):
 	    else:
 		player = Player()
 		character.State = Player.ENTERED_STATE
+		player.state = Player.ENTERED_STATE
 		player.character = character
 		player.peerid = sender
 		player.qobject = qobject
@@ -83,6 +84,20 @@ class  Scene(object):
 		self.players[character.CharacterID] = player
 		rv = True
         finally:
+	    self.mutex_players.release()
+	    return rv
+
+    def SetPlayerReady(self,cid):
+	self.mutex_players.acquire()
+	rv = True
+	try:
+	     if not self.players.has_key(cid):
+		 rv = False
+	     else:
+		 player = self.players[cid]
+		 player.state = Player.READY_STATE 
+		 rv = True
+	finally:
 	    self.mutex_players.release()
 	    return rv
 
@@ -135,8 +150,9 @@ class  Scene(object):
 		if qobject:
 		    print "del object!"
 		    self.qdtree.quadtree_del_object(qobject)
-		    #qobject = None
-		self.offline_players.append(player)
+		    qobject = None
+                if player.state == Player.READY_STATE:
+		    self.offline_players.append(player)
 		del self.players[cid]
 	finally:
 		self.mutex_players.release()
@@ -169,6 +185,8 @@ class  Scene(object):
 	try:
 	    for key in self.players.keys():
 		player = self.players[key]
+		if player.state != Player.READY_STATE:
+		    continue
 		if player.active:
 		    player.active = False
 		    qobject = player.qobject
