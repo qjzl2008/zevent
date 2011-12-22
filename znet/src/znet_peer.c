@@ -114,7 +114,9 @@ static int peer_read_cb(struct peer *p)
 
 			struct msg_t *msg = (struct msg_t *)mmalloc(p->ns->allocator,
 					sizeof(struct msg_t));
-			msg->buf = (uint8_t *)mmalloc(p->ns->allocator,off);
+			uint32_t size = off + 1;
+			msg->buf = (uint8_t *)mmalloc(p->ns->allocator,size);
+			memset(msg->buf,0,size);
 			bcopy(p->recvbuf.buf,msg->buf,off);
 			msg->len = off;
 			msg->peer_id = p->id;
