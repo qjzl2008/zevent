@@ -148,8 +148,8 @@ class  Scene(object):
 		    i = 0
 		    buf = '['
 		    for cid in objs:
-			#if cid == key:
-			#    continue
+			if cid == key:
+			    continue
 		        one_player = self.players[cid]
 			msg = '{"cmd":%d,"msgs":[{"cmd":%d,"cid":"%s","pnm":"%s",\
 				"x":%d,"y":%d}]}' %\
