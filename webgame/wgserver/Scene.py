@@ -99,7 +99,7 @@ class  Scene(object):
 	       	 objbox._xmax = x + player.character.XScale
 		 objbox._ymin = y - player.character.YScale
 		 objbox._ymax = y + player.character.YScale
-		 #print objbox._xmin,objbox._xmax,objbox._ymin,objbox._ymax
+		 print "update object->",objbox._xmin,objbox._xmax,objbox._ymin,objbox._ymax
 		 rv = self.qdtree.quadtree_update(qobject,objbox);
 		 if rv:
 		     player.character.LocX = x
@@ -131,7 +131,9 @@ class  Scene(object):
 		player = self.players[cid]
 		qobject = player.qobject
 		if qobject:
+		    print "del object!"
 		    self.qdtree.quadtree_del_object(qobject)
+		    qobject = None
 		del self.players[cid]
 	finally:
 		self.mutex_players.release()
