@@ -57,6 +57,8 @@ class  Scene(object):
 	    objbox._xmax = character.LocX + character.XScale
 	    objbox._ymin = character.LocY - character.YScale
 	    objbox._ymax = character.LocY + character.YScale
+
+            #print objbox._xmin,objbox._xmax,objbox._ymin,objbox._ymax
 	    qobject = self.qdtree.quadtree_insert(character.CharacterID,objbox)
 	    if not qobject:
 		rv = False
@@ -146,8 +148,8 @@ class  Scene(object):
 		    i = 0
 		    buf = '['
 		    for cid in objs:
-			#if cid == key:
-			#    continue
+			if cid == key:
+			    continue
 		        one_player = self.players[cid]
 			msg = '{"cmd":%d,"msgs":[{"cmd":%d,"cid":"%s","pnm":"%s",\
 				"x":%d,"y":%d}]}' %\
@@ -162,7 +164,6 @@ class  Scene(object):
 			if i < num:
 			    buf += ','
 	            buf += ']' 
-		    print buf
 		    self.gatelogic.SendData2Clients(buf)
 	finally:
 	    self.mutex_players.release()
