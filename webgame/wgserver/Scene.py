@@ -162,10 +162,21 @@ class  Scene(object):
 	x = splayer.character.LocX
 	y = splayer.character.LocY
 
-	msg = '{"cmd":%d,"cid":"%s","pnm":"%s","x":%d,"y":%d}' % \
+	msg = '{"cmd":%d,"cid":"%s","x":%f,"y":%f}' % \
 		(Packets.MSGID_NOTIFY_SYNPOS,
 			    self.uuid.uuid2hex(cid),
-			    splayer.character.PName,
+			    x,y)
+
+	dplayer.sendmsgs.append(msg)
+
+    def PackEnterAOIMsg(self,cid,splayer,dplayer):
+	x = splayer.character.LocX
+	y = splayer.character.LocY
+
+	msg = '{"cmd":%d,"cid":"%s","cnm":"%s","x":%f,"y":%f}' % \
+		(Packets.MSGID_NOTIFY_ENTERAOI,
+			    self.uuid.uuid2hex(cid),
+			    splayer.character.CharName,
 			    x,y)
 
 	dplayer.sendmsgs.append(msg)
@@ -173,10 +184,9 @@ class  Scene(object):
     def PackLeaveAOIMsg(self,cid,splayer,dplayer):
 	x = splayer.character.LocX
 	y = splayer.character.LocY
-	msg = '{"cmd":%d,"cid":"%s","pnm":"%s","x":%d,"y":%d}' % \
+	msg = '{"cmd":%d,"cid":"%s","x":%f,"y":%f}' % \
 		(Packets.MSGID_NOTIFY_LEAVEAOI,
 			    self.uuid.uuid2hex(cid),
-			    splayer.character.PName,
 			    x,y)
 	dplayer.sendmsgs.append(msg)
 
@@ -194,10 +204,10 @@ class  Scene(object):
 		    y = player.character.LocY
 		    box = quadtree.quad_box_t();
 		    objs = []
-		    box._xmin = x-1000.0
-		    box._xmax = x+1000.0
-		    box._ymin = y-1000.0
-		    box._ymax = y+1000.0
+		    box._xmin = x-2000.0
+		    box._xmax = x+2000.0
+		    box._ymin = y-2000.0
+		    box._ymax = y+2000.0
 
 		    self.qdtree.quadtree_search(box,objs,1000)
 		    oldaoilist = player.aoilist
@@ -223,9 +233,9 @@ class  Scene(object):
 			    continue
 		        one_player = self.players[cid]
 			#告诉对方
-			self.PackSynPosMsg(key,player,one_player)
+			self.PackEnterAOIMsg(key,player,one_player)
 			#告诉自己一玩家入视野
-			self.PackSynPosMsg(cid,one_player,player)
+			self.PackEnterAOIMsg(cid,one_player,player)
 			#将自己加入一玩家兴趣列表
 			one_player.aoilist.append(key)
 			print "newaoilist"
@@ -269,6 +279,31 @@ class  Scene(object):
 		buf = buf.encode("UTF-8")
 		print buf
 		self.gatelogic.SendData2Clients(buf)
+	finally:
+	    self.mutex_players.release()
+
+    def SaveArchives(self):
+	self.mutex_players.acquire()
+	rv = False
+	try:
+	    for key in self.players.keys():
+		player = self.players[key]
+		sql = "update `character` set LocX=%d and LocY=%d \
+			where CharacterID = %d"\
+			% (player.character.LocX,
+				player.character.LocY,
+				key)
+
+		cmd1 = Packets.MSGID_REQUEST_EXECSQL
+		cmd2 = Packets.MSGID_REQUEST_SAVEARCHIVE
+		buf = '{"cmd":%d,"msg":{"cmd":%d,\
+			"peerid":"%s",\
+			"sql":"%s"\
+			}}'% (cmd1,cmd2,sender,
+				sql)
+		msg = buf.encode('utf-8')
+		self.storeclient.Send2Store(msg)
+		return True
 	finally:
 	    self.mutex_players.release()
 
