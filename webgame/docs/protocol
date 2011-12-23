@@ -1,0 +1,166 @@
+成功失败代码：
+DEF_MSGTYPE_CONFIRM = 0x0000  成功
+DEF_MSGTYPE_REJECT = 0x0001   失败
+消息标识:
+MSGID_REQUEST_LOGIN = 0x00000001         登录
+MSGID_RESPONSE_LOGIN = 0x10000001        登录返回
+
+MSGID_REQUEST_BINDGS = 0x00000111        选择gs（线路）
+MSGID_RESPONSE_BINDGS = 0x10000111       选择gs返回
+
+MSGID_REQUEST_DATA2GS = 0x0000000F       转发到GS
+      
+
+MSGID_REQUEST_GETCHARLIST = 0x00000011   列角色
+MSGID_RESPONSE_GETCHARLIST = 0x10000011  列角色返回
+
+MSGID_REQUEST_ENTERGAME = 0x00000002     进入游戏
+MSGID_RESPONSE_ENTERGAME = 0x10000002    进入游戏返回
+
+MSGID_C2SNOTIFY_READY = 0x00140002       通知客户端初始化完成
+
+MSGID_REQUEST_SYNPOS =  0x00010002       位置同步
+MSGID_RESPONSE_SYNPOS = 0x10010002       位置同步返回
+
+MSGID_SCENE_FRAME = 0x01110001           场景帧消息
+MSGID_NOTIFY_SYNPOS =  0x00110002        通知同步位置
+MSGID_NOTIFY_LEAVEAOI = 0x00120002       通知离开玩家的兴趣区域
+MSGID_NOTIFY_ENTERAOI = 0x00130002       通知进入玩家的兴趣区域
+
+
+
+通用说明：
+   cmd：消息标识
+   code:成功失败
+1,登录：
+
+  Login req:
+           {"cmd":MSGID_REQUEST_LOGIN,"cnm":"zhousihai","pwd":"123456"}
+  Login res:
+           {"cmd":MSGID_RESPONSE_LOGIN,"code":DEF_MSGTYPE_CONFIRM}
+2,绑定GS：
+  Bind gs req:
+           {"cmd":MSGID_REQUEST_BINDGS,"gsid":1}
+  Bind gs res:
+           {"cmd":MSGID_RESPONSE_BINDGS,"code":DEF_MSGTYPE_CONFIRM}
+3,列角色:
+  List Req:
+   {
+    "cmd": MSGID_REQUEST_DATA2GS,                  消息标识 转发到GS
+    "msgs": [
+        {
+            "msg": {
+                "cmd": MSGID_REQUEST_GETCHARLIST   子命令标示列角色
+            }
+        }
+    ]
+  }
+  List Res:
+
+  {
+    "cmd": 268435473,
+    "code": 0,
+    "num": 2,
+    "chars": [
+        {
+            "uid": "4eb9e2df40000001",
+            "pid": 1,
+            "pnm":"游侠",
+            "cid": "4ee9b2d240000001",
+            "cnm": "周霸姐",
+            "level": 1
+        },
+        {
+            "uid": "4eb9e2df40000001",
+            "pid": 1,
+            "pnm":"游侠",
+            "cid": "4ee9acd640000001",
+            "cnm": "12周霸姐",
+            "level": 1
+        }
+    ]
+}
+
+4，进入游戏:
+   Enter game req:
+    {
+    "cmd": MSGID_REQUEST_DATA2GS,                消息标识 转发到GS 
+    "msgs": [
+        {
+            "msg": {
+                "cmd": MSGID_REQUEST_ENTERGAME,  子命令标示 进游戏
+                "cid": "4ee9b2d240000001"        角色ID
+            }
+        }
+    ]
+   }
+ 
+    Enter game res:
+    {
+    "cmd": MSGID_RESPONSE_ENTERGAME,
+    "code": DEF_MSGTYPE_CONFIRM,
+    "sceneid": 1,
+    "x": 100,
+    "y": 400
+    }
+
+5，客户端通知服务器初始化完成:
+   notify gs req:
+    {
+    "cmd": MSGID_REQUEST_DATA2GS,                消息标识 转发到GS 
+    "msgs": [
+        {
+            "msg": {
+                "cmd": MSGID_C2SNOTIFY_READY    子命令标示 客户端就绪
+            }
+        }
+    ]
+   }
+
+6，位置同步：
+   syn position req:
+    {
+    "cmd": MSGID_REQUEST_DATA2GS,                消息标识 转发到GS 
+    "msgs": [
+        {
+            "msg": {
+                "cmd": MSGID_REQUEST_SYNPOS,        子命令标识 同步位置
+                "cid": "4ee9b2d240000001"        角色ID
+                "x": 100,
+                "y":200
+            }
+        }
+    ]
+   }
+7,场景帧信息：
+{
+    "cmd": MSGID_SCENE_FRAME,
+    "msgs": [
+        {  
+            "cmd": MSGID_NOTIFY_ENTERAOI,          通知进入兴趣区域
+            "cid": "4ee9acd640000001",
+            "cnm": "霸哥",
+            "pnm": "剑客",
+            "x": 5000,
+            "y": 5201
+        }
+        {
+            "cmd": MSGID_NOTIFY_SYNPOS,          通知位置更新
+            "cid": "4ee9acd640000001",
+            "pnm": "剑客",
+            "x": 5000,
+            "y": 5201
+        }，
+        {  
+            "cmd": MSGID_NOTIFY_LEAVEAOI,          通知离开兴趣区域
+            "cid": "4ee9acd640000001",
+            "pnm": "剑客",
+            "x": 5000,
+            "y": 5201
+        }
+    ]
+}
+
+     
+            
+
