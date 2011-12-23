@@ -292,12 +292,11 @@ class  Scene(object):
 	finally:
 	    self.mutex_players.release()
 
-    def SavaOnePlayer(self,player):
-	player = self.players[key]
+    def SaveOnePlayer(self,player):
 	sql = "update `character` set LocX=%f,LocY=%f where CharacterID = %d"\
 		% (player.character.LocX,
 			player.character.LocY,
-			key)
+			player.character.CharacterID)
 
 	cmd1 = Packets.MSGID_REQUEST_EXECSQL
 	cmd2 = Packets.MSGID_REQUEST_SAVEARCHIVE
@@ -310,6 +309,8 @@ class  Scene(object):
 	rv = False
 	try:
 	    for key in self.players.keys():
+		player = self.players[key]
+		self.SaveOnePlayer(player)
 		return True
 	finally:
 	    self.mutex_players.release()
