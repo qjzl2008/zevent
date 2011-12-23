@@ -87,11 +87,19 @@ class connector(threading.Thread):
 				retmsg = self.sock.recv(nlen)
 				print "enter game Res:",retmsg
 
+			    #send init ready
+				cmd1 = Packets.MSGID_REQUEST_DATA2GS
+				cmd2 = Packets.MSGID_C2SNOTIFY_READY 
+				buf = '{"cmd":%d,"msgs":[{"msg":{"cmd":%d}}]}'% (cmd1,cmd2)
+				print "notify gs ready req:%s" % buf
+			        message = struct.pack('>i',len(buf)) + buf
+				self.sock.send(message)
+
 			    #send syn pos
 				cmd1 = Packets.MSGID_REQUEST_DATA2GS
 				cmd2 = Packets.MSGID_REQUEST_SYNPOS
 				buf = '{"cmd":%d,"msgs":[{"msg":{"cmd":%d,\
-					"x":%d,"y":%d}}]}'% (cmd1,cmd2,100,800)
+					"x":%d,"y":%d}}]}'% (cmd1,cmd2,100,400)
 
 				print "synpos req:%s" % buf
 			        message = struct.pack('>i',len(buf)) + buf
@@ -121,7 +129,7 @@ class connector(threading.Thread):
 				    cmd1 = Packets.MSGID_REQUEST_DATA2GS
 				    cmd2 = Packets.MSGID_REQUEST_SYNPOS
 				    buf = '{"cmd":%d,"msgs":[{"msg":{"cmd":%d,\
-					    "x":%d,"y":%d}}]}'% (cmd1,cmd2,100,800)
+					    "x":%d,"y":%d}}]}'% (cmd1,cmd2,100,400)
 
 				    print "synpos req:%s" % buf
 				    message = struct.pack('>i',len(buf)) + buf
