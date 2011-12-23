@@ -130,6 +130,11 @@ class SceneManager(object):
 	if scene:
 	    scene.SetPlayerReady(cid)
 
+    def SaveArchives(self):
+	for key in self.scenes.keys():
+	    scene = self.scenes[key]
+	    scene.SaveArchives()
+	
     def MainLogic(self):
 	for key in self.scenes.keys():
 	    scene = self.scenes[key]

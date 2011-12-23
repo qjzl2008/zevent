@@ -34,6 +34,8 @@ class Packets:
         MSGID_NOTIFY_LEAVEAOI = 0x00120002
         MSGID_NOTIFY_ENTERAOI = 0x00130002
 
+        MSGID_REQUEST_SAVEARCHIVE = 0x00150002
+
         #客户端通知初始化完成可以接收场景信息
         MSGID_C2SNOTIFY_READY = 0x00140002
 

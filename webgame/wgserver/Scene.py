@@ -37,7 +37,9 @@ class  Scene(object):
 	self.uuid = uuid.instance()
 
         from GateLogic import GateLogic
+	from StoreClient import StoreClient
 	self.gatelogic = GateLogic.instance()
+	self.storeclient = StoreClient.instance()
 
     def load_scene(self,scene_cfg):
 	self.scene_json = json.load(open(self.scene_cfg))
@@ -295,19 +297,14 @@ class  Scene(object):
 	try:
 	    for key in self.players.keys():
 		player = self.players[key]
-		sql = "update `character` set LocX=%d and LocY=%d \
-			where CharacterID = %d"\
+		sql = "update `character` set LocX=%f,LocY=%f where CharacterID = %d"\
 			% (player.character.LocX,
 				player.character.LocY,
 				key)
 
 		cmd1 = Packets.MSGID_REQUEST_EXECSQL
 		cmd2 = Packets.MSGID_REQUEST_SAVEARCHIVE
-		buf = '{"cmd":%d,"msg":{"cmd":%d,\
-			"peerid":"%s",\
-			"sql":"%s"\
-			}}'% (cmd1,cmd2,sender,
-				sql)
+		buf = '{"cmd":%d,"msg":{"cmd":%d,"peerid":"%s","sql":"%s"}}'% (cmd1,cmd2,player.peerid,sql)
 		msg = buf.encode('utf-8')
 		self.storeclient.Send2Store(msg)
 		return True

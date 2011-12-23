@@ -32,9 +32,14 @@ class WGServer(threading.Thread):
 	"""
             message = (rv,msg,len,void_pointer)
 	"""
-	delay = 30000
+	delay = 20000 #时间片
+	logic_cycles = 5 #5个时间片
+	save_cycles = 500 #500时间片
+
+        logic_count = 0
+	save_count = 0
+	wait = True
 	while(True):
-	    sleep = True
 	    message = self.nclient.nc_recvmsg(delay)
 	    if message:
 		if message[0] == 0:
@@ -44,7 +49,15 @@ class WGServer(threading.Thread):
 		    #disconneted to gate
 		    PutLogList("(!) Disconnected to gate server!")
 		    break;
-	    self.MainLogic()
+
+	    logic_count += 1
+	    save_count += 1
+	    if wait and (logic_count >= logic_cycles):
+		logic_count = 0
+		self.MainLogic()
+	    if wait and (save_count >= save_cycles):
+		save_count = 0
+		self.SaveArchives()
 	    continue
 
     def Init(self):
@@ -146,8 +159,10 @@ class WGServer(threading.Thread):
 		repr(message[1][4:])), Logfile.PACKETMS)
 	    return
 
-	pass
     def MainLogic(self):
 	self.scmanager.MainLogic()
-	pass
+
+    def SaveArchives(self):
+	self.scmanager.SaveArchives()
+
 

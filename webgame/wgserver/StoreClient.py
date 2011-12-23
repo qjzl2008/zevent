@@ -90,6 +90,10 @@ class StoreClient(threading.Thread):
 		    self.ProcessGetCharListRes(obj)
 		elif obj['msg']['cmd'] == Packets.MSGID_REQUEST_JOINSCENE:
 		    self.ProcessJoinSceneRes(obj)
+
+	    if obj['cmd'] == Packets.MSGID_RESPONSE_EXECSQL:
+		if obj['msg']['cmd'] == Packets.MSGID_REQUEST_SAVEARCHIVE:
+		    self.ProcessSaveArchiveRes(obj)
 	    else:
 		PutLogFileList("MsgID: (0x%08X) %db * %s" % (obj['cmd'],
 		    len(message[1][4:]),repr(message[1][4:])), Logfile.PACKETMS)
@@ -235,4 +239,17 @@ class StoreClient(threading.Thread):
 		else:
 		    pass
             return True
+
+	def ProcessSaveArchiveRes(self,obj):
+	    code = obj['code']
+	    sender = obj['msg']['peerid']
+
+	    if code != Packets.DEF_MSGTYPE_CONFIRM:
+		PutLogList("(*) peerid: %s save archive failed!"\
+			    % (sender))
+		return False
+	    else:
+		return True
+
+
 	
