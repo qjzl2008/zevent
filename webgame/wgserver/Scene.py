@@ -159,6 +159,8 @@ class  Scene(object):
 		return rv
 
     def PackSynPosMsg(self,cid,splayer,dplayer):
+	if dplayer.state != Player.READY_STATE:
+	    return
 	x = splayer.character.LocX
 	y = splayer.character.LocY
 
@@ -170,6 +172,8 @@ class  Scene(object):
 	dplayer.sendmsgs.append(msg)
 
     def PackEnterAOIMsg(self,cid,splayer,dplayer):
+	if dplayer.state != Player.READY_STATE:
+	    return
 	x = splayer.character.LocX
 	y = splayer.character.LocY
 
@@ -183,6 +187,8 @@ class  Scene(object):
 	dplayer.sendmsgs.append(msg)
 
     def PackLeaveAOIMsg(self,cid,splayer,dplayer):
+	if dplayer.state != Player.READY_STATE:
+	    return
 	x = splayer.character.LocX
 	y = splayer.character.LocY
 	msg = '{"cmd":%d,"cid":"%s","x":%f,"y":%f}' % \

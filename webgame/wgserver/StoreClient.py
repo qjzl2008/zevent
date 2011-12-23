@@ -218,8 +218,6 @@ class StoreClient(threading.Thread):
 			character.LocY)
 		buf = '[{"peerid":"%s","msg":%s}]' % (peerid,msg)
 		self.gatelogic.SendData2Clients(buf)
-		#临时此处设置player状态为一切就绪等待接收场景帧
-		self.scene_manager.SetPlayerReady(peerid)
 
 	def ProcessLeaveGameRes(self,obj):
 	    code = obj['code']

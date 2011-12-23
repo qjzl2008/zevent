@@ -124,11 +124,12 @@ class SceneManager(object):
 	    y = obj['y']
 	    scene.update_pos(cid,x,y)
 
-    def SetPlayerReady(self,hexpeerid):
+    def ProcessC2SNotifyReady(self,obj):
+        hexpeerid = obj['peerid']	
 	(scene,cid) = self.GetSceneByPID(hexpeerid)
 	if scene:
 	    scene.SetPlayerReady(cid)
-    
+
     def MainLogic(self):
 	for key in self.scenes.keys():
 	    scene = self.scenes[key]
