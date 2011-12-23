@@ -271,6 +271,9 @@ class  Scene(object):
 		    if self.players.has_key(cid):
 			one_player = self.players[cid]
 			self.PackLeaveAOIMsg(offline_cid,player,one_player)
+			#将自己从一玩家兴趣列表移除
+			one_player.aoilist = filter(lambda x:x !=offline_cid,
+				one_player.aoilist)
 		del player.aoilist[:]
 	    del self.offline_players[:]
 	finally:
@@ -299,8 +302,9 @@ class  Scene(object):
 	    self.mutex_players.release()
 
     def SaveOnePlayer(self,player):
-	sql = "update `character` set LocX=%f,LocY=%f where CharacterID = %d"\
-		% (player.character.LocX,
+	sql = "update `character` set Scene=%d,LocX=%f,LocY=%f where CharacterID = %d"\
+		% (player.character.Scene,
+			player.character.LocX,
 			player.character.LocY,
 			player.character.CharacterID)
 
