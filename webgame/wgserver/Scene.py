@@ -155,6 +155,7 @@ class  Scene(object):
 		    qobject = None
                 if player.state == Player.READY_STATE:
 		    self.offline_players.append(player)
+                    self.SaveOnePlayer(player)
 		del self.players[cid]
 	finally:
 		self.mutex_players.release()
@@ -291,22 +292,24 @@ class  Scene(object):
 	finally:
 	    self.mutex_players.release()
 
+    def SavaOnePlayer(self,player):
+	player = self.players[key]
+	sql = "update `character` set LocX=%f,LocY=%f where CharacterID = %d"\
+		% (player.character.LocX,
+			player.character.LocY,
+			key)
+
+	cmd1 = Packets.MSGID_REQUEST_EXECSQL
+	cmd2 = Packets.MSGID_REQUEST_SAVEARCHIVE
+	buf = '{"cmd":%d,"msg":{"cmd":%d,"peerid":"%s","sql":"%s"}}'% (cmd1,cmd2,player.peerid,sql)
+	msg = buf.encode('utf-8')
+	self.storeclient.Send2Store(msg)
+
     def SaveArchives(self):
 	self.mutex_players.acquire()
 	rv = False
 	try:
 	    for key in self.players.keys():
-		player = self.players[key]
-		sql = "update `character` set LocX=%f,LocY=%f where CharacterID = %d"\
-			% (player.character.LocX,
-				player.character.LocY,
-				key)
-
-		cmd1 = Packets.MSGID_REQUEST_EXECSQL
-		cmd2 = Packets.MSGID_REQUEST_SAVEARCHIVE
-		buf = '{"cmd":%d,"msg":{"cmd":%d,"peerid":"%s","sql":"%s"}}'% (cmd1,cmd2,player.peerid,sql)
-		msg = buf.encode('utf-8')
-		self.storeclient.Send2Store(msg)
 		return True
 	finally:
 	    self.mutex_players.release()
