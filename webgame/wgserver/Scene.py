@@ -173,9 +173,10 @@ class  Scene(object):
 	x = splayer.character.LocX
 	y = splayer.character.LocY
 
-	msg = '{"cmd":%d,"cid":"%s","cnm":"%s","x":%f,"y":%f}' % \
+	msg = '{"cmd":%d,"cid":"%s","pnm":"%s","cnm":"%s","x":%f,"y":%f}' % \
 		(Packets.MSGID_NOTIFY_ENTERAOI,
 			    self.uuid.uuid2hex(cid),
+			    splayer.character.PName,
 			    splayer.character.CharName,
 			    x,y)
 
