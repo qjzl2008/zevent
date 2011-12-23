@@ -256,7 +256,13 @@ class  Scene(object):
 			    continue
 			if self.players.has_key(cid):
 			    one_player = self.players[cid]
+			    #告诉对方
 			    self.PackLeaveAOIMsg(key,player,one_player)
+			    #告诉自己一玩家离开视野
+			    self.PackLeaveAOIMsg(cid,one_player,player)
+			    #将自己从一玩家兴趣列表移除
+                            one_player.aoilist = filter(lambda x:x !=key,
+				    one_player.aoilist)
 			    print "leaveaoilist"
             #处理离线玩家的同步信息
 	    for player in self.offline_players:
