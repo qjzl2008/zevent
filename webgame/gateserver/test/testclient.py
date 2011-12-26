@@ -104,6 +104,21 @@ class connector(threading.Thread):
 				print "synpos req:%s" % buf
 			        message = struct.pack('>i',len(buf)) + buf
 				self.sock.send(message)
+
+			    #send switch scene
+				cmd1 = Packets.MSGID_REQUEST_DATA2GS
+				cmd2 = Packets.MSGID_REQUEST_SWITCHSCENE
+				buf = '{"cmd":%d,"msgs":[{"msg":{"cmd":%d,\
+					"cid":"%s","sid":%d}}]}'% (cmd1,cmd2,"4ef2d1f940000001",12)
+
+				print "switch scene req:%s" % buf
+			        message = struct.pack('>i',len(buf)) + buf
+				self.sock.send(message)
+				retmsg = self.sock.recv(4)
+				nlen, = struct.unpack('>i',retmsg)
+				retmsg = self.sock.recv(nlen)
+				print "switch scene Res:",retmsg
+
 #
 #			    #send echo
 #			        num = 0

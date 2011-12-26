@@ -27,6 +27,9 @@ MSGID_NOTIFY_SYNPOS =  0x00110002        通知同步位置
 MSGID_NOTIFY_LEAVEAOI = 0x00120002       通知离开玩家的兴趣区域
 MSGID_NOTIFY_ENTERAOI = 0x00130002       通知进入玩家的兴趣区域
 
+MSGID_REQUEST_SWITCHSCENE = 0x00000009   客户端通知切场景
+MSGID_RESPONSE_SWITCHSCENE = 0x10000009  切换场景返回
+
 
 
 通用说明：
@@ -161,6 +164,27 @@ MSGID_NOTIFY_ENTERAOI = 0x00130002       通知进入玩家的兴趣区域
     ]
 }
 
-     
+8,切换场景:
+ switch scene req:
+    {
+    "cmd": MSGID_REQUEST_DATA2GS,                消息标识 转发到GS 
+    "msgs": [
+        {
+            "msg": {
+                "cmd": MSGID_REQUEST_SWITCHSCENE,  子命令标示 切换场景
+                "sid": 2                           角色ID
+            }
+        }
+    ]
+   }
+ 
+   switch scene res:
+    {
+    "cmd": MSGID_RESPONSE_SWITCHSCENE,
+    "code": DEF_MSGTYPE_CONFIRM,
+    "sid": 2,
+    "x": 100,
+    "y": 400
+    }
             
 
