@@ -56,7 +56,7 @@ int gm_logic_reggs(uint64_t peerid,json_object *jmsg)
 	if(jscene)
 	{
 	    int sceneid = json_object_get_int(jscene);
-	    gs->scenes[i++] = sceneid;
+	    gs->scenes[i] = sceneid;
 	    ++gs->nscenes;
 	}
     }
