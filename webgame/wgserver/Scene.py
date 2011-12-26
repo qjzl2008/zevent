@@ -328,4 +328,12 @@ class  Scene(object):
     def MainLogic(self):
 	self.PushSynPosMsgs()
 	self.SendSceneFrame()
+	self.mutex_players.acquire()
+#	try:
+#	    for key in self.players.keys():
+#		print "sceneid:%d,key:%d" % (self.sceneid,key)
+#	finally:
+#	    self.mutex_players.release()
+#
+
 

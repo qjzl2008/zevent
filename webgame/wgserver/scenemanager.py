@@ -6,6 +6,7 @@ from log import *
 
 from GlobalConfig import GlobalConfig
 from Scene import Scene
+from NetMessages import Packets   
 
 class SceneManager(object):
     def __init__(self):
@@ -53,6 +54,12 @@ class SceneManager(object):
 	    start_scene = path + os.sep + start_scene
 	    if start_scene == scenecfg:
 		self.newbie_scene = scene.sceneid
+
+        from GateLogic import GateLogic
+	from StoreClient import StoreClient
+	self.gatelogic = GateLogic.instance()
+	self.storeclient = StoreClient.instance()
+
 	return True
 
     def ProcessClientDisconnect(self,obj):
@@ -129,6 +136,47 @@ class SceneManager(object):
 	(scene,cid) = self.GetSceneByPID(hexpeerid)
 	if scene:
 	    scene.SetPlayerReady(cid)
+
+    def ProcessSwitchScene(self,obj):
+	hexpeerid = obj['peerid']
+	newsceneid = obj['sid']
+	(scene,cid) = self.GetSceneByPID(hexpeerid)
+	if newsceneid == scene.sceneid:
+	    self.gatelogic.SendRes2Request(hexpeerid,
+		    Packets.MSGID_RESPONSE_SWITCHSCENE,
+		    Packets.DEF_MSGTYPE_REJECT)
+	    return False
+	else:
+	    if not self.scenes.has_key(newsceneid):
+		self.gatelogic.SendRes2Request(hexpeerid,
+			Packets.MSGID_RESPONSE_SWITCHSCENE,
+			Packets.DEF_MSGTYPE_REJECT)
+		return False
+	    newscene = self.scenes[newsceneid]
+	    player = scene.get_player(cid)
+	    character = player.character
+	    rv = scene.del_player(cid)
+	    if rv:
+		rv = newscene.add_player(hexpeerid,character)
+		if rv:
+		    self.mutex.acquire()   
+		    self.c2scene[character.CharacterID] = newsceneid
+		    self.mutex.release()
+                    
+		    msg = '{"cmd":%d,"code":%d,"sid":%d,"x":%d,"y":%d}' % \
+			    (Packets.MSGID_RESPONSE_SWITCHSCENE,
+			    Packets.DEF_MSGTYPE_CONFIRM,
+			    newsceneid,
+			    newscene.startloc_x,
+			    newscene.startloc_y)
+		    buf = '[{"peerid":"%s","msg":%s}]' % (hexpeerid,msg)
+		    self.gatelogic.SendData2Clients(buf)
+		    return True
+		else:
+		    self.gatelogic.SendRes2Request(hexpeerid,
+			    Packets.MSGID_RESPONSE_SWITCHSCENE,
+			    Packets.DEF_MSGTYPE_REJECT)
+		    return False
 
     def SaveArchives(self):
 	for key in self.scenes.keys():
