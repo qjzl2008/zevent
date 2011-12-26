@@ -147,6 +147,7 @@ int cm_logic_data2gs(uint64_t peerid,json_object *jmsg)
 	cm_logic_sendres(peerid,MSGID_RESPONSE_DATA2GS,DEF_MSGTYPE_REJECT);
 	return -1;
     }
+
     if(gspeerid == 0)
     {
 	rv = gm_getgs(&gspeerid);

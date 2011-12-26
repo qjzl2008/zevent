@@ -141,7 +141,7 @@ class SceneManager(object):
 	hexpeerid = obj['peerid']
 	newsceneid = obj['sid']
 	(scene,cid) = self.GetSceneByPID(hexpeerid)
-	if newsceneid == scene.sceneid:
+	if scene == None or newsceneid == scene.sceneid:
 	    self.gatelogic.SendRes2Request(hexpeerid,
 		    Packets.MSGID_RESPONSE_SWITCHSCENE,
 		    Packets.DEF_MSGTYPE_REJECT)
