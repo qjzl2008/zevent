@@ -118,6 +118,14 @@ class connector(threading.Thread):
 				nlen, = struct.unpack('>i',retmsg)
 				retmsg = self.sock.recv(nlen)
 				print "switch scene Res:",retmsg
+			    #send init ready
+				cmd1 = Packets.MSGID_REQUEST_DATA2GS
+				cmd2 = Packets.MSGID_C2SNOTIFY_READY 
+				buf = '{"cmd":%d,"msgs":[{"msg":{"cmd":%d}}]}'% (cmd1,cmd2)
+				print "notify gs ready req:%s" % buf
+			        message = struct.pack('>i',len(buf)) + buf
+				self.sock.send(message)
+
 
 #
 #			    #send echo
@@ -134,8 +142,34 @@ class connector(threading.Thread):
 #				    retmsg = self.sock.recv(nlen)
 #				    print "echo Res:",retmsg
 #				    num = num + 1
-				
+			        num = 0	
+				newsceneid = 2
 				while True:
+				    num += 1
+				    if num > 10:
+				    #send switch scene
+				        num = 0
+				        newsceneid = 1
+					cmd1 = Packets.MSGID_REQUEST_DATA2GS
+					cmd2 = Packets.MSGID_REQUEST_SWITCHSCENE
+					buf = '{"cmd":%d,"msgs":[{"msg":{"cmd":%d,\
+						"cid":"%s","sid":%d}}]}'% (cmd1,cmd2,"4ef2d1f940000001",newsceneid)
+
+					print "switch scene req:%s" % buf
+					message = struct.pack('>i',len(buf)) + buf
+					self.sock.send(message)
+					retmsg = self.sock.recv(4)
+					nlen, = struct.unpack('>i',retmsg)
+					retmsg = self.sock.recv(nlen)
+					print "switch scene Res:",retmsg
+				    #send init ready
+					cmd1 = Packets.MSGID_REQUEST_DATA2GS
+					cmd2 = Packets.MSGID_C2SNOTIFY_READY 
+					buf = '{"cmd":%d,"msgs":[{"msg":{"cmd":%d}}]}'% (cmd1,cmd2)
+					print "notify gs ready req:%s" % buf
+					message = struct.pack('>i',len(buf)) + buf
+					self.sock.send(message)
+
 				    retmsg = self.sock.recv(4)
 				    nlen, = struct.unpack('>i',retmsg)
                                     retmsg = self.sock.recv(nlen)
