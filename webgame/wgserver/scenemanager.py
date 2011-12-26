@@ -157,6 +157,7 @@ class SceneManager(object):
 	    character = player.character
 	    rv = scene.del_player(cid)
 	    if rv:
+		character.Scene = newsceneid
 		rv = newscene.add_player(hexpeerid,character)
 		if rv:
 		    self.mutex.acquire()   

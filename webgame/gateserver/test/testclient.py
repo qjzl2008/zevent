@@ -109,7 +109,7 @@ class connector(threading.Thread):
 				cmd1 = Packets.MSGID_REQUEST_DATA2GS
 				cmd2 = Packets.MSGID_REQUEST_SWITCHSCENE
 				buf = '{"cmd":%d,"msgs":[{"msg":{"cmd":%d,\
-					"cid":"%s","sid":%d}}]}'% (cmd1,cmd2,"4ef2d1f940000001",12)
+					"cid":"%s","sid":%d}}]}'% (cmd1,cmd2,"4ef2d1f940000001",2)
 
 				print "switch scene req:%s" % buf
 			        message = struct.pack('>i',len(buf)) + buf

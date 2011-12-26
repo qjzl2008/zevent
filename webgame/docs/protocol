@@ -102,7 +102,7 @@ MSGID_RESPONSE_SWITCHSCENE = 0x10000009  切换场景返回
     {
     "cmd": MSGID_RESPONSE_ENTERGAME,
     "code": DEF_MSGTYPE_CONFIRM,
-    "sceneid": 1,
+    "sid": 1,
     "x": 100,
     "y": 400
     }
