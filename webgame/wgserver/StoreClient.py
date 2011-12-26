@@ -214,7 +214,7 @@ class StoreClient(threading.Thread):
 		cid = character.CharacterID
 		self.SC_LeaveGame(peerid,cid)
 	    else:
-		msg = '{"cmd":%d,"code":%d,"sceneid":%d,"x":%d,"y":%d}' % \
+		msg = '{"cmd":%d,"code":%d,"sid":%d,"x":%d,"y":%d}' % \
 			(Packets.MSGID_RESPONSE_ENTERGAME,
 			Packets.DEF_MSGTYPE_CONFIRM,
 			character.Scene,
