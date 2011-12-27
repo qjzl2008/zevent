@@ -155,7 +155,11 @@ class WGServer(threading.Thread):
 	elif obj['cmd'] == Packets.MSGID_C2SNOTIFY_READY :
 	    self.scmanager.ProcessC2SNotifyReady(obj)
 	elif obj['cmd'] == Packets.MSGID_REQUEST_SWITCHSCENE :
-	    self.scmanager.ProcessSwitchScene(obj)
+	    rv = self.scmanager.ProcessSwitchScene(obj)
+	    if not rv:
+		print "ProcessSwitchScene Failed!"
+	    else:
+		print "ProcessSwitchScene Success!"
 	else:
 	    PutLogFileList("MsgID: (0x%08X) %db * %s" % (obj['cmd'], len(message[1][4:]),
 		repr(message[1][4:])), Logfile.PACKETMS)

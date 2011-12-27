@@ -75,6 +75,7 @@ static int process_msg(void *msg,int len,uint64_t peerid)
 	    gm_logic_reggs(peerid,jmsg);
 	    break;
 	case MSGID_REQUEST_DATA2CLIENTS:
+	    printf("gs send2client:%s\n",body);
 	    gm_logic_data2clients(peerid,jmsg);
 	    break;
     }
