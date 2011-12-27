@@ -214,12 +214,14 @@ class  Scene(object):
 		    y = player.character.LocY
 		    box = quadtree.quad_box_t();
 		    objs = []
-		    box._xmin = x-2000.0
-		    box._xmax = x+2000.0
-		    box._ymin = y-2000.0
-		    box._ymax = y+2000.0
+		    box._xmin = x-3000.0
+		    box._xmax = x+3000.0
+		    box._ymin = y-3000.0
+		    box._ymax = y+3000.0
 
 		    self.qdtree.quadtree_search(box,objs,1000)
+		    objs = filter(lambda x:x !=key,objs)
+
 		    oldaoilist = player.aoilist
 
 		    player.aoilist = objs
