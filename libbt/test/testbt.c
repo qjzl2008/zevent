@@ -64,7 +64,7 @@ int main(void)
 	if(bt_start_daemon(&bt_arg) != 0)
 		return -1;
 	//rv = bt_add("download",torrents[0],&bt_arg);
-	rv = bt_add_url("downloads","test.torrent","http://172.16.118.42/test.torrent",&bt_arg);
+	rv = bt_add_url("downloads","test.torrent","http://127.0.0.1/test.torrent",&bt_arg);
 	if(rv == 1)
 	{
 		bt_start(ntorrents,torrents,&bt_arg);
@@ -81,6 +81,7 @@ int main(void)
 	rv = bt_add_p2sp("test.torrent","http://down1.chinaunix.net/distfiles/",&bt_arg);
 
 	//rv = bt_add_p2sp("test.torrent","http://127.0.0.1",&bt_arg);
+	//bt_rate(2048,30*1024,&bt_arg);
 	for(i = 0; i < ntorrents;++i)
 	{
 		bt_stat(torrents[i],&bt_arg,&tstat[i]);
