@@ -524,7 +524,7 @@ static int http_get_offset(struct iovec *iov, unsigned long *off, size_t *body_l
 }
 
 #define GRBUFLEN (1 << 15)
-
+#define MIN_HTTP_SIZE (2048)
 static unsigned long
 net_read(struct peer *p, unsigned long rmax)
 {
@@ -556,12 +556,20 @@ net_read(struct peer *p, unsigned long rmax)
 	unsigned long off = 0;
 	size_t content_len = 0;
 
-	if (rmax > 0 && p->ptype == BT_PEER) {
+	if (rmax > 0) {
+		//进行限速处理
 		if (iov[0].iov_len > rmax)
 			iov[0].iov_len = rmax;
 		iov[1].iov_len = min(rmax - iov[0].iov_len, iov[1].iov_len);
+        
+		if(p->ptype == HTTP_PEER && p->in.msg_len == 0)
+		{
+			//如果是http的第一次请求回复，要接满http头，需要放开一定空间
+			if(iov[1].iov_len < MIN_HTTP_SIZE)
+				iov[1].iov_len = MIN_HTTP_SIZE;
+		}
 	}
-
+	
 	len0 = iov[0].iov_len;
 	len1 = iov[1].iov_len;
 
@@ -774,6 +782,7 @@ static void
 net_bw_tick(void)
 {
 	struct peer *p;
+	unsigned long bytes = 0;
 
 	m_bw_bytes_out = net_bw_limit_out;
 	m_bw_bytes_in = net_bw_limit_in;
@@ -784,8 +793,12 @@ net_bw_tick(void)
 			btpd_ev_enable(&p->ioev, EV_READ);
 			p->mp->flags &= ~PF_ON_READQ;
 
-			if(p->ptype == BT_PEER)
-				m_bw_bytes_in -= net_read(p, m_bw_bytes_in);
+			//if(p->ptype == BT_PEER)
+			bytes = net_read(p, m_bw_bytes_in);
+			if(m_bw_bytes_in > bytes)
+				m_bw_bytes_in -= bytes;
+			else
+				m_bw_bytes_in = 0;
 		}
 	} else {
 		while ((p = BTPDQ_FIRST(&net_bw_readq)) != NULL) {
@@ -840,18 +853,36 @@ net_on_tick(void)
 static void
 net_read_cb(struct peer *p)
 {
-	if(net_bw_limit_in < 0)
-	{
-		btpd_ev_disable(&p->ioev,EV_READ);
-		p->mp->flags |= PF_ON_READQ;
-		BTPDQ_INSERT_TAIL(&net_bw_readq,p,rq_entry);
-		return;
-	}
+	//if(net_bw_limit_in < 0)
+	//{
+	//	btpd_ev_disable(&p->ioev,EV_READ);
+	//	p->mp->flags |= PF_ON_READQ;
+	//	BTPDQ_INSERT_TAIL(&net_bw_readq,p,rq_entry);
+	//	return;
+	//}
 
-	if(net_bw_limit_in == 0 || p->ptype == HTTP_PEER)
-		net_read(p,0);
-	else if(m_bw_bytes_in > 0)
-		m_bw_bytes_in -= net_read(p,m_bw_bytes_in);
+	//if(net_bw_limit_in == 0 /*|| p->ptype == HTTP_PEER*/)
+	//	net_read(p,0);
+	//else if(m_bw_bytes_in > 0)
+	//	m_bw_bytes_in -= net_read(p,m_bw_bytes_in);
+	if (net_bw_limit_in == 0)
+		net_read(p, 0);
+	else 
+	{
+		if (m_bw_bytes_in > 0)
+		{
+			unsigned long bytes = net_read(p, m_bw_bytes_in);
+			if(m_bw_bytes_in > bytes)
+				m_bw_bytes_in -= bytes;
+			else
+				m_bw_bytes_in = 0;
+		}
+		else{
+			btpd_ev_disable(&p->ioev, EV_READ);
+			p->mp->flags |= PF_ON_READQ;
+			BTPDQ_INSERT_TAIL(&net_bw_readq, p, rq_entry);
+		}
+	}
 }
 
 static void
@@ -859,14 +890,21 @@ net_write_cb(struct peer *p)
 {
 	if (net_bw_limit_out == 0 || p->ptype == HTTP_PEER)
 		net_write(p, 0);
-	else if (m_bw_bytes_out > 0)
+	else
 	{
-		m_bw_bytes_out -= net_write(p, m_bw_bytes_out);
-	}
-	else {
-		btpd_ev_disable(&p->ioev, EV_WRITE);
-		p->mp->flags |= PF_ON_WRITEQ;
-		BTPDQ_INSERT_TAIL(&net_bw_writeq, p, wq_entry);
+		if (m_bw_bytes_out > 0)
+		{
+			unsigned long bytes = net_write(p, m_bw_bytes_out);
+			if(m_bw_bytes_out > bytes)
+				m_bw_bytes_out -= bytes;
+			else
+				m_bw_bytes_out = 0;
+		}
+		else {
+			btpd_ev_disable(&p->ioev, EV_WRITE);
+			p->mp->flags |= PF_ON_WRITEQ;
+			BTPDQ_INSERT_TAIL(&net_bw_writeq, p, wq_entry);
+		}
 	}
 }
 
