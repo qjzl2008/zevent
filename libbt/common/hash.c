@@ -21,7 +21,7 @@ struct hash_t{
 	hash_index_t iterator;
 	unsigned int count,max;
 	hashfunc_t hash_func;
-	freefunc_t free_func;
+
 	hash_entry_t *free;
 };
 
@@ -43,20 +43,17 @@ hash_t *hash_make(void)
 	ht->max = INITIAL_MAX;
 	ht->array = alloc_array(ht,ht->max);
 	ht->hash_func = hashfunc_default;
-	ht->free_func = freefunc_default;
 
 	return ht;
 }
 
-hash_t *hash_make_custom(hashfunc_t hashfunc,freefunc_t freefunc)
+hash_t *hash_make_custom(hashfunc_t hashfunc)
 {
 	hash_t *ht;
 	ht = hash_make();
 
 	if(hashfunc)
 		ht->hash_func = hashfunc;
-	if(freefunc)
-		ht->free_func = freefunc;
 
 	return ht;
 }
@@ -116,10 +113,6 @@ static void expand_array(hash_t *ht)
 	ht->max = new_max;
 }
 
-void freefunc_default(void *memory)
-{
-	free(memory);
-}
 
 unsigned int hashfunc_default(const char *char_key,int *klen)
 {
@@ -178,39 +171,46 @@ static hash_entry_t **find_entry(hash_t *ht,
 	return hep;
 }
 
-void * hash_get(hash_t *ht,const void *key,int klen)
+void * hash_get(hash_t *ht,const void *key,int klen,void **entry_key)
 {
 	hash_entry_t *he;
 	he = *find_entry(ht,key,klen,NULL);
 	if(he)
-		return (void *)he->val;
+	{
+	    *entry_key = (void *)he->key;
+	    return (void *)he->val;
+	}
 	else
-		return NULL;
+	{
+	    *entry_key = NULL;
+	    return NULL;
+	}
 }
 
 void hash_set(hash_t *ht,const void *key,int klen,const void *val)
 {
-	hash_entry_t **hep;
-	hep = find_entry(ht,key,klen,val);
-	if(*hep){
-		if(!val){
-			hash_entry_t *old = *hep;
-			*hep = (*hep)->next;
-			old->next = ht->free;
-			ht->free = old;
-			--ht->count;
-		}
-		else {
-			/* replace entry */
-			(*hep)->val = val;
-			/* check that the collision rate isn't too high*/
-			if(ht->count > ht->max){
-				expand_array(ht);
-			}
-		}
+    hash_entry_t **hep;
+    hep = find_entry(ht,key,klen,val);
+    if(*hep){
+	if(!val){
+	    hash_entry_t *old = *hep;
+	    *hep = (*hep)->next;
+	    old->next = ht->free;
+	    ht->free = old;
+	    --ht->count;
 	}
+	else {
+	    /* replace entry */
+	    (*hep)->val = val;
+	    /* check that the collision rate isn't too high*/
+	    if(ht->count > ht->max){
+		expand_array(ht);
+	    }
+	}
+    }
 
-	/*else key not present and val == NULL */
+    /*else key not present and val == NULL */
+
 }
 
 unsigned int hash_count(hash_t *ht)
@@ -225,26 +225,19 @@ void hash_clear(hash_t *ht)
 		hash_set(ht,hi->this->key,hi->this->klen,NULL);
 }
 
-static void free_he(hash_t *ht,hash_entry_t *he)
-{
-	ht->free_func(he->key);
-	ht->free_func(he->val);
-	free(he);
-}
-
 void hash_destroy(hash_t *ht)
 {
 	hash_index_t *hi;
 	hash_entry_t *he = ht->free,*old;
 	for(hi = hash_first(ht);hi;hi = hash_next(hi))
 	{
-		free_he(ht,hi->this);
+		free(hi->this);
 	}
 
 	while(he)
 	{
 		old = he->next;
-		free_he(ht,he);
+		free(he);
 		he = old;
 	}
 
@@ -267,7 +260,7 @@ int hash_do(hash_do_callback_fn_t *comp,void *rec,const hash_t *ht)
 		/* scan table*/
 		do{
 			rv = (*comp)(rec,hi->this->key,hi->this->klen,hi->this->val);
-		}while(rv && (hi = hash_next(hi)));
+		}while(rv >= 0 && (hi = hash_next(hi)));
 
 		if(rv == 0){
 			dorv = 0;

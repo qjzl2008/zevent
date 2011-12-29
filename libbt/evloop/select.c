@@ -54,6 +54,7 @@ fdev_enable(struct fdev *ev, uint16_t flags)
     struct fdev *hfd = NULL;
     int err = 0;
     uint16_t sf = ev->flags;
+	void *entry_key = NULL;
 
     if(!hfdev)
 	return -1;
@@ -70,7 +71,7 @@ fdev_enable(struct fdev *ev, uint16_t flags)
 	}
     }
 
-    hfd = hash_get(hfdev,&ev->fd,sizeof(ev->fd));
+    hfd = hash_get(hfdev,&ev->fd,sizeof(ev->fd),&entry_key);
     if(!hfd)
 	return -1;
     hfd->flags = ev->flags;
@@ -82,6 +83,7 @@ int
 fdev_disable(struct fdev *ev, uint16_t flags)
 {
     struct fdev *hfd = NULL;
+	void *entry_key = NULL;
     int err = 0;
     uint16_t sf = ev->flags;
     ev->flags &= ~flags;
@@ -97,7 +99,7 @@ fdev_disable(struct fdev *ev, uint16_t flags)
     {
 	FD_CLR(ev->fd,&writeset);
     }
-    hfd = hash_get(hfdev,&ev->fd,sizeof(ev->fd));
+    hfd = hash_get(hfdev,&ev->fd,sizeof(ev->fd),&entry_key);
     if(!hfd)
     {
 	return -1;
@@ -110,10 +112,20 @@ fdev_disable(struct fdev *ev, uint16_t flags)
 
 int fdev_del(struct fdev *ev)
 {
+	void *entry_key,*val;
     FD_CLR(ev->fd,&readset);
     FD_CLR(ev->fd,&writeset);
     if(hfdev)
-	hash_set(hfdev,&ev->fd,sizeof(ev->fd),NULL);
+	{
+		val = hash_get(hfdev,&ev->fd,sizeof(ev->fd),&entry_key); 
+		if(val)
+		{
+			hash_set(hfdev,&ev->fd,sizeof(ev->fd),NULL);
+			free(entry_key);
+			free(val);
+		}
+
+	}
     return 0;
 }
 
@@ -126,6 +138,9 @@ int evloop()
     struct timeval *tvptr = NULL;
     fd_set tmp_readset,tmp_writeset,tmp_exceptset;
     struct fdev *ev = NULL;
+	void *entry_key = NULL;
+	void *key,*val;
+	hash_index_t *hi;
 
     while(!daemon_stop) {
 	evtimers_run();
@@ -150,7 +165,7 @@ int evloop()
 	for(i = 0; i < tmp_readset.fd_count; ++i)
 	{
 	    ev = hash_get(hfdev,&tmp_readset.fd_array[i],
-		    sizeof(tmp_readset.fd_array[i]));
+		    sizeof(tmp_readset.fd_array[i]),&entry_key);
 	    if(ev && (ev->flags & EV_READ))
 	    {
 		ev->cb(ev->fd,EV_READ,ev->arg);
@@ -160,7 +175,7 @@ int evloop()
 	for(i = 0; i < tmp_writeset.fd_count; ++i)
 	{
 	    ev = hash_get(hfdev, &tmp_writeset.fd_array[i],
-		    sizeof(tmp_writeset.fd_array[i]));
+		    sizeof(tmp_writeset.fd_array[i]),&entry_key);
 	    if(ev && (ev->flags & EV_WRITE))
 	    {
 		ev->cb(ev->fd,EV_WRITE,ev->arg);
@@ -173,6 +188,12 @@ int evloop()
 	}
 
     }
+	for (hi = hash_first(hfdev); hi ; hi = hash_next(hi))
+	{
+		hash_this(hi,(const void **)&key,NULL,(void **)&val); 
+		free(key);
+		free(val);
+	}
     hash_destroy(hfdev);
     hfdev = NULL;
     return 0;

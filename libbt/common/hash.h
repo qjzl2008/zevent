@@ -15,19 +15,17 @@ typedef struct hash_index_t hash_index_t;
 
 typedef unsigned int (*hashfunc_t)(const char *key,int *klen);
 
-typedef void (*freefunc_t)(void *memory);
-
-void freefunc_default(void *memory);
 
 unsigned int hashfunc_default(const char *key,int *klen);
 
 hash_t* hash_make(void);
 
-hash_t* hash_make_custom(hashfunc_t hashfunc,freefunc_t freefunc);
+hash_t* hash_make_custom(hashfunc_t hashfunc);
 
 void hash_set(hash_t *ht,const void *key,int klen,const void *val);
 
-void *hash_get(hash_t *ht,const void *key,int klen);
+void * hash_get(hash_t *ht,const void *key,int klen,void **entry_key);
+//void *hash_get(hash_t *ht,const void *key,int klen);
 
 hash_index_t* hash_first(hash_t *ht);
 

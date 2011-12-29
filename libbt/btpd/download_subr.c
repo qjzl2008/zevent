@@ -473,7 +473,7 @@ dl_new_request(struct peer *p, struct piece *pc, struct net_buf *msg)
 	nb_hold(req->msg);
 	BTPDQ_INSERT_TAIL(&pc->reqs, req, blk_entry);
 	pc->nreqs++;
-	if (!pc->n->endgame) {
+	if (!pc->n->endgame || p->ptype == HTTP_PEER) {
 		set_bit(pc->down_field, pc->next_block);
 		pc->nbusy++;
 	}
