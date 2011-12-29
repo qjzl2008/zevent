@@ -429,7 +429,8 @@ dl_on_piece_unfull(struct piece *pc)
 	assert(!piece_full(pc) /*&& n->endgame == 0*/);
 	BTPDQ_FOREACH(p, &n->peers, p_entry)
 	{
-		peer_want(p, pc->index);
+		if(p->ptype == BT_PEER)
+			peer_want(p, pc->index);
 	}
 	p = BTPDQ_FIRST(&n->peers);
 	while (p != NULL && !piece_full(pc)) {
