@@ -299,10 +299,10 @@ dl_enter_endgame(struct net *n)
 			if(req->p->ptype == BT_PEER)
 			{
 				blki = nb_get_begin(req->msg) / PIECE_BLOCKLEN;
-				if (pc->eg_reqs[blki] == NULL) {
+				/*if (pc->eg_reqs[blki] == NULL) {
 					pc->eg_reqs[blki] = req->msg;
 					nb_hold(req->msg);
-				}
+				}*/
 			}
 		}
 		pcs[pi] = pc;
@@ -473,10 +473,10 @@ dl_new_request(struct peer *p, struct piece *pc, struct net_buf *msg)
 	nb_hold(req->msg);
 	BTPDQ_INSERT_TAIL(&pc->reqs, req, blk_entry);
 	pc->nreqs++;
-	if (!pc->n->endgame || p->ptype == HTTP_PEER) {
+	//if (!pc->n->endgame || p->ptype == HTTP_PEER) {
 		set_bit(pc->down_field, pc->next_block);
 		pc->nbusy++;
-	}
+	//}
 	peer_request(p, req);
 	return req;
 }
@@ -697,12 +697,14 @@ dl_piece_assign_requests_eg(struct piece *pc, struct peer *p)
 				continue;
 		}
 		req =
-			dl_new_request(p, pc, pc->eg_reqs[pc->next_block]);
-		if (pc->eg_reqs[pc->next_block] == NULL) {
+			dl_new_request(p, pc, NULL);
+		/*if (pc->eg_reqs[pc->next_block] == NULL) {
 			pc->eg_reqs[pc->next_block] = req->msg;
 			nb_hold(req->msg);
-		}
+		}*/
 		INCNEXTBLOCK(pc);
+		if(p->ptype == HTTP_PEER)
+			break;
 	} while (!peer_laden(p) && pc->next_block != first_block);
 }
 
@@ -752,6 +754,9 @@ dl_unassign_requests_eg(struct peer *p)
 
 		while (req != NULL) {
 			struct block_request *next = BTPDQ_NEXT(req, p_entry);
+			uint32_t blki = nb_get_begin(req->msg) / PIECE_BLOCKLEN;
+			clear_bit(pc->down_field,blki);
+			pc->nbusy--;
 			BTPDQ_REMOVE(&p->my_reqs, req, p_entry);
 			p->nreqs_out--;
 			BTPDQ_REMOVE(&pc->reqs, req, blk_entry);
