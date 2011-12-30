@@ -402,8 +402,10 @@ dl_on_piece_full(struct piece *pc)
 	{
 		peer_unwant(p, pc->index);
 	}
-	if (dl_should_enter_endgame(pc->n))
+	/*if (dl_should_enter_endgame(pc->n))
+	{
 		dl_enter_endgame(pc->n);
+	}*/
 }
 
 struct piece *
@@ -429,8 +431,7 @@ dl_on_piece_unfull(struct piece *pc)
 	assert(!piece_full(pc) /*&& n->endgame == 0*/);
 	BTPDQ_FOREACH(p, &n->peers, p_entry)
 	{
-		if(p->ptype == BT_PEER)
-			peer_want(p, pc->index);
+		peer_want(p, pc->index);
 	}
 	p = BTPDQ_FIRST(&n->peers);
 	while (p != NULL && !piece_full(pc)) {

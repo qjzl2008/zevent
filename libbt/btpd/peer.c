@@ -294,7 +294,7 @@ peer_want(struct peer *p, uint32_t index)
 	if (p->mp->flags & PF_SUSPECT)
 	    return;
 	if (p->nreqs_out == 0) {
-	    assert((p->mp->flags & PF_DO_UNWANT) == 0);
+	    //assert((p->mp->flags & PF_DO_UNWANT) == 0);
 	    nl = BTPDQ_LAST(&p->outq, nb_tq);
 	    if (nl != NULL && nl->nb->type == NB_UNINTEREST)
 		unsent = peer_unsend(p, nl);
@@ -319,10 +319,15 @@ peer_unwant(struct peer *p, uint32_t index)
         if (p->mp->flags & PF_SUSPECT)
             return;
         p->t_nointerest = btpd_seconds;
-        if (p->ptype == BT_PEER && p->nreqs_out == 0)
-            peer_send(p, nb_create_uninterest());
+        if (p->nreqs_out == 0)
+		{
+			if(p->ptype == BT_PEER)
+				peer_send(p, nb_create_uninterest());
+		}
         else
-            p->mp->flags |= PF_DO_UNWANT;
+		{
+				p->mp->flags |= PF_DO_UNWANT;
+		}
     }
 }
 

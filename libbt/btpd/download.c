@@ -96,6 +96,7 @@ dl_on_ok_piece(struct net *n, uint32_t piece)
 	if (n->endgame)
 	BTPDQ_FOREACH(p, &n->peers, p_entry)
 	{
+		if(p == BT_PEER)
 	    peer_unwant(p, pc->index);
 	}
 
