@@ -460,7 +460,7 @@ dl_new_request(struct peer *p, struct piece *pc, struct net_buf *msg)
 		if(p->ptype == HTTP_PEER)
 		{
 			p->in.pc_curblock = block;
-			msg = nb_create_request_p2sp(p,pc->index,start,length);
+			msg = nb_create_request_p2sp(p,pc->index,start,length,NB_REQUEST);
 		}
 		else
 			msg = nb_create_request(pc->index, start, length);
@@ -481,12 +481,15 @@ dl_new_request(struct peer *p, struct piece *pc, struct net_buf *msg)
 	peer_request(p, req);
 	return req;
 }
-
+/*
+对同一block块再次发送http请求，对于http下载多文件的情况有时需要多次http请求才能完成
+对一个块的下载
+*/
 int dl_assign_request_http(struct peer *p,struct piece *pc,
 						   uint32_t start,uint32_t length)
 {
 	struct block_request *req;
-	struct net_buf *msg = nb_create_request_p2sp(p,pc->index,start,length);
+	struct net_buf *msg = nb_create_request_p2sp(p,pc->index,start,length,NB_REREQUEST);
 	if(!msg)
 	{
 		return -1;
@@ -654,7 +657,10 @@ dl_unassign_requests(struct peer *p)
 				assert(has_bit(pc->down_field, blki));
 			}
 			clear_bit(pc->down_field, blki);
-			pc->nbusy--;
+			if(req->msg->type != NB_REREQUEST)
+			{
+				pc->nbusy--;
+			}
 			BTPDQ_REMOVE(&p->my_reqs, req, p_entry);
 			p->nreqs_out--;
 			BTPDQ_REMOVE(&pc->reqs, req, blk_entry);

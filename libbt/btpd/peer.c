@@ -168,20 +168,27 @@ peer_sent(struct peer *p, struct net_buf *nb)
     case NB_BITFIELD:
         btpd_log(BTPD_L_MSG, "sent bitfield to %p\r\n", p);
         break;
-    case NB_REQUEST:
-	if(p->ptype == HTTP_PEER)
-	{
-        btpd_log(BTPD_L_MSG, "sent request(%u,%u,%u) to %p\r\n",
-		p->in.pc_index,p->in.pc_begin,p->in.msg_len,p);
-	}
-	else
-	{
+	case NB_REQUEST:
+		if(p->ptype == HTTP_PEER)
+		{
+			btpd_log(BTPD_L_MSG, "sent request(%u,%u,%u) to %p\r\n",
+				p->in.pc_index,p->in.pc_begin,p->in.msg_len,p);
+		}
+		else
+		{
 
-	    btpd_log(BTPD_L_MSG, "sent request(%u,%u,%u) to %p\r\n",
-		    nb_get_index(nb), nb_get_begin(nb), nb_get_length(nb), p);
-	}
-        break;
-    case NB_PIECE:
+			btpd_log(BTPD_L_MSG, "sent request(%u,%u,%u) to %p\r\n",
+				nb_get_index(nb), nb_get_begin(nb), nb_get_length(nb), p);
+		}
+		break;
+	case NB_REREQUEST:
+		if(p->ptype == HTTP_PEER)
+		{
+			btpd_log(BTPD_L_MSG, "sent request(%u,%u,%u) to %p\r\n",
+				p->in.pc_index,p->in.pc_begin,p->in.msg_len,p);
+		}
+		break;
+	case NB_PIECE:
         btpd_log(BTPD_L_MSG, "sent piece(%u,%u,%u) to %p\r\n",
             nb_get_index(nb), nb_get_begin(nb), nb_get_length(nb), p);
         break;

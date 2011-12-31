@@ -15,6 +15,7 @@
 #define NB_BITDATA      12
 #define NB_SHAKE        13
 #define NB_KEEPALIVE    14
+#define NB_REREQUEST    15
 
 struct net_buf {
     short type;
@@ -41,7 +42,7 @@ struct net_buf *nb_create_request(uint32_t index,
     uint32_t begin, uint32_t length);
 
 struct net_buf *nb_create_request_p2sp(struct peer *peer_p2sp,uint32_t index,
-	uint32_t begin,uint32_t length);
+	uint32_t begin,uint32_t length,short type);
 
 struct net_buf *nb_create_cancel(uint32_t index,
     uint32_t begin, uint32_t length);

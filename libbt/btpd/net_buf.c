@@ -134,7 +134,7 @@ int f_seek(struct mi_file *files,unsigned nfiles,fpos_t *off)
 }
 
 struct net_buf *nb_create_request_p2sp(struct peer *peer_p2sp,uint32_t index,
-	uint32_t begin,uint32_t length)
+	uint32_t begin,uint32_t length,short type)
 {
     struct piece *pc;
     uint32_t block;
@@ -182,7 +182,7 @@ struct net_buf *nb_create_request_p2sp(struct peer *peer_p2sp,uint32_t index,
 	    range_start,range_start+(long)length-1);
 
     len = strlen(req);
-    out = nb_create_alloc(NB_REQUEST,len);
+    out = nb_create_alloc(type,len);
     memcpy(out->buf,req,len);
 
     pc = dl_find_piece(peer_p2sp->n,index);
