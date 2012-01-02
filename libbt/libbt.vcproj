@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;../openssl-0.9.8r/include&quot;;./misc;./evloop;./common/include;./common;./libnat/libnat/upnp"
+				AdditionalIncludeDirectories="&quot;./openssl-0.9.8r/include&quot;;./misc;./evloop;./common/include;./common;./libnat/libnat/upnp"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;LIBBT_EXPORTS;_CRT_SECURE_NO_WARNINGS;HAS_THREADS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -62,7 +62,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib winmm.lib ../openssl-0.9.8r/out32dll/libeay32.lib"
+				AdditionalDependencies="ws2_32.lib winmm.lib ./openssl-0.9.8r/out32dll/libeay32.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -118,7 +118,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="&quot;../openssl-0.9.8r/include&quot;;./misc;./evloop;./common/include;./common;./libnat/libnat/upnp"
+				AdditionalIncludeDirectories="&quot;./openssl-0.9.8r/include&quot;;./misc;./evloop;./common/include;./common;./libnat/libnat/upnp"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBBT_EXPORTS;_CRT_SECURE_NO_WARNINGS;HAS_THREADS"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -137,7 +137,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib winmm.lib ../openssl-0.9.8r/out32dll/libeay32.lib"
+				AdditionalDependencies="ws2_32.lib winmm.lib ./openssl-0.9.8r/out32dll/libeay32.lib"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
 				SubSystem="2"
