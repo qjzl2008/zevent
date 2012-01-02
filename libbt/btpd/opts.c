@@ -17,3 +17,4 @@ int empty_start = 0;
 const char *tr_ip_arg;
 int net_ipv4 = 1;
 int net_ipv6 = 0;
+int webseed_timeout = 3;

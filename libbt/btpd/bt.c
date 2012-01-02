@@ -4,6 +4,10 @@
 #include "getopt.h"
 #include "opts.h"
 #include "http_client.h"
+#include "upnp_nat.h"
+
+static upnp_param_t upnp_param;
+static upnp_nat_t *upnp_nat;
 
 static DWORD WINAPI evloop_td(void *arg)
 {
@@ -41,6 +45,14 @@ BT_DECLARE(int) bt_start_daemon(bt_arg_t *bt_arg)
 	return -1;
 
     bt_arg->th_bt = CreateThread(NULL,0,evloop_td,bt_arg,0,NULL);
+	if(bt_arg->use_upnp == 1)
+	{//Æô¶¯upnp·þÎñ
+		strcpy(upnp_param.ip,"0.0.0.0");
+		strcpy(upnp_param.desc,"p2sp");
+		upnp_param.port = bt_arg->net_port;
+		strcpy(upnp_param.protocol,"TCP");
+		upnp_nat_start(&upnp_param,&upnp_nat);
+	}
     return 0;
 }
 
@@ -59,6 +71,9 @@ BT_DECLARE(int) bt_stop_daemon(bt_arg_t *bt_arg)
     WaitForSingleObject(bt_arg->th_bt,10000);
     CloseHandle(bt_arg->th_bt);
     btpd_addrinfo_stop();
+
+	if(bt_arg->use_upnp == 1)
+		upnp_nat_stop(&upnp_param,&upnp_nat);
     WSACleanup();
     log_fini();
     return 0;
@@ -147,11 +162,18 @@ err:
 }
 
 static int 
-net_connect_block(const char *ip,int port,SOCKET *sd)
+net_connect_block(const char *ip,int port,SOCKET *sd,int tm_sec)
 {
     int rv;
-    struct addrinfo hints, *res;
-    char portstr[6];
+	struct addrinfo hints, *res;
+	char portstr[6];
+
+	struct timeval tm;
+	fd_set wset,eset;
+	FD_ZERO(&wset);
+	FD_ZERO(&eset);
+	tm.tv_sec=tm_sec;
+	tm.tv_usec=0;
 
     *sd = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
     if(*sd == INVALID_SOCKET)
@@ -159,6 +181,8 @@ net_connect_block(const char *ip,int port,SOCKET *sd)
 	rv = WSAGetLastError();
 	return -1;
     }
+
+	set_nonblocking(*sd);
 
     if(sprintf(portstr,"%d",port) >= sizeof(portstr))
 	return EINVAL;
@@ -170,68 +194,103 @@ net_connect_block(const char *ip,int port,SOCKET *sd)
     if(getaddrinfo(ip,portstr,&hints,&res) != 0)
 	return -1;
 
-    if(connect(*sd,res->ai_addr,(int)res->ai_addrlen) == SOCKET_ERROR 
-	    && WSAGetLastError() != WSAEWOULDBLOCK) {
+	rv = connect(*sd,res->ai_addr,(int)res->ai_addrlen);
 	freeaddrinfo(res);
-	closesocket(*sd);
-	return -1;
-    }
+    if( rv== SOCKET_ERROR)
+	{
+		if(WSAGetLastError() != WSAEWOULDBLOCK) {
+			closesocket(*sd);
+			return -1;
+		}
+		else
+		{
+			FD_SET(*sd,&wset);
+			FD_SET(*sd,&eset);
+			rv = select(0,NULL,&wset,&eset,&tm);
+			if(rv < 0){
+				closesocket(*sd);
+				return -1;
+			}
+			if(rv == 0)
+			{
+				closesocket(*sd);
+				return -2;//timeout
+			}
+			if(FD_ISSET(*sd,&eset))
+			{
+				closesocket(*sd);
+				return -1;
+			}
+			if(FD_ISSET(*sd,&wset))
+			{
+				int err=0;
 
-    freeaddrinfo(res);
+				socklen_t len=sizeof(err);
+				rv = getsockopt(*sd,SOL_SOCKET,SO_ERROR,&err,&len);
+				if(rv < 0 || (rv ==0 && err))
+				{
+					closesocket(*sd);
+					return -1;
+				}
+			}
+		}
+	}
+    set_blocking(*sd);
     return 0;
 }
 
 BT_DECLARE(int) bt_add_url(const char *dir,const char *name,const char *url,
 	bt_arg_t *bt_arg)
 {
-    enum ipc_err code;
-    char dpath[MAX_PATH];
+	enum ipc_err code;
+	char dpath[MAX_PATH];
+	int tm_sec = 3;
 
-    SOCKET sd;
-    int rv;
-    struct http_req *req = NULL;
-    mi_t mi = {NULL,0};
-    http_get(&req,url,"User-Agent: " "btpd" "\r\n",http_cb,&mi);
-    rv = net_connect_block(req->url->host,req->url->port,&sd);
-    if(rv != 0)
-    {
-	http_free(req);
-	return -1;
-    }
-    if(!http_write(req,sd))
-    {
-	return -1;
-    }
-    http_read(req,sd);
-    closesocket(sd);
-
-    if(mi.mi_data)
-    {
-	write_torrent(mi.mi_data,mi.mi_size,name);
-
-	strcpy(dpath,dir);
-	code = btpd_add(bt_arg->cmdpipe,mi.mi_data,mi.mi_size,dpath,NULL);
-	if(code == IPC_OK) {
-	    struct ipc_torrent tspec;
-	    tspec.by_hash = 1;
-	    mi_info_hash(mi.mi_data,tspec.u.hash);
-	    code = btpd_start(bt_arg->cmdpipe,&tspec);
-	}
-	else if(code == IPC_ETENTEXIST)
+	SOCKET sd;
+	int rv;
+	struct http_req *req = NULL;
+	mi_t mi = {NULL,0};
+	http_get(&req,url,"User-Agent: " "btpd" "\r\n",http_cb,&mi);
+	rv = net_connect_block(req->url->host,req->url->port,&sd,webseed_timeout);
+	if(rv != 0)
 	{
-	    free(mi.mi_data);
-	    return 1;
+		http_free(req);
+		return -1;
+	}
+	if(!http_write(req,sd))
+	{
+		return -1;
+	}
+	http_read(req,sd);
+	closesocket(sd);
+
+	if(mi.mi_data)
+	{
+		write_torrent(mi.mi_data,mi.mi_size,name);
+
+		strcpy(dpath,dir);
+		code = btpd_add(bt_arg->cmdpipe,mi.mi_data,mi.mi_size,dpath,NULL);
+		if(code == IPC_OK) {
+			struct ipc_torrent tspec;
+			tspec.by_hash = 1;
+			mi_info_hash(mi.mi_data,tspec.u.hash);
+			code = btpd_start(bt_arg->cmdpipe,&tspec);
+		}
+		else if(code == IPC_ETENTEXIST)
+		{
+			free(mi.mi_data);
+			return 1;
+		}
+		else
+		{
+			free(mi.mi_data);
+			return -1;
+		}
+		free(mi.mi_data);
+		return 0;
 	}
 	else
-	{
-	    free(mi.mi_data);
-	    return -1;
-	}
-	free(mi.mi_data);
-	return 0;
-    }
-    else
-	return -1;
+		return -1;
 }
 
 BT_DECLARE(int) bt_add_p2sp(char *torrent,const char *url,bt_arg_t *bt_arg)

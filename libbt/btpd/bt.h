@@ -28,6 +28,7 @@ typedef struct{
     int net_port;//bt 监听端口
     int ipc_port;//UI通信端口
     int pipe_port;//内部管道通信端口
+	int use_upnp;//是否启用upnp，1：启用，0：不启用
 
     int empty_start;
     HANDLE th_bt; //bt daemon线程句柄

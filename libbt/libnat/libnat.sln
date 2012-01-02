@@ -1,0 +1,29 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libnat", "libnat\libnat.vcproj", "{81B78928-DB84-4593-9B7A-C35AAF22406B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testpmp", "testpmp\testpmp.vcproj", "{0BCB9CE7-85B8-4BD5-8702-44E0E066AB0A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{81B78928-DB84-4593-9B7A-C35AAF22406B} = {81B78928-DB84-4593-9B7A-C35AAF22406B}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{81B78928-DB84-4593-9B7A-C35AAF22406B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{81B78928-DB84-4593-9B7A-C35AAF22406B}.Debug|Win32.Build.0 = Debug|Win32
+		{81B78928-DB84-4593-9B7A-C35AAF22406B}.Release|Win32.ActiveCfg = Release|Win32
+		{81B78928-DB84-4593-9B7A-C35AAF22406B}.Release|Win32.Build.0 = Release|Win32
+		{0BCB9CE7-85B8-4BD5-8702-44E0E066AB0A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{0BCB9CE7-85B8-4BD5-8702-44E0E066AB0A}.Debug|Win32.Build.0 = Debug|Win32
+		{0BCB9CE7-85B8-4BD5-8702-44E0E066AB0A}.Release|Win32.ActiveCfg = Release|Win32
+		{0BCB9CE7-85B8-4BD5-8702-44E0E066AB0A}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

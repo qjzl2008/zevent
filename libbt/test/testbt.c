@@ -60,6 +60,7 @@ int main(void)
 	bt_arg.pipe_port = 7777;
 	bt_arg.net_port = 7881;
 	bt_arg.empty_start = 1;
+	bt_arg.use_upnp = 1;
 
 	if(bt_start_daemon(&bt_arg) != 0)
 		return -1;

@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;../openssl-0.9.8r/include&quot;;./misc;./evloop;./common/include;./common"
+				AdditionalIncludeDirectories="&quot;../openssl-0.9.8r/include&quot;;./misc;./evloop;./common/include;./common;./libnat/libnat/upnp"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;LIBBT_EXPORTS;_CRT_SECURE_NO_WARNINGS;HAS_THREADS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -118,7 +118,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="&quot;../openssl-0.9.8r/include&quot;;./misc;./evloop;./common/include;./common"
+				AdditionalIncludeDirectories="&quot;../openssl-0.9.8r/include&quot;;./misc;./evloop;./common/include;./common;./libnat/libnat/upnp"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBBT_EXPORTS;_CRT_SECURE_NO_WARNINGS;HAS_THREADS"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -256,6 +256,10 @@
 				</File>
 				<File
 					RelativePath=".\btpd\upload.c"
+					>
+				</File>
+				<File
+					RelativePath=".\btpd\upnp_nat.c"
 					>
 				</File>
 				<File
@@ -414,6 +418,10 @@
 				</File>
 				<File
 					RelativePath=".\btpd\upload.h"
+					>
+				</File>
+				<File
+					RelativePath=".\btpd\upnp_nat.h"
 					>
 				</File>
 			</Filter>
