@@ -8,8 +8,6 @@ extern unsigned net_max_peers;
 extern unsigned net_bw_limit_in;
 extern unsigned net_bw_limit_out;
 extern int net_port;
-extern int ipc_port;
-extern int pipe_port;
 extern fpos_t cm_alloc_size;
 extern int ipcprot;
 extern int empty_start;

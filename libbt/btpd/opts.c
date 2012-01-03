@@ -9,8 +9,6 @@ int safe_max_fds = 800;
 unsigned net_bw_limit_in;
 unsigned net_bw_limit_out;
 int net_port = 6881;
-int ipc_port = 9988;
-int pipe_port = 7777;
 fpos_t cm_alloc_size = 2048 * 1024;
 int ipcprot = 0600;
 int empty_start = 0;

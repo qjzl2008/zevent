@@ -3,8 +3,6 @@
 
 #include <iobuf.h>
 
-extern int ipc_port;
-
 struct cli {
     SOCKET sd;
     struct fdev read;
@@ -534,38 +532,66 @@ client_connection_cb(SOCKET sd, short type, void *arg)
     btpd_ev_new(&cli->read, cli->sd, EV_READ, cli_read_cb, cli);
 }
 
-void
-ipc_shutdown(void)
-{
-    btpd_ev_del(&m_cli_incoming);
-    closesocket(m_listen_sd);
-}
-
 int
-ipc_init(void)
+ipc_init(bt_t *bt)
 {
-    SOCKET sd;
-    struct sockaddr_in addr;
-    size_t psiz = sizeof(addr.sin_addr);
+	SOCKET sd,cd,nsd;
+	struct ipc *cmd_pipe; 
+	struct sockaddr_in addr;
+	socklen_t len = 0;
 
-    addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = INADDR_ANY;
-    addr.sin_port = htons(ipc_port);
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+	addr.sin_port = htons(0);
 
-    if ((sd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-    {
-        btpd_err("sock: %s\r\n", strerror(errno));
-	return -1;
-    }
-    if (bind(sd, (struct sockaddr *)&addr, sizeof(addr)) != 0) {
-	btpd_err("bind: %s\r\n", strerror(errno));
-	return -1;
-    }
+	if ((sd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+	{
+		btpd_err("sock: %s\r\n", strerror(errno));
+		return -1;
+	}
+	if (bind(sd, (struct sockaddr *)&addr, sizeof(addr)) != 0) {
+		btpd_err("bind: %s\r\n", strerror(errno));
+		return -1;
+	}
 
-    listen(sd, 4);
-    //set_nonblocking(sd);
+	len = sizeof(addr);
+	if(getsockname(sd, (struct sockaddr *)&addr, &len) != 0)
+	{
+		closesocket(sd);
+		return -1;
+	}
 
-    btpd_ev_new(&m_cli_incoming, sd, EV_READ, client_connection_cb, NULL);
-    m_listen_sd = sd;
-    return 0;
+	listen(sd, 4);
+	//set_nonblocking(sd);
+
+	if((cd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == SOCKET_ERROR)
+		return -1;
+
+	if(connect(cd,(struct sockaddr *)&addr,sizeof(addr)) == SOCKET_ERROR) {
+		closesocket(cd);
+		return -1;
+	}
+
+	if((nsd = accept(sd, NULL, NULL)) == INVALID_SOCKET) {
+		btpd_err("client accept failed.\r\n");
+	}
+	closesocket(sd);
+
+	if((set_blocking(nsd)) != 0)
+		btpd_err("set_blocking failed.\r\n");
+
+	cli = btpd_calloc(1, sizeof(*cli));
+	cli->sd = nsd;
+	btpd_ev_new(&cli->read, cli->sd, EV_READ, cli_read_cb, cli);
+
+	if ((cmd_pipe = (struct ipc *)malloc(sizeof(*cmd_pipe))) == NULL) {
+		return ENOMEM;
+	}
+
+	cmd_pipe->sd = cd;
+	bt->cmdpipe = cmd_pipe;
+
+	//btpd_ev_new(&m_cli_incoming, sd, EV_READ, client_connection_cb, NULL);
+	m_listen_sd = sd;
+	return 0;
 }

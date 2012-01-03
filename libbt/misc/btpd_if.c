@@ -13,9 +13,6 @@
 #include "subr.h"
 #include "metainfo.h"
 
-struct ipc {
-    SOCKET sd;
-};
 
 static const char *errmsgs[] = {
 #define ERRDEF(name, msg) msg,

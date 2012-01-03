@@ -2,6 +2,11 @@
 #define BTPD_IPC_H
 
 #include "pstdint.h"
+#include <winsock2.h>
+
+struct ipc {
+	SOCKET sd;
+};
 
 enum ipc_err {
 #define ERRDEF(name, msg) IPC_##name,
@@ -35,15 +40,6 @@ enum ipc_twc {
     IPC_TWC_INACTIVE
 };
 
-enum ipc_tstate {
-    IPC_TSTATE_INACTIVE,
-    IPC_TSTATE_START,
-    IPC_TSTATE_STOP,
-    IPC_TSTATE_LEECH,
-    IPC_TSTATE_SEED
-};
-
-
 struct ipc;
 
 struct ipc_get_res {
@@ -70,7 +66,6 @@ typedef void (*tget_cb_t)(int obji, enum ipc_err objerr,
 
 //typedef void (*dget_cb_t)(struct ipc_get_res *res, size_t nres, void *arg);
 
-int ipc_open(const char *ip, int port, struct ipc **out);
 void ipc_close(struct ipc *ipc);
 
 const char *ipc_strerror(enum ipc_err err);

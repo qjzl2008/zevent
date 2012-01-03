@@ -329,11 +329,15 @@ write_fully(SOCKET fd, const void *buf, size_t len)
 {
     ssize_t nw;
     size_t off = 0;
+	DWORD code = 0;
 
     while (off < len) {
         nw = send(fd, (char*)buf + off, len - off, 0);
         if (nw == -1)
+		{
+            code = WSAGetLastError();
             return errno;
+		}
         off += nw;
     }
     return 0;
@@ -363,7 +367,7 @@ int f_write_fully(int fd,const void *buf,size_t len)
     BOOL bWrite;
 
     while(off < len) {
-	bWrite = WriteFile(_get_osfhandle(fd),buf,len,&bytes,NULL);
+	bWrite = WriteFile((HANDLE)_get_osfhandle(fd),buf,len,&bytes,NULL);
 	if(bWrite)
 	{
 	    off+=bytes;
@@ -381,7 +385,7 @@ int f_read_fully(int fd,void *buf, size_t len)
     BOOL bRead;
 
     while(off < len) {
-	bRead = ReadFile(_get_osfhandle(fd),(char *)buf + off,len - off,&bytes, NULL);
+	bRead = ReadFile((HANDLE)_get_osfhandle(fd),(char *)buf + off,len - off,&bytes, NULL);
 	if(bRead && bytes == 0)
 	    return 0;
 	if(bRead)

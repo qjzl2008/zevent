@@ -19,7 +19,6 @@ btpd_exit(int code)
     exit(code);
 }
 
-void ipc_shutdown(void);
 void net_shutdown(void);
 
 static void
@@ -33,7 +32,6 @@ death_procedure(void)
         fclose(stderr);
         fclose(stdout);
         net_shutdown();
-        ipc_shutdown();
         m_ghost = 1;
     }
 }
@@ -85,17 +83,18 @@ heartbeat_cb(int fd, short type, void *arg)
 }
 
 void tr_init(void);
-int ipc_init(void);
+int ipc_init(bt_t *bt_arg);
 void addrinfo_init(void);
 
 int
-btpd_init(void)
+btpd_init(bt_t *bt)
 {
     unsigned long seed;
     uint8_t idcon[1024];
 
     int n;
     struct timespec ts;
+	short bt_port = bt->bt_port;
 
     DWORD now = timeGetTime();
     n = sprintf(idcon, "%ld%d", (long)now,net_port);
@@ -114,9 +113,10 @@ btpd_init(void)
     if(td_init() != 0)
 	return -1;
     addrinfo_init();
-    if(net_init() != 0)
+
+    if(net_init(&bt_port) != 0)
 	return -1;
-    if(ipc_init()!=0)
+    if(ipc_init(bt)!=0)
 	return -1;
     ul_init();
     cm_init();

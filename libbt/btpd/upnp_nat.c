@@ -22,10 +22,16 @@ static int port_map(upnp_param_t *param,UINT32 uip)
 		return rv;
 	}
 	rv = LNat_Upnp_Get_Public_Ip(c,public_ip,sizeof(public_ip));
-	if(rv != 0 || (inet_addr(public_ip) == 0))
+	if(rv != 0)
 	{
 		LNat_Upnp_Controller_Free(&c);
+		return rv;
+	}
 
+	if(inet_addr(public_ip) == 0)
+	{
+		LNat_Upnp_Controller_Free(&c);
+		rv = -1;
 		return rv;
 	}
 	

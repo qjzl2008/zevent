@@ -46,6 +46,7 @@
 #include "content.h"
 #include "opts.h"
 #include "tracker_req.h"
+#include "bt.h"
 
 #define BTPD_VERSION "btpd/0.15"
 
@@ -62,10 +63,16 @@ extern long btpd_seconds;
 
 extern volatile int daemon_stop;
 
+struct bt_t{
+	HANDLE th_bt; //bt daemonÏß³Ì¾ä±ú
+	struct ipc *cmdpipe;
+	short bt_port;//bt¶Ë¿Ú
+};
+
 void log_init();
 void log_fini();
 
-int btpd_init(void);
+int btpd_init(bt_t *bt);
 
 void btpd_log(uint32_t type, const char *fmt, ...);
 

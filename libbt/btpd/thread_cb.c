@@ -73,50 +73,59 @@ extern int pipe_port;
 int
 td_init(void)
 {
-    SOCKET sd,cd,nsd;
-    struct sockaddr_in addr;
-    size_t psiz = sizeof(addr.sin_addr);
+	SOCKET sd,cd,nsd;
+	struct sockaddr_in addr;
+	socklen_t len = 0;
+	size_t psiz = sizeof(addr.sin_addr);
 
-    InitializeCriticalSection(&cs);
+	InitializeCriticalSection(&cs);
 
-    addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = inet_addr("127.0.0.1");
-    addr.sin_port = htons(pipe_port);
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);//inet_addr("127.0.0.1");
+	addr.sin_port = htons(0);
 
-    if((sd = socket(AF_INET,SOCK_STREAM,0)) < 0)
-    {
-	btpd_err("socket:%s\r\n",strerror(errno));
-	return -1;
-    }
-    if(bind(sd, (struct sockaddr *)&addr,sizeof(addr)) != 0) {
-	btpd_err("bind: %s\r\n",strerror(errno));
-	return -1;
-    }
-    
-    listen(sd,4);
-    td_sd = sd;
-    //set_nonblocking(sd);
-    
-    if((cd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == SOCKET_ERROR)
-	return -1;
+	if((sd = socket(AF_INET,SOCK_STREAM,0)) < 0)
+	{
+		btpd_err("socket:%s\r\n",strerror(errno));
+		return -1;
+	}
+	if(bind(sd, (struct sockaddr *)&addr,sizeof(addr)) != 0) {
+		closesocket(sd);
+		btpd_err("bind: %s\r\n",strerror(errno));
+		return -1;
+	}
+	len = sizeof(addr);
+	if(getsockname(sd, (struct sockaddr *)&addr, &len) != 0)
+	{
+		closesocket(sd);
+		return -1;
+	}
 
-    if(connect(cd,(struct sockaddr *)&addr,sizeof(addr)) == SOCKET_ERROR) {
-	closesocket(cd);
-	return -1;
-    }
+	listen(sd,4);
+	//set_nonblocking(sd);
 
-    if((nsd = accept(sd, NULL, NULL)) == INVALID_SOCKET) {
-	btpd_err("client accept failed.\r\n");
-    }
+	if((cd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == SOCKET_ERROR)
+		return -1;
 
-    if((set_blocking(nsd)) != 0)
-	btpd_err("set_blocking failed.\r\n");
-    
-    m_td_wr = nsd;
-    m_td_rd = cd;
+	if(connect(cd,(struct sockaddr *)&addr,sizeof(addr)) == SOCKET_ERROR) {
+		closesocket(cd);
+		return -1;
+	}
 
-    btpd_ev_new(&m_td_ev, m_td_rd, EV_READ, td_cb, NULL);
-    return 0;
+	if((nsd = accept(sd, NULL, NULL)) == INVALID_SOCKET) {
+		btpd_err("client accept failed.\r\n");
+	}
+
+	closesocket(sd);
+
+	if((set_blocking(nsd)) != 0)
+		btpd_err("set_blocking failed.\r\n");
+
+	m_td_wr = nsd;
+	m_td_rd = cd;
+
+	btpd_ev_new(&m_td_ev, m_td_rd, EV_READ, td_cb, NULL);
+	return 0;
 }
 
 int td_fini(void)
@@ -124,6 +133,5 @@ int td_fini(void)
     btpd_ev_del(&m_td_ev);
     closesocket(m_td_rd);
     closesocket(m_td_wr);
-    closesocket(td_sd);
     return 0;
 }

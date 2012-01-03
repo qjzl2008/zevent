@@ -1,4 +1,11 @@
 #include <conio.h>
+#include <errno.h>
+#include <limits.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <Windows.h>
 #include "../btpd/bt.h"
 
 void 
@@ -48,52 +55,52 @@ print_stat(struct btstat *st)
 int main(void)
 {
 	bt_arg_t bt_arg;
+	bt_t *bt = NULL;
+
 	int seeding = 1;
 	struct btstat tstat[10];
 	char *torrents[10];
 	int key,rv;
 	int ntorrents = 1,i = 0;
-	torrents[0] = "test.torrent";
-	torrents[1] = "wow3.torrent";
+	char idx[16] = {0};
+	torrents[0] = "./torrents/test.torrent";
 
-	bt_arg.ipc_port = 9988;
-	bt_arg.pipe_port = 7777;
-	bt_arg.net_port = 7881;
+	bt_arg.net_port = 0;
 	bt_arg.empty_start = 1;
 	bt_arg.use_upnp = 1;
 
-	if(bt_start_daemon(&bt_arg) != 0)
+
+	if(bt_start_daemon(&bt_arg,&bt) != 0)
 		return -1;
 	//rv = bt_add("download",torrents[0],&bt_arg);
-	rv = bt_add_url("downloads","test.torrent","http://127.0.0.1/test.torrent",&bt_arg);
+	//bt_del(ntorrents,torrents,bt);
+	rv = bt_add_url("downloads",torrents[0],"http://127.0.0.1/test.torrent",bt);
 	if(rv == 1)
 	{
-		bt_start(ntorrents,torrents,&bt_arg);
+		bt_start(ntorrents,torrents,bt);
 	}
 	else if(rv < 0)
 	{
-		bt_stop_daemon(&bt_arg);
+		bt_stop_daemon(bt);
 		return 0;
 	}
 
-	//rv = bt_add_p2sp("kongfu.torrent",
-	//	"http://download.firefox.com.cn/releases/webins2.0/official/zh-CN/",&bt_arg);
 	for(i = 0; i < 10; ++i)
-	rv = bt_add_p2sp("test.torrent","http://down1.chinaunix.net/distfiles/",&bt_arg);
+	rv = bt_add_p2sp(torrents[0],"http://down1.chinaunix.net/distfiles/",bt);
 
-	//rv = bt_add_p2sp("test.torrent","http://127.0.0.1",&bt_arg);
-	//bt_rate(2048,30*1024,&bt_arg);
+	//rv = bt_add_p2sp("test.torrent","http://127.0.0.1",bt);
+	//bt_rate(2048,30*1024,bt);
 	for(i = 0; i < ntorrents;++i)
 	{
-		bt_stat(torrents[i],&bt_arg,&tstat[i]);
+		bt_stat(torrents[i],bt,&tstat[i]);
 	}
 
 	while(1)
 	{
 		for(i = 0; i < ntorrents; ++i)
 		{
-			bt_stat(torrents[i],&bt_arg,&tstat[i]);
-			printf("%-20s ",torrents[i]);
+			bt_stat(torrents[i],bt,&tstat[i]);
+			printf("%-20s ",strrchr(torrents[i],'/') + 1);
 			print_stat(&tstat[i]);
 		}
 		if(_kbhit())
@@ -104,6 +111,6 @@ int main(void)
 		Sleep(1000);
 	}
 
-	bt_stop_daemon(&bt_arg);
+	bt_stop_daemon(bt);
 	return 0;
 }

@@ -6,31 +6,24 @@
 #include "http_client.h"
 #include "upnp_nat.h"
 
+static int upnp_on = 0;
 static upnp_param_t upnp_param;
 static upnp_nat_t *upnp_nat;
 
 static DWORD WINAPI evloop_td(void *arg)
 {
     bt_arg_t *bt_arg = (bt_arg_t *)arg;
-    if(!bt_arg->empty_start)
-	active_start();
-    else
-	active_clear();
-
     evloop();
-
     return 0;
 }
 
-BT_DECLARE(int) bt_start_daemon(bt_arg_t *bt_arg)
+BT_DECLARE(int) bt_start_daemon(bt_arg_t *bt_arg,bt_t **bt)
 {
     WSADATA wsaData;
     WSAStartup(MAKEWORD(2,2),&wsaData);
 
     log_init();
     net_port = bt_arg->net_port;
-    ipc_port = bt_arg->ipc_port;
-    pipe_port = bt_arg->pipe_port;
 
     empty_start = bt_arg->empty_start;
     if (evloop_init() != 0)
@@ -39,47 +32,58 @@ BT_DECLARE(int) bt_start_daemon(bt_arg_t *bt_arg)
 	return -1;
     }
 
-    if(btpd_init() != 0)
-	return -1;
-    if(ipc_open("127.0.0.1",bt_arg->ipc_port,&bt_arg->cmdpipe) != 0)
+	*bt = (bt_t *)malloc(sizeof(bt_t));
+	sizeof(*bt,0,sizeof(*bt));
+
+	(*bt)->bt_port = net_port;
+
+    if(btpd_init(*bt) != 0)
 	return -1;
 
-    bt_arg->th_bt = CreateThread(NULL,0,evloop_td,bt_arg,0,NULL);
+	if(!bt_arg->empty_start)
+		active_start();
+	else
+		active_clear();
+
+    (*bt)->th_bt = CreateThread(NULL,0,evloop_td,bt_arg,0,NULL);
 	if(bt_arg->use_upnp == 1)
 	{//启动upnp服务
 		strcpy(upnp_param.ip,"0.0.0.0");
 		strcpy(upnp_param.desc,"p2sp");
-		upnp_param.port = bt_arg->net_port;
+		upnp_param.port = net_port;
 		strcpy(upnp_param.protocol,"TCP");
 		upnp_nat_start(&upnp_param,&upnp_nat);
+		upnp_on = 1;
 	}
     return 0;
 }
 
-BT_DECLARE(int) bt_stop_daemon(bt_arg_t *bt_arg)
+BT_DECLARE(int) bt_stop_daemon(bt_t *bt)
 {
     enum ipc_err code;
-    code = btpd_die(bt_arg->cmdpipe);
+    code = btpd_die(bt->cmdpipe);
     if (code != IPC_OK)
     {
 	return -1;
     }
 
     Sleep(1000);//等待1s向tracker发送stop事件   
-	ipc_close(bt_arg->cmdpipe);
-    daemon_stop = 1;
-    WaitForSingleObject(bt_arg->th_bt,10000);
-    CloseHandle(bt_arg->th_bt);
-    btpd_addrinfo_stop();
+	ipc_close(bt->cmdpipe);
+	btpd_addrinfo_stop();
 
-	if(bt_arg->use_upnp == 1)
+    daemon_stop = 1;
+    WaitForSingleObject(bt->th_bt,10000);
+    CloseHandle(bt->th_bt);
+
+	if(upnp_on)
 		upnp_nat_stop(&upnp_param,&upnp_nat);
     WSACleanup();
     log_fini();
+	free(bt);
     return 0;
 }
 
-BT_DECLARE(int) bt_add(const char *dir,const char *torrent,bt_arg_t *bt_arg)
+BT_DECLARE(int) bt_add(const char *dir,const char *torrent,bt_t *bt)
 {
     char *mi;
     size_t mi_size;
@@ -94,12 +98,12 @@ BT_DECLARE(int) bt_add(const char *dir,const char *torrent,bt_arg_t *bt_arg)
     }
 
     strcpy(dpath,dir);
-    code = btpd_add(bt_arg->cmdpipe,mi,mi_size,dpath,name);
+    code = btpd_add(bt->cmdpipe,mi,mi_size,dpath,name);
     if (code == IPC_OK) {
 	struct ipc_torrent tspec;
 	tspec.by_hash = 1;
 	mi_info_hash(mi,tspec.u.hash);
-	code = btpd_start(bt_arg->cmdpipe,&tspec);
+	code = btpd_start(bt->cmdpipe,&tspec);
     }
     else if(code == IPC_ETENTEXIST)
     {
@@ -240,7 +244,7 @@ net_connect_block(const char *ip,int port,SOCKET *sd,int tm_sec)
 }
 
 BT_DECLARE(int) bt_add_url(const char *dir,const char *name,const char *url,
-	bt_arg_t *bt_arg)
+	bt_t *bt)
 {
 	enum ipc_err code;
 	char dpath[MAX_PATH];
@@ -269,12 +273,12 @@ BT_DECLARE(int) bt_add_url(const char *dir,const char *name,const char *url,
 		write_torrent(mi.mi_data,mi.mi_size,name);
 
 		strcpy(dpath,dir);
-		code = btpd_add(bt_arg->cmdpipe,mi.mi_data,mi.mi_size,dpath,NULL);
+		code = btpd_add(bt->cmdpipe,mi.mi_data,mi.mi_size,dpath,NULL);
 		if(code == IPC_OK) {
 			struct ipc_torrent tspec;
 			tspec.by_hash = 1;
 			mi_info_hash(mi.mi_data,tspec.u.hash);
-			code = btpd_start(bt_arg->cmdpipe,&tspec);
+			code = btpd_start(bt->cmdpipe,&tspec);
 		}
 		else if(code == IPC_ETENTEXIST)
 		{
@@ -293,13 +297,13 @@ BT_DECLARE(int) bt_add_url(const char *dir,const char *name,const char *url,
 		return -1;
 }
 
-BT_DECLARE(int) bt_add_p2sp(char *torrent,const char *url,bt_arg_t *bt_arg)
+BT_DECLARE(int) bt_add_p2sp(char *torrent,const char *url,bt_t *bt)
 {
     enum ipc_err code;
     struct ipc_torrent t;
     if(torrent_spec(torrent,&t))
     {
-	code = btpd_add_p2sp(bt_arg->cmdpipe,&t,url);
+	code = btpd_add_p2sp(bt->cmdpipe,&t,url);
 	if(code == IPC_OK) {
 	    return 0;
 	}
@@ -311,7 +315,7 @@ BT_DECLARE(int) bt_add_p2sp(char *torrent,const char *url,bt_arg_t *bt_arg)
     return 0;
 }
 
-BT_DECLARE(int) bt_del(int argc,char **argv,bt_arg_t *bt_arg)
+BT_DECLARE(int) bt_del(int argc,char **argv,bt_t *bt)
 {
     struct ipc_torrent t;
     enum ipc_err err;
@@ -324,7 +328,7 @@ BT_DECLARE(int) bt_del(int argc,char **argv,bt_arg_t *bt_arg)
     {
 	if(torrent_spec(argv[i],&t))
 	{
-	    err = btpd_del(bt_arg->cmdpipe,&t);
+	    err = btpd_del(bt->cmdpipe,&t);
 	    if(err != IPC_OK)
 		return -1;
 	}
@@ -333,11 +337,11 @@ BT_DECLARE(int) bt_del(int argc,char **argv,bt_arg_t *bt_arg)
     return 0;
 }
 
-BT_DECLARE(int) bt_stopall(bt_arg_t *bt_arg)
+BT_DECLARE(int) bt_stopall(bt_t *bt)
 {
     enum ipc_err code;
     
-    code = btpd_stop_all(bt_arg->cmdpipe);
+    code = btpd_stop_all(bt->cmdpipe);
     if(code != IPC_OK)
     {
 	return -1;
@@ -346,7 +350,7 @@ BT_DECLARE(int) bt_stopall(bt_arg_t *bt_arg)
     return 0;
 }
 
-BT_DECLARE(int) bt_stop(int argc,char **argv,bt_arg_t *bt_arg)
+BT_DECLARE(int) bt_stop(int argc,char **argv,bt_t *bt)
 {
     struct ipc_torrent t;
     enum ipc_err code;
@@ -359,7 +363,7 @@ BT_DECLARE(int) bt_stop(int argc,char **argv,bt_arg_t *bt_arg)
     {
 	if (torrent_spec(argv[i],&t))
 	{
-	    code = btpd_stop(bt_arg->cmdpipe,&t);
+	    code = btpd_stop(bt->cmdpipe,&t);
 	    if(code != IPC_OK)
 	    {
 		return -1;
@@ -369,7 +373,7 @@ BT_DECLARE(int) bt_stop(int argc,char **argv,bt_arg_t *bt_arg)
     return 0;
 }
 
-BT_DECLARE(int) bt_start(int argc,char **argv,bt_arg_t *bt_arg)
+BT_DECLARE(int) bt_start(int argc,char **argv,bt_t *bt)
 {
     struct ipc_torrent t;
     enum ipc_err err;
@@ -381,8 +385,8 @@ BT_DECLARE(int) bt_start(int argc,char **argv,bt_arg_t *bt_arg)
     {
 	if(torrent_spec(argv[i],&t))
 	{
-	    err = btpd_start(bt_arg->cmdpipe,&t);
-	    if(err != IPC_OK)
+	    err = btpd_start(bt->cmdpipe,&t);
+	    if(err != IPC_OK && err != IPC_ETACTIVE)
 		return -1;
 	}
     }
@@ -390,10 +394,10 @@ BT_DECLARE(int) bt_start(int argc,char **argv,bt_arg_t *bt_arg)
     return 0;
 }
 
-BT_DECLARE(int) bt_rate(unsigned up,unsigned down,bt_arg_t *bt_arg)
+BT_DECLARE(int) bt_rate(unsigned up,unsigned down,bt_t *bt)
 {
     enum ipc_err err;
-    err = btpd_rate(bt_arg->cmdpipe,up,down);
+    err = btpd_rate(bt->cmdpipe,up,down);
     if(err != IPC_OK)
 	return -1;
     return 0;
@@ -426,12 +430,12 @@ static void
 stat_cb(int obji,enum ipc_err objerr,struct ipc_get_res *res,void *arg)
 {
     struct cbarg *cba = arg;
-    struct btstat st, *tot = &cba->tot;
+    struct btstat st,*tot = &cba->tot;
     if (objerr != IPC_OK || res[IPC_TVAL_STATE].v.num == IPC_TSTATE_INACTIVE)
 	return;
     memset(&st,0,sizeof(st));
-    st.state = res[IPC_TVAL_STATE].v.num;
-    st.num = res[IPC_TVAL_NUM].v.num;
+	tot->num = (st.num = res[IPC_TVAL_NUM].v.num);
+	tot->state = (st.state = res[IPC_TVAL_STATE].v.num);
     tot->torrent_pieces += (st.torrent_pieces = res[IPC_TVAL_PCCOUNT].v.num);
     tot->pieces_seen += (st.pieces_seen = res[IPC_TVAL_PCSEEN].v.num);
     tot->content_got += (st.content_got = res[IPC_TVAL_CGOT].v.num);
@@ -445,7 +449,7 @@ stat_cb(int obji,enum ipc_err objerr,struct ipc_get_res *res,void *arg)
     tot->tr_good += (st.tr_good = res[IPC_TVAL_TRGOOD].v.num);
 }
 
-BT_DECLARE(int) bt_stat(char *torrent,bt_arg_t *bt_arg,struct btstat *stat)
+BT_DECLARE(int) bt_stat(char *torrent,bt_t *bt,struct btstat *stat)
 {
     struct ipc_torrent t;
     enum ipc_err err;
@@ -455,7 +459,7 @@ BT_DECLARE(int) bt_stat(char *torrent,bt_arg_t *bt_arg,struct btstat *stat)
 
     if(torrent_spec(torrent,&t))
     {
-	err = btpd_tget(bt_arg->cmdpipe,&t,1,stkeys,nstkeys,stat_cb,&cba);
+	err = btpd_tget(bt->cmdpipe,&t,1,stkeys,nstkeys,stat_cb,&cba);
 	if(err != IPC_OK)
 	    return -1;
 	else

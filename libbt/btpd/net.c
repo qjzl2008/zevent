@@ -950,6 +950,8 @@ net_init(void)
 {
 	int safe_fds;
 	int count = 0, flag = 1, found_ipv4 = 0, found_ipv6 = 0;
+	struct sockaddr_in addr;
+	socklen_t len;
 	SOCKET sd;
 	char portstr[6];
 	struct addrinfo hints,*res,*ai;
@@ -965,6 +967,7 @@ net_init(void)
 	hints.ai_flags = AI_ADDRCONFIG | AI_PASSIVE;
 	hints.ai_family = net_af_spec();
 	hints.ai_socktype = SOCK_STREAM;
+
 	sprintf(portstr, "%hu", net_port);
 	if ((errno = getaddrinfo(NULL, portstr, &hints, &res)) != 0)
 	{
@@ -1004,6 +1007,12 @@ net_init(void)
 			btpd_err("bind failed (%s).\r\n", strerror(errno));
 			return -1;
 		}
+		len = sizeof(addr);
+		if(getsockname(sd, (struct sockaddr *)&addr, &len) != 0)
+		{
+			return -1;
+		}
+		net_port = ntohs(addr.sin_port);
 		listen(sd, 10);
 		set_nonblocking(sd);
 		m_net_listeners[count].sd = sd;
