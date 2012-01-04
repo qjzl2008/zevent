@@ -35,13 +35,8 @@
 // that uses this DLL. This way any other project whose source files include this file see 
 // LIBNAT_API functions as being imported from a DLL, whereas this DLL sees symbols
 // defined with this macro as being exported.*/
-#ifdef WIN32
-//#if 0
-  #ifdef LIBNAT_EXPORTS
+#if defined(WIN32)
     #define LIBNAT_API __declspec(dllexport)
-  #else
-    #define LIBNAT_API __declspec(dllimport)
-  #endif
 #else /* not MSVC */
   #define LIBNAT_API
 #endif
