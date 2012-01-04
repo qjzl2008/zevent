@@ -22,6 +22,8 @@ BT_DECLARE(int) bt_start_daemon(bt_arg_t *bt_arg,bt_t **bt)
     WSADATA wsaData;
     WSAStartup(MAKEWORD(2,2),&wsaData);
 
+	daemon_stop = 0;
+
     log_init();
     net_port = bt_arg->net_port;
 

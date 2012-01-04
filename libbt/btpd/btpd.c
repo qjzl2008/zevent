@@ -110,6 +110,10 @@ btpd_init(bt_t *bt)
 
     srand(seed);
 
+	m_shutdown = 0;
+	m_ghost = 0;
+	m_signal = 0;
+
     if(td_init() != 0)
 	return -1;
     addrinfo_init();
