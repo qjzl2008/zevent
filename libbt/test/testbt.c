@@ -72,7 +72,7 @@ int main(void)
 
 	if(bt_start_daemon(&bt_arg,&bt) != 0)
 		return -1;
-	//rv = bt_add("download",torrents[0],&bt_arg);
+	//rv = bt_add("download",torrents[0],&bt);
 	//bt_del(ntorrents,torrents,bt);
 	rv = bt_add_url("downloads",torrents[0],"http://127.0.0.1/test.torrent",bt);
 	if(rv == 1)
