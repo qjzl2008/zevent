@@ -62,7 +62,7 @@ int main(void)
 	char *torrents[10];
 	int key,rv;
 	int ntorrents = 1,i = 0;
-	int tid[32] = {0};
+	int tids[32] = {0};
 	char id[32] = {0};
 
 	torrents[0] = "./torrents/test.torrent";
@@ -96,14 +96,14 @@ int main(void)
 	for(i = 0; i < ntorrents;++i)
 	{
 		bt_stat(torrents[i],bt,&tstat[i]);
-		tid[i] = tstat[i].num;
+		tids[i] = tstat[i].num;
 	}
 
 	while(1)
 	{
 		for(i = 0; i < ntorrents; ++i)
 		{
-			_snprintf(id,sizeof(id),"%d",tid[i]);
+			_snprintf(id,sizeof(id),"%d",tids[i]);
 			bt_stat(id,bt,&tstat[i]);
 			printf("%-20s ",strrchr(torrents[i],'/') + 1);
 			print_stat(&tstat[i]);
