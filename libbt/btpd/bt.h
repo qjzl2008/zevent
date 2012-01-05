@@ -44,12 +44,18 @@ struct btstat{
 启动bt后台服务，获得后续操作句柄
 @bt_arg 启动参数
 @bt 后续需要用到的句柄
+@返回值 rv：
+ 0 成功
+ -1 失败
 */
 BT_DECLARE(int) bt_start_daemon(bt_arg_t *bt_arg,bt_t **bt);
 
 /*
 结束bt服务
 @bt 操作句柄
+@返回值 rv：
+   0 成功
+   -1 失败
 */
 BT_DECLARE(int) bt_stop_daemon(bt_t *bt);
 
@@ -58,6 +64,10 @@ BT_DECLARE(int) bt_stop_daemon(bt_t *bt);
 @dir 下载存放目录
 @torrent 种子名
 @bt bt操作句柄
+@返回值 rv：
+  0 成功
+  1 已存在
+  -1 失败
 */
 BT_DECLARE(int) bt_add(const char *dir,const char *torrent,bt_t *bt);
 
@@ -67,6 +77,10 @@ web seed接口
 @savename 远程种子下载到本地后的保存名字（含路径）
 @url 种子的url地址
 @bt bt操作句柄
+@返回值 rv：
+0 成功
+1 已存在
+-1 失败
 */
 BT_DECLARE(int) bt_add_url(const char *dir,const char *savename,const char *url,
 	bt_t *bt);
@@ -79,18 +93,30 @@ BT_DECLARE(int) bt_add_url(const char *dir,const char *savename,const char *url,
 eg:
    char *torrents[2]={"1.torrent","2.torrent"};
    bt_del(2,torrents,bt);
+@返回值 rv：
+   0 成功
+   -1 失败
 */
 BT_DECLARE(int) bt_del(int argc,char **argv,bt_t *bt);
 /*
 停止任务
+@返回值 rv：
+0 成功
+-1 失败
 */
 BT_DECLARE(int) bt_stop(int argc,char **argv,bt_t *bt);
 /*
 停止所有任务
+@返回值 rv：
+0 成功
+-1 失败
 */
 BT_DECLARE(int) bt_stopall(bt_t *bt);
 /*
 开始下载
+@返回值 rv：
+0 成功
+-1 失败
 */
 BT_DECLARE(int) bt_start(int argc,char **argv,bt_t *bt);
 
@@ -99,12 +125,18 @@ BT_DECLARE(int) bt_start(int argc,char **argv,bt_t *bt);
 @torrent 种子名（含路径)
 @bt 操作句柄
 @stat 状态信息
+@返回值 rv：
+0 成功
+-1 失败
 */
 BT_DECLARE(int) bt_stat(char *torrent,bt_t *bt,struct btstat *stat);
 
 /**
  * up 上传速率阀值(bytes 字节）
  * down 下载速率阀值(bytes 字节)
+ @返回值 rv：
+ 0 成功
+ -1 失败
  */
 BT_DECLARE(int) bt_rate(unsigned up, unsigned down, bt_t *bt_arg);
 
@@ -116,6 +148,9 @@ BT_DECLARE(int) bt_rate(unsigned up, unsigned down, bt_t *bt_arg);
  * @bt 操作句柄
  * @本接口为每个url建立一个http连接，如果需要多个连接下载（可以加大速度，建议5个），
  * 可多次调用本接口（即使是同一url)
+ @返回值 rv：
+ 0 成功
+ -1 失败
  */
 BT_DECLARE(int) bt_add_p2sp(char *torrent,const char *url,bt_t *bt); 
 
