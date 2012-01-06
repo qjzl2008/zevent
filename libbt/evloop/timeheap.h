@@ -12,6 +12,7 @@ struct th_handle {
 };
 
 int timeheap_init(void);
+int timeheap_destroy(void);
 int timeheap_size(void);
 
 int  timeheap_insert(struct th_handle *h, struct timespec *t);

@@ -81,6 +81,13 @@ timeheap_init(void)
         return 0;
 }
 
+int timeheap_destroy(void)
+{
+	if(heap)
+		free(heap);
+	return 0;
+}
+
 int
 timeheap_size(void)
 {

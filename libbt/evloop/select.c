@@ -196,5 +196,6 @@ int evloop()
 	}
     hash_destroy(hfdev);
     hfdev = NULL;
+	timeheap_destroy();
     return 0;
 }

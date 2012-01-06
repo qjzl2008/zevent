@@ -241,6 +241,7 @@ cmd_add(struct cli *cli, int argc, const char *args)
     const char *mi, *cp;
     char content[MAX_PATH];
     uint8_t hash[20];
+	char *pname = NULL;
 
     if(argc != 1 || !benc_isdct(args))
 	return IPC_COMMERR;
@@ -263,6 +264,8 @@ cmd_add(struct cli *cli, int argc, const char *args)
     tl = tlib_by_hash(mi_info_hash(mi, hash));
     if (tl != NULL && !torrent_haunting(tl))
         return write_code_buffer(cli, IPC_ETENTEXIST);
+
+	pname = benc_dget_str(args, "name", NULL);
     if (tl != NULL) {
         tl = tlib_readd(tl, hash, mi, mi_size, content,
             benc_dget_str(args, "name", NULL));
@@ -270,6 +273,8 @@ cmd_add(struct cli *cli, int argc, const char *args)
         tl = tlib_add(hash, mi, mi_size, content,
             benc_dget_str(args, "name", NULL));
     }
+	if(pname)
+		free(pname);
     return write_add_buffer(cli, tl->num);
 }
 

@@ -341,7 +341,7 @@ case P2SP_RESP:
 	else
 	{
 		dl_assign_request_http(p,dl_find_piece(p->n,p->in.pc_index),
-			p->in.pc_begin+length,p->in.st_bytes-length,NB_REREQUEST);
+			p->in.pc_begin+length,p->in.st_bytes-length);
 	}
 	break;
 default:
