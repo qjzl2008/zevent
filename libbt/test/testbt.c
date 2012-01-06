@@ -91,7 +91,7 @@ int main(void)
 	rv = bt_add_p2sp(torrents[0],"http://down1.chinaunix.net/distfiles/",bt);
 
 	//rv = bt_add_p2sp("test.torrent","http://127.0.0.1",bt);
-	bt_rate(30*1024,30*1024,bt);
+	//bt_rate(30*1024,30*1024,bt);
 
 	for(i = 0; i < ntorrents;++i)
 	{
