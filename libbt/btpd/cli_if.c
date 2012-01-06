@@ -306,6 +306,7 @@ cmd_add_p2sp(struct cli *cli, int argc, const char *args)
 	strcpy(tl->tp->sinfo[tl->tp->svrnum].uri,p2sp_url->uri);
 	tl->tp->sinfo->done = 0;
 	++tl->tp->svrnum;
+	http_url_free(p2sp_url);
     }
     return 0;
 }
