@@ -17,6 +17,7 @@ struct httptr_req {
     nameconn_t nc;
     SOCKET sd;
     enum tr_event event;
+	char aurl[256];
 };
 
 static void
@@ -182,20 +183,68 @@ httptr_io_cb(int sd, short type, void *arg)
     }
 }
 
+static int httptr_req_pack(struct httptr_req *treq)
+{
+	char e_hash[61], e_id[61], url[512], qc;
+	const uint8_t *peer_id = btpd_get_peer_id();
+	int i;
+
+	char *aurl = treq->aurl;
+
+	qc = (strchr(aurl, '?') == NULL) ? '?' : '&';
+
+	for (i = 0; i < 20; i++)
+		sprintf(e_hash + i * 3, "%%%.2x", treq->tp->tl->hash[i]);
+	for (i = 0; i < 20; i++)
+		sprintf(e_id + i * 3, "%%%.2x", peer_id[i]);
+
+	sprintf(url,
+		"%s%cinfo_hash=%s&peer_id=%s&key=%ld%s%s&port=%d&uploaded=%llu"
+		"&downloaded=%llu&left=%llu&compact=1%s%s",
+		aurl, qc, e_hash, e_id, tr_key,
+		tr_ip_arg == NULL ? "" : "&localip=", tr_ip_arg == NULL ? "" : tr_ip_arg,
+		net_port, treq->tp->net->uploaded, treq->tp->net->downloaded,
+		(long long)treq->tp->total_length - cm_content(treq->tp),
+		treq->event == TR_EV_EMPTY ? "" : "&event=", m_tr_events[treq->event]);
+
+	if (!http_get(&treq->req, url, "User-Agent: " BTPD_VERSION "\r\n",
+		http_cb, treq)) {
+			return -1;
+	}
+	return 0;
+}
+
 static void
 httptr_nc_cb(void *arg, int error, SOCKET sd)
 {
+	struct sockaddr_in addr;
+	socklen_t len;
     struct tr_response res;
     struct httptr_req *treq = arg;
     struct timespec ts = {30,0};
     uint16_t flags;
+	int rv;
     if (error) {
         res.type = TR_RES_CONN;
         tr_result(treq->tr, &res);
         http_cancel(treq->req);
         httptr_free(treq);
-    } else {
-        treq->sd = sd;
+    } else {	
+		//此处获取下出口网卡的ip做为报告给tracker的内网ip
+		len = sizeof(addr);
+		if(getsockname(sd, (struct sockaddr *)&addr, &len) != 0)
+		{
+			tr_ip_arg = NULL;
+		}
+		else
+			tr_ip_arg = inet_ntoa(addr.sin_addr);
+
+		treq->sd = sd;
+		rv = httptr_req_pack(treq);
+
+		if(rv != 0)
+			return;
+	
         flags =
             (http_want_read(treq->req) ? EV_READ : 0) |
             (http_want_write(treq->req) ? EV_WRITE : 0);
@@ -208,35 +257,11 @@ struct httptr_req *
 httptr_req(struct torrent *tp, struct tr_tier *tr, const char *aurl,
     enum tr_event event)
 {
-    char e_hash[61], e_id[61], url[512], qc;
-    const uint8_t *peer_id = btpd_get_peer_id();
     struct http_url *http_url;
     struct httptr_req *treq;
     struct timespec ts;
-    int i;
-
-    qc = (strchr(aurl, '?') == NULL) ? '?' : '&';
-
-    for (i = 0; i < 20; i++)
-        sprintf(e_hash + i * 3, "%%%.2x", tp->tl->hash[i]);
-    for (i = 0; i < 20; i++)
-        sprintf(e_id + i * 3, "%%%.2x", peer_id[i]);
-
-    sprintf(url,
-        "%s%cinfo_hash=%s&peer_id=%s&key=%ld%s%s&port=%d&uploaded=%llu"
-        "&downloaded=%llu&left=%llu&compact=1%s%s",
-        aurl, qc, e_hash, e_id, tr_key,
-        tr_ip_arg == NULL ? "" : "&ip=", tr_ip_arg == NULL ? "" : tr_ip_arg,
-        net_port, tp->net->uploaded, tp->net->downloaded,
-        (long long)tp->total_length - cm_content(tp),
-        event == TR_EV_EMPTY ? "" : "&event=", m_tr_events[event]);
 
     treq = btpd_calloc(1, sizeof(*treq));
-    if (!http_get(&treq->req, url, "User-Agent: " BTPD_VERSION "\r\n",
-            http_cb, treq)) {
-        free(treq);
-        return NULL;
-    }
     treq->tp = tp;
     treq->tr = tr;
     treq->event = event;
@@ -245,13 +270,15 @@ httptr_req(struct torrent *tp, struct tr_tier *tr, const char *aurl,
         btpd_err("Out of memory.\r\n");
     treq->tr = tr;
     treq->sd = -1;
-    http_url = http_url_get(treq->req);
+	memcpy(treq->aurl,aurl,strlen(aurl));
+    http_url = http_url_parse(aurl);
     treq->nc = btpd_name_connect(http_url->host, http_url->port,
         httptr_nc_cb, treq);
     evtimer_init(&treq->timer, httptr_io_cb, treq);
     ts.tv_sec = 60;
     ts.tv_nsec = 0;
     btpd_timer_add(&treq->timer, &ts);
+	http_url_free(http_url);
     return treq;
 }
 
@@ -260,6 +287,7 @@ httptr_cancel(struct httptr_req *treq)
 {
     if (treq->sd == -1)
         btpd_name_connect_cancel(treq->nc);
-    http_cancel(treq->req);
+	if(treq->req)
+		http_cancel(treq->req);
     httptr_free(treq);
 }

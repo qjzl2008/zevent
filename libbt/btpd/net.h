@@ -48,6 +48,8 @@ int net_connect_addr(int family, struct sockaddr *sa, socklen_t salen,
     SOCKET *sd);
 int net_connect_name(const char *ip, int port, SOCKET *sd);
 
+int net_connect_block(const char *ip,int port,SOCKET *sd,int tm_sec);
+
 int net_af_spec(void);
 
 #endif

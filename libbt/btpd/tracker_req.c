@@ -2,7 +2,7 @@
 #include "http_client.h"
 
 #define REQ_DELAY 1
-#define DEFAULT_INTERVAL rand_between(25 * 60, 30 * 60)
+#define DEFAULT_INTERVAL rand_between(60, 2 * 60)
 #define RETRY1_TIMEOUT (240 + rand_between(0, 120))
 #define RETRY2_TIMEOUT (900 + rand_between(0, 300))
 
