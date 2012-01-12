@@ -413,6 +413,23 @@ cmd_stop_all(struct cli *cli, int argc, const char *args)
     return ret;
 }
 
+static int
+cmd_get_tids(struct cli *cli, int argc, const char *args)
+{
+	struct iobuf iob;
+	struct torrent *tp, *next;
+
+	iob = iobuf_init(1 << 15);
+	iobuf_swrite(&iob, "d4:codei0e6:resultl");
+
+	BTPDQ_FOREACH_MUTABLE(tp, torrent_get_all(), entry, next)
+	{
+		iobuf_print(&iob, "i%de", tp->tl->num);
+	}
+	iobuf_swrite(&iob, "ee");
+	return write_buffer(cli, &iob);
+}
+
 static int 
 cmd_die(struct cli *cli, int argc, const char *args)
 {
@@ -464,6 +481,7 @@ static struct {
     { "stop",   4, cmd_stop },
     { "rate",   4, cmd_rate },
     { "stop-all", 8, cmd_stop_all},
+	{ "get-tids",8, cmd_get_tids},
     { "tget",   4, cmd_tget },
     { "addp2sp",7, cmd_add_p2sp}
 };

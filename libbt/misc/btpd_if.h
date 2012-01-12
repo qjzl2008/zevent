@@ -78,6 +78,7 @@ enum ipc_err btpd_del(struct ipc *ipc, struct ipc_torrent *tp);
 enum ipc_err btpd_start(struct ipc *ipc, struct ipc_torrent *tp);
 enum ipc_err btpd_stop(struct ipc *ipc, struct ipc_torrent *tp);
 enum ipc_err btpd_stop_all(struct ipc *ipc);
+enum ipc_err btpd_tids(struct ipc *ipc,long long *tids,int *num);
 enum ipc_err btpd_rate(struct ipc *ipc, unsigned up, unsigned down);
 enum ipc_err btpd_die(struct ipc *ipc);
 enum ipc_err btpd_get(struct ipc *ipc, enum ipc_dval *keys, size_t nkeys,

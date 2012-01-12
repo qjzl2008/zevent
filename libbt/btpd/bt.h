@@ -36,11 +36,34 @@ enum ipc_tstate {
 };
 
 struct btstat{
+	//任务号
     long long num;
+	//存储目录
+	char dir[256];
+	//文件名
+	char name[64];
+	//任务状态
     enum ipc_tstate state;
+	/*
+	* peers:连接数
+	* tr_good:tracker数
+	*/
     long long peers,tr_good;
+	/*
+	* content_got:已经下载的字节数
+	* content_size: 总字节数
+	* downloaded: 本次下载的字节数
+	* uploaded: 本次上传的字节数
+	* rate_up: 上传速率
+	* rate_down: 下载速率
+	* tot_up: 总上传字节数
+	*/
     long long content_got,content_size,downloaded,uploaded,rate_up,
 	 rate_down,tot_up;
+	/*
+	 * pieces_seen: 可用文件片(指从别的peer发现的)数
+	 * torrent_pieces:总文件片数
+	 */
     long long pieces_seen,torrent_pieces;
 };
 
@@ -142,6 +165,17 @@ BT_DECLARE(int) bt_stopall(bt_t *bt);
 -1 失败
 */
 BT_DECLARE(int) bt_start(int argc,char **argv,bt_t *bt);
+
+/*
+获取所有任务的编号
+@bt 操作句柄
+@id 返回的id数组
+@num 返回id的总数
+@返回值 rv：
+0 成功
+-1 失败
+*/
+BT_DECLARE(int) bt_tids(long long *tids,int *num,bt_t *bt);
 
 /*
 查看种子的下载状态信息

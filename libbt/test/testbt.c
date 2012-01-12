@@ -63,6 +63,7 @@ int main(void)
 	int key,rv;
 	int ntorrents = 1,i = 0;
 	int tids[32] = {0};
+	int ntids = 32;
 	char id[32] = {0};
 
 	torrents[0] = "./torrents/test.torrent";
@@ -98,6 +99,8 @@ int main(void)
 		bt_stat(torrents[i],bt,&tstat[i]);
 		tids[i] = tstat[i].num;
 	}
+
+	rv = bt_tids(tids,&ntids,bt);
 
 	while(1)
 	{

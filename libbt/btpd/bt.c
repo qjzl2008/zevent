@@ -371,6 +371,7 @@ struct cbarg{
 static enum ipc_tval stkeys[] = {
     IPC_TVAL_STATE,
     IPC_TVAL_NUM,
+	IPC_TVAL_DIR,
     IPC_TVAL_NAME,
     IPC_TVAL_PCOUNT,
     IPC_TVAL_TRGOOD,
@@ -396,6 +397,10 @@ stat_cb(int obji,enum ipc_err objerr,struct ipc_get_res *res,void *arg)
 	return;
     memset(&st,0,sizeof(st));
 	tot->num = (st.num = res[IPC_TVAL_NUM].v.num);
+	memcpy(st.dir,res[IPC_TVAL_DIR].v.str.p,res[IPC_TVAL_DIR].v.str.l);
+	memcpy(tot->dir,res[IPC_TVAL_DIR].v.str.p,res[IPC_TVAL_DIR].v.str.l);
+	memcpy(st.name,res[IPC_TVAL_NAME].v.str.p,res[IPC_TVAL_NAME].v.str.l);
+	memcpy(tot->name,res[IPC_TVAL_NAME].v.str.p,res[IPC_TVAL_NAME].v.str.l);
 	tot->state = (st.state = res[IPC_TVAL_STATE].v.num);
     tot->torrent_pieces += (st.torrent_pieces = res[IPC_TVAL_PCCOUNT].v.num);
     tot->pieces_seen += (st.pieces_seen = res[IPC_TVAL_PCSEEN].v.num);
@@ -408,6 +413,18 @@ stat_cb(int obji,enum ipc_err objerr,struct ipc_get_res *res,void *arg)
     tot->peers += (st.peers = res[IPC_TVAL_PCOUNT].v.num);
     tot->tot_up += (st.tot_up = res[IPC_TVAL_TOTUP].v.num);
     tot->tr_good += (st.tr_good = res[IPC_TVAL_TRGOOD].v.num);
+}
+
+BT_DECLARE(int) bt_tids(long long *tids,int *num,bt_t *bt)
+{
+	enum ipc_err code;
+
+	code = btpd_tids(bt->cmdpipe,tids,num);
+	if(code != IPC_OK)
+	{
+		return -1;
+	}
+	return 0;
 }
 
 BT_DECLARE(int) bt_stat(char *torrent,bt_t *bt,struct btstat *stat)

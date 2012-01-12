@@ -345,6 +345,40 @@ btpd_stop_all(struct ipc *ipc)
     return ipc_buf_req_code(ipc, &iob);
 }
 
+enum ipc_err 
+btpd_tids(struct ipc *ipc,long long *tids,int *num)
+{
+	char *res,*lst;
+	uint32_t rlen;
+	enum ipc_err err;
+	struct iobuf iob = iobuf_init(1 << 15);
+	int i = 0,k = 0;
+	long long rv;
+	int max_num = *num;
+
+	if (*num == 0)
+		return IPC_COMMERR;
+
+	*num = 0;
+	iobuf_swrite(&iob, "l8:get-tidse");
+	if ((err = ipc_buf_req_res(ipc, &iob, &res, &rlen)) == 0)
+	{
+		if ((err = benc_dget_int(res, "code")) != 0)
+			return err;
+		lst = benc_dget_lst(res, "result");
+		for (lst = benc_first(lst); lst != NULL; lst = benc_next(lst))
+		{
+			if (benc_isint(lst)) {
+				tids[*num] = benc_int(lst,NULL);
+				(*num)++;
+			}
+			continue;
+		}
+		free(res);
+	}
+	return err;
+}
+
 enum ipc_err
 btpd_rate(struct ipc *ipc, unsigned up, unsigned down)
 {

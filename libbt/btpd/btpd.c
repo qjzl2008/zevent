@@ -85,29 +85,31 @@ heartbeat_cb(int fd, short type, void *arg)
 void tr_init(void);
 void addrinfo_init(void);
 
+static int gen_peerid(void)
+{
+	unsigned long seed;
+	uint8_t idcon[1024];
+	DWORD now = timeGetTime();
+	int n = sprintf(idcon, "%ld%d", (long)now,net_port);
+	if (n < sizeof(idcon))
+		gethostname(idcon + n, sizeof(idcon) - n);
+	idcon[sizeof(idcon) - 1] = '\0';
+	n = strlen(idcon);
+
+	SHA1(idcon, n, m_peer_id);
+	memcpy(&seed,m_peer_id,sizeof(seed));
+	memcpy(m_peer_id, BTPD_VERSION, sizeof(BTPD_VERSION) - 1);
+	m_peer_id[sizeof(BTPD_VERSION) - 1] = '|';
+
+	srand(seed);
+	return 0;
+}
+
 int
 btpd_init(bt_t *bt)
 {
-    unsigned long seed;
-    uint8_t idcon[1024];
-
-    int n;
     struct timespec ts;
 	short bt_port = bt->bt_port;
-
-    DWORD now = timeGetTime();
-    n = sprintf(idcon, "%ld%d", (long)now,net_port);
-    if (n < sizeof(idcon))
-        gethostname(idcon + n, sizeof(idcon) - n);
-    idcon[sizeof(idcon) - 1] = '\0';
-    n = strlen(idcon);
-
-    SHA1(idcon, n, m_peer_id);
-    memcpy(&seed,m_peer_id,sizeof(seed));
-    memcpy(m_peer_id, BTPD_VERSION, sizeof(BTPD_VERSION) - 1);
-    m_peer_id[sizeof(BTPD_VERSION) - 1] = '|';
-
-    srand(seed);
 
 	m_shutdown = 0;
 	m_ghost = 0;
@@ -117,8 +119,10 @@ btpd_init(bt_t *bt)
 	return -1;
     addrinfo_init();
 
-    if(net_init(&bt_port) != 0)
-	return -1;
+    if(net_init() != 0)
+		return -1;
+	gen_peerid();
+
     if(ipc_init(bt)!=0)
 	return -1;
     ul_init();
