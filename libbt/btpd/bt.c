@@ -71,6 +71,7 @@ BT_DECLARE(int) bt_stop_daemon(bt_t *bt)
 
     Sleep(1000);//等待1s向tracker发送stop事件   
 	ipc_close(bt->cmdpipe);
+	ipc_fini(bt);
 	btpd_addrinfo_stop();
 
     daemon_stop = 1;

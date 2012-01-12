@@ -83,7 +83,6 @@ heartbeat_cb(int fd, short type, void *arg)
 }
 
 void tr_init(void);
-int ipc_init(bt_t *bt_arg);
 void addrinfo_init(void);
 
 int

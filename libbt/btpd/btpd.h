@@ -74,6 +74,9 @@ void log_fini();
 
 int btpd_init(bt_t *bt);
 
+int ipc_init(bt_t *bt);
+int ipc_fini(bt_t *bt);
+
 void btpd_log(uint32_t type, const char *fmt, ...);
 
 void btpd_err(const char *fmt, ...);

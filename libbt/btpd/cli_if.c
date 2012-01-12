@@ -568,7 +568,6 @@ ipc_init(bt_t *bt)
 	}
 
 	listen(sd, 4);
-	//set_nonblocking(sd);
 
 	if((cd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == SOCKET_ERROR)
 		return -1;
@@ -581,7 +580,6 @@ ipc_init(bt_t *bt)
 	if((nsd = accept(sd, NULL, NULL)) == INVALID_SOCKET) {
 		btpd_err("client accept failed.\r\n");
 	}
-	closesocket(sd);
 
 	if((set_blocking(nsd)) != 0)
 		btpd_err("set_blocking failed.\r\n");
@@ -597,7 +595,14 @@ ipc_init(bt_t *bt)
 	cmd_pipe->sd = cd;
 	bt->cmdpipe = cmd_pipe;
 
-	//btpd_ev_new(&m_cli_incoming, sd, EV_READ, client_connection_cb, NULL);
+    set_nonblocking(sd);
+	btpd_ev_new(&m_cli_incoming, sd, EV_READ, client_connection_cb, NULL);
 	m_listen_sd = sd;
+	return 0;
+}
+
+int ipc_fini(bt_t *bt)
+{
+	closesocket(m_listen_sd);
 	return 0;
 }

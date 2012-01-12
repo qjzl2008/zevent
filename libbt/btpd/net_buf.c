@@ -143,7 +143,7 @@ struct net_buf *nb_create_request_p2sp(struct peer *peer_p2sp,uint32_t index,
     char uri[1024],req[1024],enc_uri[2048];
     int i = 0,fidx = 0;
     fpos_t range_start = 0;
-    int ret,len;
+    int len;
 
     wchar_t ucs2_path[MAX_PATH];
     size_t inwords;
