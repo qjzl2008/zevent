@@ -538,11 +538,29 @@ client_connection_cb(SOCKET sd, short type, void *arg)
     btpd_ev_new(&cli->read, cli->sd, EV_READ, cli_read_cb, cli);
 }
 
+static void
+write_buf(const char *buf, size_t size, const char *path)
+{
+	FILE *fp;
+	if ((fp = fopen(path, "wb")) == NULL)
+		goto err;
+	if (fwrite(buf, size, 1, fp) != 1) {
+		errno = EIO;
+		goto err;
+	}
+	if (fclose(fp) != 0)
+		goto err;
+	return;
+err:
+	btpd_err("failed to write buf '%s' (%s).\r\n", path, strerror(errno));
+}
+
 int
 ipc_init(bt_t *bt)
 {
 	SOCKET sd,cd,nsd;
 	struct ipc *cmd_pipe; 
+	short ipc_port;
 	struct sockaddr_in addr;
 	socklen_t len = 0;
 
@@ -566,6 +584,9 @@ ipc_init(bt_t *bt)
 		closesocket(sd);
 		return -1;
 	}
+
+	ipc_port = ntohs(addr.sin_port);
+	write_buf(&ipc_port,sizeof(short),ipc_port_path);
 
 	listen(sd, 4);
 

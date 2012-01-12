@@ -14,5 +14,6 @@ extern int empty_start;
 extern const char *tr_ip_arg;
 extern int net_ipv4, net_ipv6;
 extern int webseed_timeout;
+extern const char *ipc_port_path;
 
 #endif

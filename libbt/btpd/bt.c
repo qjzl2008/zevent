@@ -86,6 +86,42 @@ BT_DECLARE(int) bt_stop_daemon(bt_t *bt)
     return 0;
 }
 
+BT_DECLARE(int) bt_start_client(btcli_arg_t *btcli_arg,bt_t **bt)
+{
+	int rv;
+	SOCKET sd;
+	WSADATA wsaData;
+	WSAStartup(MAKEWORD(2,2),&wsaData);
+
+	log_init();
+
+	*bt = (bt_t *)malloc(sizeof(bt_t));
+	sizeof(*bt,0,sizeof(*bt));
+	rv = net_connect_block("127.0.0.1",btcli_arg->ipc_port,&sd,3);
+	if(rv != 0)
+	{
+		free(*bt);
+		return -1;
+	}
+
+	if (((*bt)->cmdpipe = (struct ipc *)malloc(sizeof((*bt)->cmdpipe))) == NULL) {
+		return -1;
+	}
+
+	(*bt)->cmdpipe->sd = sd;
+	return 0;
+}
+
+BT_DECLARE(int) bt_stop_client(bt_t *bt)
+{
+	if(bt)
+	{
+		ipc_close(bt->cmdpipe);
+		free(bt);
+	}
+	return 0;
+}
+
 BT_DECLARE(int) bt_add(const char *dir,const char *torrent,bt_t *bt)
 {
     char *mi;

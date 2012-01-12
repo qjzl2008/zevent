@@ -23,6 +23,10 @@ typedef struct{
     int empty_start;//是否空启动（以往任务是否启动）
 }bt_arg_t;
 
+typedef struct{
+	short ipc_port;
+}btcli_arg_t;
+
 enum ipc_tstate {
 	IPC_TSTATE_INACTIVE,//未开始
 	IPC_TSTATE_START,   //正开始
@@ -58,6 +62,25 @@ BT_DECLARE(int) bt_start_daemon(bt_arg_t *bt_arg,bt_t **bt);
    -1 失败
 */
 BT_DECLARE(int) bt_stop_daemon(bt_t *bt);
+
+/*
+启动bt客户端，获得后续操作句柄
+@btcli_arg 启动参数
+@bt 后续需要用到的句柄
+@返回值 rv：
+0 成功
+-1 失败
+*/
+BT_DECLARE(int) bt_start_client(btcli_arg_t *btcli_arg,bt_t **bt);
+
+/*
+断开bt客户端
+@bt 操作句柄
+@返回值 rv：
+0 成功
+-1 失败
+*/
+BT_DECLARE(int) bt_stop_client(bt_t *bt);
 
 /*
 添加本地种子
