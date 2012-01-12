@@ -138,7 +138,7 @@ BT_DECLARE(int) bt_stat(char *torrent,bt_t *bt,struct btstat *stat);
  0 成功
  -1 失败
  */
-BT_DECLARE(int) bt_rate(unsigned up, unsigned down, bt_t *bt_arg);
+BT_DECLARE(int) bt_rate(unsigned up, unsigned down, bt_t *bt);
 
 /**
  * p2sp 接口
