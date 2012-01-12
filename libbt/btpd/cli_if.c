@@ -303,16 +303,18 @@ cmd_add_p2sp(struct cli *cli, int argc, const char *args)
     else
 	write_code_buffer(cli,IPC_OK);
 
-    p2sp_url = http_url_parse(url);
-    if(p2sp_url)
-    {
-	strcpy(tl->tp->sinfo[tl->tp->svrnum].host,p2sp_url->host);
-	tl->tp->sinfo[tl->tp->svrnum].port = p2sp_url->port;
-	strcpy(tl->tp->sinfo[tl->tp->svrnum].uri,p2sp_url->uri);
-	tl->tp->sinfo->done = 0;
-	++tl->tp->svrnum;
-	http_url_free(p2sp_url);
-    }
+	p2sp_url = http_url_parse(url);
+	if(p2sp_url)
+	{
+		strcpy(tl->tp->sinfo[tl->tp->svrnum].host,p2sp_url->host);
+		tl->tp->sinfo[tl->tp->svrnum].port = p2sp_url->port;
+		strcpy(tl->tp->sinfo[tl->tp->svrnum].uri,p2sp_url->uri);
+		tl->tp->sinfo->done = 0;
+		++tl->tp->svrnum;
+		http_url_free(p2sp_url);
+	}
+	if(url)
+		free(url);
     return 0;
 }
 
