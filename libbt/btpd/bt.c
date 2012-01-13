@@ -215,7 +215,23 @@ BT_DECLARE(int) bt_add_url(const char *dir,const char *name,const char *url,
 	int rv;
 	struct http_req *req = NULL;
 	mi_t mi = {NULL,0};
-	http_get(&req,url,"User-Agent: " "btpd" "\r\n",http_cb,&mi);
+
+	wchar_t ucs2_uri[512];
+	char enc_uri[1024] = {0};
+	char buf[256] = {0};
+	char utf8_url[2048] = {0};
+	size_t inwords;
+
+	struct http_url *seed_url = http_url_parse(url);
+	if(!seed_url)
+		return -1;
+	inwords = MultiByteToWideChar(CP_ACP,0,seed_url->uri,-1,ucs2_uri,
+		sizeof(ucs2_uri)/sizeof(ucs2_uri[0]));
+	http_uri_encode(ucs2_uri,inwords,enc_uri);
+	_snprintf(utf8_url,sizeof(utf8_url),"http://%s:%d%s",seed_url->host,seed_url->port,enc_uri);
+	http_url_free(seed_url);
+
+	http_get(&req,utf8_url,"User-Agent: " "btpd" "\r\n",http_cb,&mi);
 	rv = net_connect_block(req->url->host,req->url->port,&sd,webseed_timeout);
 	if(rv != 0)
 	{
@@ -231,6 +247,8 @@ BT_DECLARE(int) bt_add_url(const char *dir,const char *name,const char *url,
 
 	if(mi.mi_data)
 	{
+		if (!mi_test(mi.mi_data, mi.mi_size))
+			return -1;
 		write_torrent(mi.mi_data,mi.mi_size,name);
 
 		strcpy(dpath,dir);
