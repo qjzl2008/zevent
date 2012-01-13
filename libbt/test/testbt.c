@@ -77,7 +77,7 @@ int main(void)
 		return -1;
 	rv = bt_add("download",torrents[0],bt);
 	//bt_del(ntorrents,torrents,bt);
-	//rv = bt_add_url("downloads",torrents[0],"http://127.0.0.1/test.torrent",bt);
+	//rv = bt_add_url("downloads/pf1",torrents[0],"http://127.0.0.1/test.torrent",bt);
 	if(rv == 1)
 	{
 		bt_start(ntorrents,torrents,bt);
@@ -88,10 +88,9 @@ int main(void)
 		return 0;
 	}
 
-	for(i = 0; i < 10; ++i)
+	for(i = 0; i < 2; ++i)
 	rv = bt_add_p2sp(torrents[0],"http://down1.chinaunix.net/distfiles/",bt);
-
-	//rv = bt_add_p2sp("test.torrent","http://127.0.0.1",bt);
+	//rv = bt_add_p2sp(torrents[0],"http://127.0.0.1",bt);
 	//bt_rate(30*1024,30*1024,bt);
 
 	for(i = 0; i < ntorrents;++i)
