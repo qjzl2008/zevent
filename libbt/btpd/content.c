@@ -348,6 +348,32 @@ cm_has_piece(struct torrent *tp, uint32_t piece)
     return has_bit(tp->cm->piece_field, piece);
 }
 
+int cm_range_pieces(struct torrent *tp,uint32_t begin,uint32_t length,uint32_t *piece_start,
+					uint32_t *piece_end)
+{
+    uint32_t start=0,nums=0,end = 0;
+	if(begin < 0 || length <=0)
+		return -1;
+	start = floor(begin / tp->piece_length);
+	nums = ceil(length / tp->piece_length);
+	end = start + nums;
+	*piece_start = start;
+	*piece_end = end < tp->npieces -1 ? end : tp->npieces - 1;
+	return 0;
+}
+
+int cm_range_ready(struct torrent *tp,uint32_t begin,uint32_t length)
+{
+	uint32_t piece_start = 0,piece_end = 0,idx = 0;
+	if(cm_range_pieces(tp,begin,length,&piece_start,&piece_end) < 0)
+		return -1;
+	for(idx = piece_start; idx < piece_end && cm_has_piece(tp,idx); ++idx);
+	if(idx == piece_end)
+		return 1;
+	else
+		return 0;
+}
+
 int
 stat_and_adjust(struct torrent *tp, struct file_time_size ret[])
 {

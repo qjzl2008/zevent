@@ -20,6 +20,10 @@ uint32_t cm_pieces(struct torrent *tp);
 uint8_t *cm_get_piece_field(struct torrent *tp);
 uint8_t *cm_get_block_field(struct torrent *tp, uint32_t piece);
 
+int cm_range_pieces(struct torrent *tp,uint32_t begin,uint32_t length,uint8_t *pieces,
+					int *npieces);
+int cm_range_ok(struct torrent *tp,uint32_t begin,uint32_t length);
+
 int cm_has_piece(struct torrent *tp, uint32_t piece);
 
 int cm_put_bytes(struct torrent *tp, uint32_t piece, uint32_t begin,
