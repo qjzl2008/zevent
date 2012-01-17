@@ -26,6 +26,7 @@ BT_DECLARE(int) bt_start_daemon(bt_arg_t *bt_arg,bt_t **bt)
 
     log_init();
     net_port = bt_arg->net_port;
+	choose_method = bt_arg->method;
 
     empty_start = bt_arg->empty_start;
     if (evloop_init() != 0)

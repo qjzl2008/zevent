@@ -21,6 +21,7 @@ typedef struct{
     int net_port;//bt端口 为0 则启用随机端口
 	int use_upnp;//是否启用upnp，1：启用，0：不启用
     int empty_start;//是否空启动（以往任务是否启动）
+	int method;//0:bt选片方式 1:顺序选片方式
 }bt_arg_t;
 
 typedef struct{

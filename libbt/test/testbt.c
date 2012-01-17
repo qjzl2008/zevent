@@ -71,6 +71,7 @@ int main(void)
 	bt_arg.net_port = 0;
 	bt_arg.empty_start = 1;
 	bt_arg.use_upnp = 1;
+	bt_arg.method = 1;
 
 
 	if(bt_start_daemon(&bt_arg,&bt) != 0)

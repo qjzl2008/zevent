@@ -342,6 +342,23 @@ dl_piece_startable(struct peer *p, uint32_t index)
 		&& !has_bit(p->n->busy_field, index);
 }
 
+static int
+dl_choose_seq(struct peer *p, uint32_t *res)
+{
+	uint32_t i;
+	struct net *n = p->n;
+
+	assert(n->endgame == 0);
+
+	for (i = 0; i < n->tp->npieces && !dl_piece_startable(p, i); i++)
+		;
+
+	if (i == n->tp->npieces)
+		return -1;
+	*res = i;
+	return 0;
+}
+
 /*
 * Find the rarest piece the peer has, that isn't already allocated
 * for download or already downloaded. If no such piece can be found
@@ -361,7 +378,7 @@ dl_choose_rarest(struct peer *p, uint32_t *res)
 		;
 
 	if (i == n->tp->npieces)
-		return ENOENT;
+		return -1;
 
 	min_i = i;
 	min_c = 1;
@@ -572,7 +589,13 @@ dl_assign_requests(struct peer *p)
 	}
 	while (!peer_laden(p) && !n->endgame) {
 		uint32_t index;
-		if (dl_choose_rarest(p, &index) == 0) {
+		int rv;
+		if(choose_method == 0)
+			rv = dl_choose_rarest(p, &index);
+		else
+			rv = dl_choose_seq(p, &index);
+
+		if (rv == 0) {
 			pc = dl_new_piece(n, index);
 			if (pc != NULL)
 			{
