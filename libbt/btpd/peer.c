@@ -294,7 +294,7 @@ peer_want(struct peer *p, uint32_t index)
     int unsent = 0;
     if (!has_bit(p->piece_field, index) || peer_has_bad(p, index))
 	return;
-    assert(p->nwant < p->npieces);
+   // assert(p->nwant < p->npieces);
     p->nwant++;
     if (p->nwant == 1) {
 	p->mp->flags |= PF_I_WANT;
