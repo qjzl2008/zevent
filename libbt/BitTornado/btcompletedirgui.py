@@ -14,11 +14,11 @@ if PSYCO.psyco:
 
 from sys import argv, version
 assert version >= '2', "Install Python 2.0 or greater"
-from BitTornado.BT1.makemetafile import completedir
+from BitTornado.BT1.makemetafile import completedir,completedir_recursion
 from threading import Event, Thread
 import sys
-from os import getcwd
-from os.path import join
+from os import getcwd,makedirs
+from os.path import join,sep,exists
 try:
     from wxPython.wx import *
 except:
@@ -143,9 +143,12 @@ class CompleteDir:
 
     def complete(self):
         params = {'piece_size_pow2': self.pl}
-	#wxMessageBox( str(self.pl), 'Title', wxOK)
+        params['target'] = self.d + sep + 'torrents'
+        if not exists(params['target']):
+            makedirs(params['target'])
+        #wxMessageBox( params['target'], 'Title', wxOK)
         try:
-            completedir(self.d, self.a, params, self.flag, self.valcallback, self.filecallback)
+            completedir_recursion(self.d, self.a, params, self.flag, self.valcallback, self.filecallback)
             if not self.flag.isSet():
                 self.currentLabel.SetLabel('Done!')
                 self.gauge.SetValue(1000)

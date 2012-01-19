@@ -3,7 +3,7 @@
 # see LICENSE.txt for license information
 
 from os.path import getsize, split, join, abspath, isdir
-from os import listdir
+from os import listdir,walk
 from sha import sha
 from copy import copy
 from string import strip
@@ -144,7 +144,7 @@ def uniconvertl(l, e):
         raise UnicodeError('bad filename: '+join(l))
     return r
 
-def uniconvert(s, e):
+def uniconvert(s, e=None):
 #    try:
 #        s = unicode(s,e)
 #    except UnicodeError:
@@ -211,10 +211,9 @@ def makeinfo(file, piece_length, encoding, flag, progress, progress_percent=1):
             else:
                 progress(min(piece_length, size - p))
         h.close()
-        a = {'pieces': ''.join(pieces), 
+        return {'pieces': ''.join(pieces), 
             'piece length': piece_length, 'length': size, 
             'name': uniconvert(split(file)[1], encoding) }
-	return a
 
 def subfiles(d):
     r = []
@@ -229,7 +228,45 @@ def subfiles(d):
             r.append((p, n))
     return r
 
+def completedir_recursion(dir, url, params = {}, flag = Event(),
+                vc = lambda x: None, fc = lambda x: None):
+    ext = '.torrent'
+    if params.has_key('target'):
+        target = params['target']
+    else:
+        target = ''
 
+    listname = join(target,"downlist.txt")
+    listfile = open(listname,'w')
+        
+    togen = []
+    for root, dirs, files in walk(dir, True):
+        for f in files:
+            if f[-len(ext):] != ext and (f + ext) not in files:
+                togen.append(join(root,f))
+                listfile.write(uniconvert(join(root,f)) + '\n')
+    listfile.close()
+            
+    total = 0
+    for i in togen:
+        total += calcsize(i)
+
+    subtotal = [0]
+    def callback(x, subtotal = subtotal, total = total, vc = vc):
+        subtotal[0] += x
+        vc(float(subtotal[0]) / total)
+        
+    for i in togen:
+        fc(i)
+        try:
+            t = split(i)[-1]
+            if t not in ignore and t[0] != '.':
+                if target != '':
+                    params['target'] = join(target,t+ext)
+                make_meta_file(i, url, params, flag, progress = callback, progress_percent = 0)
+        except ValueError:
+            print_exc()
+        
 def completedir(dir, url, params = {}, flag = Event(),
                 vc = lambda x: None, fc = lambda x: None):
     files = listdir(dir)
