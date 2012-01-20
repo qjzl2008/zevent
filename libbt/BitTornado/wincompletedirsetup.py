@@ -6,4 +6,6 @@
 from distutils.core import setup
 import py2exe
 
-setup(name='completedir', scripts=['btcompletedirgui.py'])
+options = {'py2exe':{'compressed':1,'optimize':2,'bundle_files':1}}
+setup(name='completedir',options=options,zipfile=None,
+		windows=[{'script':'btcompletedirgui.py','icon_resources':[(1,'icon_bt.ico')]}])
