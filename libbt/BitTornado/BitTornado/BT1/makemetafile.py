@@ -235,9 +235,6 @@ def completedir_recursion(dir, url, params = {}, flag = Event(),
         target = params['target']
     else:
         target = ''
-
-    listname = join(target,"downlist.txt")
- 
         
     togen = []
     for root, dirs, files in walk(dir, True):
@@ -275,11 +272,9 @@ def completedir_recursion(dir, url, params = {}, flag = Event(),
             print_exc()
             
     lists += ']'
+
+    return lists
             
-    listfile = open(listname,'w')
-    listfile.write(uniconvert(lists))
-    listfile.close()
-        
 def completedir(dir, url, params = {}, flag = Event(),
                 vc = lambda x: None, fc = lambda x: None):
     files = listdir(dir)

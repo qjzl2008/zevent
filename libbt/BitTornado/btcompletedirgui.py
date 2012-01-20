@@ -66,7 +66,7 @@ class DownloadInfo:
         gridSizer.Add(b, 0, wxEXPAND)
 
         gridSizer.Add(wxStaticText(panel, -1, 'announce url:'))
-        self.annCtl = wxTextCtrl(panel, -1, 'www')
+        self.annCtl = wxTextCtrl(panel, -1, '')
         gridSizer.Add(self.annCtl, 0, wxEXPAND)
 
         gridSizer.Add(wxStaticText(panel, -1, 'piece size:'))
@@ -143,12 +143,17 @@ class CompleteDir:
 
     def complete(self):
         params = {'piece_size_pow2': self.pl}
-        params['target'] = self.d + sep + 'torrents'
+        self.dst_dir = params['target'] = self.d + sep + 'torrents'
         if not exists(params['target']):
             makedirs(params['target'])
         #wxMessageBox( params['target'], 'Title', wxOK)
         try:
-            completedir_recursion(self.d, self.a, params, self.flag, self.valcallback, self.filecallback)
+            lists = completedir_recursion(self.d, self.a, params, self.flag, self.valcallback, self.filecallback)
+            listname = join(self.dst_dir,"downlist.txt")
+            
+            listfile = open(listname,'w')
+            listfile.write(lists.encode('utf-8'))
+            listfile.close()
             if not self.flag.isSet():
                 self.currentLabel.SetLabel('Done!')
                 self.gauge.SetValue(1000)
