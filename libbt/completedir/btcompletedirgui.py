@@ -25,6 +25,8 @@ except:
     print 'wxPython is either not installed or has not been installed properly.'
     sys.exit(1)
 
+from GlobalConfig import GlobalConfig
+
 try:
     True
 except:
@@ -108,6 +110,9 @@ from traceback import print_exc
 
 class CompleteDir:
     def __init__(self, d, a, pl):
+        self.gconfig = GlobalConfig.instance()
+        self.url = self.gconfig.GetValue('CONFIG','url')
+        self.root = self.gconfig.GetValue('CONFIG','www-root')
         self.d = d
         self.a = a
         self.pl = pl
@@ -146,13 +151,19 @@ class CompleteDir:
         self.dst_dir = params['target'] = self.d + sep + 'torrents'
         if not exists(params['target']):
             makedirs(params['target'])
-        #wxMessageBox( params['target'], 'Title', wxOK)
+        wxMessageBox( self.d, 'Title', wxOK)
         try:
-            lists = completedir_recursion(self.d, self.a, params, self.flag, self.valcallback, self.filecallback)
+            (togen,targets) = completedir_recursion(self.d + sep, self.a, params, self.flag, self.valcallback, self.filecallback)
             listname = join(self.dst_dir,"downlist.txt")
             
             listfile = open(listname,'w')
-            listfile.write(lists.encode('utf-8'))
+            i = 0
+            while i < len(togen):
+                listfile.write(togen[i].encode('utf-8'))
+                listfile.write('\n')
+                listfile.write(targets[i].encode('utf-8'))
+                listfile.write('\n')
+                i += 1
             listfile.close()
             if not self.flag.isSet():
                 self.currentLabel.SetLabel('Done!')

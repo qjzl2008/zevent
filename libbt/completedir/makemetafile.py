@@ -2,8 +2,8 @@
 # multitracker extensions by John Hoffman
 # see LICENSE.txt for license information
 
-from os.path import getsize, split, join, abspath, isdir,normcase
-from os import listdir,walk
+from os.path import getsize, split, join, abspath, isdir,normcase,exists
+from os import listdir,walk,makedirs
 from sha import sha
 from copy import copy
 from string import strip
@@ -240,7 +240,7 @@ def completedir_recursion(dir, url, params = {}, flag = Event(),
     for root, dirs, files in walk(dir, True):
         for f in files:
             t = split(f)[-1]
-            if f[-len(ext):] != ext and (f + ext) not in files and t not in ignore and t[0] != '.':
+            if f[-len(ext):] != ext and t not in ignore and t[0] != '.':
                 togen.append(join(root,f))
             
     total = 0
@@ -252,28 +252,23 @@ def completedir_recursion(dir, url, params = {}, flag = Event(),
         subtotal[0] += x
         vc(float(subtotal[0]) / total)
 
-    num = len(togen)
-    count = 0
-    lists = 'files:['
+    lists = []
     for i in togen:
         fc(i)
         try:
             t = split(i)[-1]
             if target != '':
-                params['target'] = join(target,t+ext)
+                t_path = i[len(dir):]
+                params['target'] = join(target,t_path+ext)
+                a, b = split(params['target'])
+                if b and not exists(a):
+                             makedirs(a)     
             make_meta_file(i, url, params, flag, progress = callback, progress_percent = 0)
-
-            path = i.replace('\\','\\\\')
-            lists += '{"fname":"%s"}' % path
-            count += 1
-            if count < num:
-                lists += ',\n'
+            lists.append(params['target'])
         except ValueError:
             print_exc()
-            
-    lists += ']'
 
-    return lists
+    return (togen,lists)
             
 def completedir(dir, url, params = {}, flag = Event(),
                 vc = lambda x: None, fc = lambda x: None):
