@@ -2,7 +2,7 @@
 # multitracker extensions by John Hoffman
 # see LICENSE.txt for license information
 
-from os.path import getsize, split, join, abspath, isdir
+from os.path import getsize, split, join, abspath, isdir,normcase
 from os import listdir,walk
 from sha import sha
 from copy import copy
@@ -237,15 +237,14 @@ def completedir_recursion(dir, url, params = {}, flag = Event(),
         target = ''
 
     listname = join(target,"downlist.txt")
-    listfile = open(listname,'w')
+ 
         
     togen = []
     for root, dirs, files in walk(dir, True):
         for f in files:
-            if f[-len(ext):] != ext and (f + ext) not in files:
+            t = split(f)[-1]
+            if f[-len(ext):] != ext and (f + ext) not in files and t not in ignore and t[0] != '.':
                 togen.append(join(root,f))
-                listfile.write(uniconvert(join(root,f)) + '\n')
-    listfile.close()
             
     total = 0
     for i in togen:
@@ -255,17 +254,31 @@ def completedir_recursion(dir, url, params = {}, flag = Event(),
     def callback(x, subtotal = subtotal, total = total, vc = vc):
         subtotal[0] += x
         vc(float(subtotal[0]) / total)
-        
+
+    num = len(togen)
+    count = 0
+    lists = 'files:['
     for i in togen:
         fc(i)
         try:
             t = split(i)[-1]
-            if t not in ignore and t[0] != '.':
-                if target != '':
-                    params['target'] = join(target,t+ext)
-                make_meta_file(i, url, params, flag, progress = callback, progress_percent = 0)
+            if target != '':
+                params['target'] = join(target,t+ext)
+            make_meta_file(i, url, params, flag, progress = callback, progress_percent = 0)
+
+            path = i.replace('\\','\\\\')
+            lists += '{"fname":"%s"}' % path
+            count += 1
+            if count < num:
+                lists += ',\n'
         except ValueError:
             print_exc()
+            
+    lists += ']'
+            
+    listfile = open(listname,'w')
+    listfile.write(uniconvert(lists))
+    listfile.close()
         
 def completedir(dir, url, params = {}, flag = Event(),
                 vc = lambda x: None, fc = lambda x: None):
