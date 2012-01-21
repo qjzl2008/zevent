@@ -15,7 +15,7 @@
 #define MSG_CANCEL      8
 #define P2SP_RESP 	9
 
-#define RATEHISTORY 20
+#define RATEHISTORY 10
 
 extern struct peer_tq net_unattached;
 extern struct peer_tq net_bw_readq;

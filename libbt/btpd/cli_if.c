@@ -309,9 +309,10 @@ cmd_add_p2sp(struct cli *cli, int argc, const char *args)
 		strcpy(tl->tp->sinfo[tl->tp->svrnum].host,p2sp_url->host);
 		tl->tp->sinfo[tl->tp->svrnum].port = p2sp_url->port;
 		strcpy(tl->tp->sinfo[tl->tp->svrnum].uri,p2sp_url->uri);
-		tl->tp->sinfo->done = 0;
+		tl->tp->sinfo[tl->tp->svrnum].done = 0;
 		++tl->tp->svrnum;
 		http_url_free(p2sp_url);
+		p2s_start(tl->tp);
 	}
 	if(url)
 		free(url);
