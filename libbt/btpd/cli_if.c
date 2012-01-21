@@ -312,7 +312,6 @@ cmd_add_p2sp(struct cli *cli, int argc, const char *args)
 		tl->tp->sinfo[tl->tp->svrnum].done = 0;
 		++tl->tp->svrnum;
 		http_url_free(p2sp_url);
-		p2s_start(tl->tp);
 	}
 	if(url)
 		free(url);
