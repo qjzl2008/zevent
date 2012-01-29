@@ -698,7 +698,7 @@ int net_connect_block(const char *ip,int port,SOCKET *sd,int tm_sec)
 		return EINVAL;
 	memset(&hints,0,sizeof(hints));
 	hints.ai_family = AF_INET;
-	hints.ai_flags = AI_NUMERICHOST;
+	//hints.ai_flags = AI_NUMERICHOST;
 	hints.ai_socktype = SOCK_STREAM;
 
 	if(getaddrinfo(ip,portstr,&hints,&res) != 0)
