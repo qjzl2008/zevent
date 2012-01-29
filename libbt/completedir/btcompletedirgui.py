@@ -151,7 +151,7 @@ class CompleteDir:
         self.dst_dir = params['target'] = self.d + sep + 'torrents'
         if not exists(params['target']):
             makedirs(params['target'])
-        wxMessageBox( self.d, 'Title', wxOK)
+        #wxMessageBox( self.d, 'Title', wxOK)
         try:
             (togen,targets) = completedir_recursion(self.d + sep, self.a, params, self.flag, self.valcallback, self.filecallback)
             listname = join(self.dst_dir,"downlist.txt")
