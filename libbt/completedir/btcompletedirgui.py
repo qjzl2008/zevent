@@ -158,12 +158,17 @@ class CompleteDir:
             
             listfile = open(listname,'w')
             i = 0
+	    buf = '{"filelist":['
             while i < len(togen):
-                listfile.write(togen[i].encode('utf-8'))
-                listfile.write('\n')
-                listfile.write(targets[i].encode('utf-8'))
-                listfile.write('\n')
+		root = self.d.encode('utf-8')
+		file = togen[i].encode('utf-8')[len(root):].replace("\\","/")
+		#torrent = targets[i].encode('utf-8')[len(root):].replace("\\","/")
+		if i > 0:
+			buf += ','
+		buf += '{"fname":"%s"}\n' % (file)
                 i += 1
+	    buf +=']}'
+	    listfile.write(buf)
             listfile.close()
             if not self.flag.isSet():
                 self.currentLabel.SetLabel('Done!')
