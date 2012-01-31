@@ -6,6 +6,7 @@
 #include <string.h>
 #include "stdlib.h"
 #include "dlmanager.h"
+#include "znet.h"
 
 #ifdef WIN32
 #pragma comment(lib,"ws2_32.lib")

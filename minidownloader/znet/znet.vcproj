@@ -117,7 +117,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories=".\common\include;.\;.\common\include\arch\win"
+				AdditionalIncludeDirectories="..\common\include;.\;..\common\include\arch\win"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;ZNET_EXPORTS;HAS_THREADS;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"

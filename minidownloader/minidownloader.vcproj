@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".\common\include,.\common\include\arch\win"
+				AdditionalIncludeDirectories=".\common\include;.\common\include\arch\win;.\znet"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;HAS_THREADS;CONN_DECLARE_STATIC"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -116,9 +116,10 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
+				AdditionalIncludeDirectories=".\common\include;.\common\include\arch\win;.\znet"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;HAS_THREADS;CONN_DECLARE_STATIC"
 				RuntimeLibrary="2"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"

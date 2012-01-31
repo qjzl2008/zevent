@@ -2,6 +2,11 @@
 Microsoft Visual Studio Solution File, Format Version 9.00
 # Visual Studio 2005
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "minidownloader", "minidownloader.vcproj", "{878AA96F-DD3C-4B9D-879E-C6D078A18F83}"
+	ProjectSection(ProjectDependencies) = postProject
+		{EC14100C-2659-4DD0-ABEE-31176FE17CC0} = {EC14100C-2659-4DD0-ABEE-31176FE17CC0}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "znet", "znet\znet.vcproj", "{EC14100C-2659-4DD0-ABEE-31176FE17CC0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,6 +18,10 @@ Global
 		{878AA96F-DD3C-4B9D-879E-C6D078A18F83}.Debug|Win32.Build.0 = Debug|Win32
 		{878AA96F-DD3C-4B9D-879E-C6D078A18F83}.Release|Win32.ActiveCfg = Release|Win32
 		{878AA96F-DD3C-4B9D-879E-C6D078A18F83}.Release|Win32.Build.0 = Release|Win32
+		{EC14100C-2659-4DD0-ABEE-31176FE17CC0}.Debug|Win32.ActiveCfg = Debug|Win32
+		{EC14100C-2659-4DD0-ABEE-31176FE17CC0}.Debug|Win32.Build.0 = Debug|Win32
+		{EC14100C-2659-4DD0-ABEE-31176FE17CC0}.Release|Win32.ActiveCfg = Release|Win32
+		{EC14100C-2659-4DD0-ABEE-31176FE17CC0}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
