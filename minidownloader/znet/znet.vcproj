@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".\common\include;.\;.\common\include\arch\win"
+				AdditionalIncludeDirectories="..\common\include;.\;..\common\include\arch\win"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;ZNET_EXPORTS;HAS_THREADS;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -179,11 +179,11 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\common\memory\allocator.c"
+				RelativePath="..\common\memory\allocator.c"
 				>
 			</File>
 			<File
-				RelativePath=".\common\misc\hash.c"
+				RelativePath="..\common\misc\hash.c"
 				>
 			</File>
 			<File
@@ -195,7 +195,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\common\misc\queue.c"
+				RelativePath="..\common\misc\queue.c"
 				>
 			</File>
 			<File
@@ -207,11 +207,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\common\locks\win\thread_cond.c"
+				RelativePath="..\common\locks\win\thread_cond.c"
 				>
 			</File>
 			<File
-				RelativePath=".\common\locks\win\thread_mutex.c"
+				RelativePath="..\common\locks\win\thread_mutex.c"
 				>
 			</File>
 			<File

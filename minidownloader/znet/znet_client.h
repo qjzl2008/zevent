@@ -2,7 +2,7 @@
 #define ZNET_CLIENT_H
 
 #include "znet.h"
-#include "common/include/queue.h"
+#include "queue.h"
 #include "evloop/evloop.h"
 #include "znet_types.h"
 #include "znet_cpeer.h"

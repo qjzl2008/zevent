@@ -5,7 +5,7 @@
 #include "queue.h"
 #include "znet_peer.h"
 
-#include "common/include/allocator.h"
+#include "allocator.h"
 
 #define BUF_SIZE (4096)
 #define MAX_SENDBUF (1452)

@@ -10,8 +10,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "common/include/allocator.h"
-#include "common/include/thread_mutex.h"
+#include "allocator.h"
+#include "thread_mutex.h"
 #include "hashtable.h"
 #include "queue.h"
 
