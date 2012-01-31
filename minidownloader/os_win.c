@@ -1,31 +1,3 @@
-/* Copyright (c) 2006 Adam Warrington
-** $Id: os_win.c 2615 2006-03-12 06:14:59Z ghs $
-**
-** Permission is hereby granted, free of charge, to any person obtaining a copy
-** of this software and associated documentation files (the "Software"), to deal
-** in the Software without restriction, including without limitation the rights
-** to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-** copies of the Software, and to permit persons to whom the Software is
-** furnished to do so, subject to the following conditions:
-**
-** The above copyright notice and this permission notice shall be included in
-** all copies or substantial portions of the Software.
-**
-** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-** IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-** FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-** AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-** LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-** OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-** SOFTWARE.
-**
-******************************************************************************
-**
-** This file, os_win.c, contains the implementation fo the operating system
-** specific calls for the win32 operating system. These calls include
-** functionality for sockets and for threads.
-*/
-
 #include "error.h"
 #include "os_common.h"
 
@@ -42,7 +14,7 @@ static int Initialize_Sockaddr_in(struct sockaddr_in* server, struct hostent** h
    that socket of UDP type. This can then be used to send udp data
    to specified locations.
 */
-int LNat_Win_Socket_Udp_Setup(const char *local_ip,OsSocket ** s)
+int ZNet_Win_Socket_Udp_Setup(const char *local_ip,OsSocket ** s)
 {
   int ret;
   int blockMode = 1;              /* flag to set socket to nonblock */
@@ -84,27 +56,27 @@ int LNat_Win_Socket_Udp_Setup(const char *local_ip,OsSocket ** s)
 
 /* This function will close a udp socket type and clean it up
    appropriately. */
-int LNat_Win_Socket_Udp_Close(OsSocket ** s)
+int ZNet_Win_Socket_Udp_Close(OsSocket ** s)
 {
-  return LNat_Win_Socket_Close(s);
+  return ZNet_Win_Socket_Close(s);
 }
 
 /* This function will send data over a udp socket to address host_addr,
    and port port. You need to specify the buffer */
-int LNat_Win_Socket_Udp_Send(OsSocket * s, const char * host_addr, short int port, 
+int ZNet_Win_Socket_Udp_Send(OsSocket * s, const char * host_addr, short int port, 
                             char * buf, int amt, int * amt_sent)
 {
-  return LNat_Common_Socket_Udp_Send(s, host_addr, port, buf, amt, amt_sent);
+  return ZNet_Common_Socket_Udp_Send(s, host_addr, port, buf, amt, amt_sent);
 }
 
 /* This function will recieve data over a udp socket form address host_addr,
    and port port. You need to specify the buffer to store it in, and the
    amt you are expecting to receive.
 */
-int LNat_Win_Socket_Udp_Recv(OsSocket * s, const char * host_addr, short int port,
+int ZNet_Win_Socket_Udp_Recv(OsSocket * s, const char * host_addr, short int port,
                             char * buf, int amt, int * amt_recv, int timeout_sec)
 {
-  return LNat_Common_Socket_Udp_Recv(s, host_addr, port, buf, amt, 
+  return ZNet_Common_Socket_Udp_Recv(s, host_addr, port, buf, amt, 
                                      amt_recv, timeout_sec);
 }
 
@@ -112,7 +84,7 @@ int LNat_Win_Socket_Udp_Recv(OsSocket * s, const char * host_addr, short int por
 /* This function takes an OsSocket object, host char*, and port, and
    initializes a connection to the host at port port. The OsSocket's
    variables will be returned through it's parameters. */
-int LNat_Win_Socket_Connect(OsSocket ** s, const char * host_addr, short int port,
+int ZNet_Win_Socket_Connect(OsSocket ** s, const char * host_addr, short int port,
                             int timeout_sec)
 {
   int blockMode = 1;              /* flag to set socket to nonblock */
@@ -170,7 +142,7 @@ int LNat_Win_Socket_Connect(OsSocket ** s, const char * host_addr, short int por
 /* close the socket and call WSACleanup. WSACleanup will either unload the
    winsock dll, or decrement a reference count to it if multiple WSAStartups
    are still active. Need one cleanup per startup. */
-int LNat_Win_Socket_Close(OsSocket ** s)
+int ZNet_Win_Socket_Close(OsSocket ** s)
 {
   (void)closesocket((*s)->sock);
   WSACleanup();
@@ -181,26 +153,26 @@ int LNat_Win_Socket_Close(OsSocket ** s)
 /* function to send the data of length amt, in buffer buf, over a connected
 socket s. If send is successful, return OK. set the amount actually sent in
 amt_sent parameter */
-int LNat_Win_Socket_Send(OsSocket * s, char * buf, int amt, int * amt_sent)
+int ZNet_Win_Socket_Send(OsSocket * s, char * buf, int amt, int * amt_sent)
 {
-  return LNat_Common_Socket_Send(s, buf, amt, amt_sent);
+  return ZNet_Common_Socket_Send(s, buf, amt, amt_sent);
 }
 
 
 /* function to recv the data of length amt, into an already allocated buffer
 buf, over a connected socket s. If recv is successful, return oK. Set the
 amount actually recieved in amt_recv parameter */
-int LNat_Win_Socket_Recv(OsSocket * s, char * buf, int amt, 
+int ZNet_Win_Socket_Recv(OsSocket * s, char * buf, int amt, 
                          int * amt_recv, int timeout_sec)
 {
-  return LNat_Common_Socket_Recv(s, buf, amt, amt_recv, timeout_sec);
+  return ZNet_Common_Socket_Recv(s, buf, amt, amt_recv, timeout_sec);
 }
 
 
 /* get the local ip address from a connected socket */
-int LNat_Win_Get_Local_Ip(OsSocket * s, char ** local_ip)
+int ZNet_Win_Get_Local_Ip(OsSocket * s, char ** local_ip)
 {
-  return LNat_Common_Get_Local_Ip(s, local_ip);
+  return ZNet_Common_Get_Local_Ip(s, local_ip);
 }
 
 

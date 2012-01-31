@@ -1,32 +1,3 @@
-/* Copyright (c) 2006 Adam Warrington
-** $Id: os_common.c 4039 2009-11-23 01:24:27Z treellama $
-**
-** Permission is hereby granted, free of charge, to any person obtaining a copy
-** of this software and associated documentation files (the "Software"), to deal
-** in the Software without restriction, including without limitation the rights
-** to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-** copies of the Software, and to permit persons to whom the Software is
-** furnished to do so, subject to the following conditions:
-**
-** The above copyright notice and this permission notice shall be included in
-** all copies or substantial portions of the Software.
-**
-** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-** IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-** FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-** AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-** LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-** OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-** SOFTWARE.
-**
-******************************************************************************
-**
-** This file, os_common.c, contains the implementations of the operating system
-** specific calls all the operating systems. The operating system specific
-** files will include this to get their functionality.
-*/
-
-/* define this to deprecate unsecure string warnings in vs2005.net */
 #define _CRT_SECURE_NO_DEPRECATE 1
 
 #include <errno.h>
@@ -36,7 +7,7 @@
 
 /* This function will send data over a udp socket to address host_addr,
    and port port. You need to specify the buffer */
-int LNat_Common_Socket_Udp_Send(OsSocket * s, const char * host_addr, 
+int ZNet_Common_Socket_Udp_Send(OsSocket * s, const char * host_addr, 
                                 short int port, char * buf, int amt, 
                                 int * amt_sent)
 {
@@ -77,7 +48,7 @@ int LNat_Common_Socket_Udp_Send(OsSocket * s, const char * host_addr,
    and port port. You need to specify the buffer to store it in, and the
    amt you are expecting to receive.
 */
-int LNat_Common_Socket_Udp_Recv(OsSocket * s, const char * host_addr, 
+int ZNet_Common_Socket_Udp_Recv(OsSocket * s, const char * host_addr, 
                                 short int port, char * buf, int amt, 
                                 int * amt_recv, int timeout_sec)
 {
@@ -117,7 +88,7 @@ int LNat_Common_Socket_Udp_Recv(OsSocket * s, const char * host_addr,
 /* function to send the data of length amt, in buffer buf, over a connected
 socket s. If send is successful, return OK. set the amount actually sent in
 amt_sent parameter */
-int LNat_Common_Socket_Send(OsSocket * s, char * buf, int amt, int * amt_sent)
+int ZNet_Common_Socket_Send(OsSocket * s, char * buf, int amt, int * amt_sent)
 {
   int send_ret = 1; /* if not more than 0, will fail the first check */
   int sent_sofar = 0;
@@ -146,7 +117,7 @@ int LNat_Common_Socket_Send(OsSocket * s, char * buf, int amt, int * amt_sent)
 /* function to recv the data of length amt, into an already allocated buffer
 buf, over a connected socket s. If recv is successful, return oK. Set the
 amount actually recieved in amt_recv parameter */
-int LNat_Common_Socket_Recv(OsSocket * s, char * buf, int amt, 
+int ZNet_Common_Socket_Recv(OsSocket * s, char * buf, int amt, 
                             int * amt_recv, int timeout_sec)
 {
   int recv_ret = 1;   /* must be greater than 0 or will fail first check */
@@ -256,7 +227,7 @@ int Select_Till_Readywrite(OsSocket * s,
 
 
 /* get the local ip address from a connected socket */
-int LNat_Common_Get_Local_Ip(OsSocket * s, char ** local_ip)
+int ZNet_Common_Get_Local_Ip(OsSocket * s, char ** local_ip)
 {
   struct sockaddr_in local;
   size_t saSize = sizeof(struct sockaddr);

@@ -172,13 +172,17 @@ int dlmanager::dlonefile(dlitem *item)
 		sizeof(ucs2_uri)/sizeof(ucs2_uri[0]));
 	http_uri_encode(ucs2_uri,inwords,enc_uri);
 
-	if((ret = LNat_Generate_Http_Get(host, enc_uri, port, &gm)) != OK) {
+	if((ret = ZNet_Generate_Http_Get(host, enc_uri, port, &gm)) != OK) {
 		return ret;
 	}
 	OsSocket s;
 	void *res = conn_pool_acquire(&cfg);
+	if(!res)
+	{
+		return -1;
+	}
 	s.sock= *(SOCKET *)res;
-	if((ret = LNat_Http_Request_Get_KL(&s,gm, &data)) != OK) {
+	if((ret = ZNet_Http_Request_Get_KL(&s,gm, &data)) != OK) {
 		conn_pool_remove(&cfg,res);
 	}
 	else
@@ -187,7 +191,7 @@ int dlmanager::dlonefile(dlitem *item)
 		free(data);
 	}
 
-	(void)LNat_Destroy_Http_Get(&gm);
+	(void)ZNet_Destroy_Http_Get(&gm);
 	return ret;
 }
 
@@ -212,7 +216,7 @@ DWORD dlmanager::dlthread_entry(LPVOID pParam)
 int dlmanager::fini(void)
 {
 	shutdown = 1;
-	WaitForMultipleObjects(m_nThreadCount,m_phThreads,TRUE,2000);
+	WaitForMultipleObjects(m_nThreadCount,m_phThreads,TRUE,INFINITE);
 	queue_destroy(req_queue);
 	conn_pool_fini(&cfg);
 	thread_mutex_destroy(conn_pool_mutex);

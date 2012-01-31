@@ -1,31 +1,3 @@
-/* Copyright (c) 2006 Adam Warrington
-** $Id: http.c 3693 2008-12-18 03:15:27Z treellama $
-**
-** Permission is hereby granted, free of charge, to any person obtaining a copy
-** of this software and associated documentation files (the "Software"), to deal
-** in the Software without restriction, including without limitation the rights
-** to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-** copies of the Software, and to permit persons to whom the Software is
-** furnished to do so, subject to the following conditions:
-**
-** The above copyright notice and this permission notice shall be included in
-** all copies or substantial portions of the Software.
-**
-** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-** IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-** FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-** AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-** LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-** OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-** SOFTWARE.
-**
-******************************************************************************
-**
-** This header file defines HTTP functions to send and receive HTTP requests
-** to and from the router.
-*/
-
-/* define this to deprecate unsecure string warnings in vs2005.net */
 #define _CRT_SECURE_NO_DEPRECATE 1
 
 #include <string.h>
@@ -79,8 +51,8 @@
 
 
 /* Function Prototypes */
-static int LNat_Http_Request(const char * resource, const char * host, short int port, const char * message, char ** response);
-static int LNat_Http_Request_KL(OsSocket *s,const char * message,char ** response);
+static int ZNet_Http_Request(const char * resource, const char * host, short int port, const char * message, char ** response);
+static int ZNet_Http_Request_KL(OsSocket *s,const char * message,char ** response);
 static int Send_Http_Request(OsSocket * s, const char * message);
 static int Get_Http_Response(OsSocket * s, char ** http_response);
 static int Get_Http_Content(OsSocket * s, int content_length, char ** http_content);
@@ -205,10 +177,10 @@ int Parse_Url(const char * url, char * host,
    On success, OK is returned. If error, gm will not be allocated,
    so null is returned in the gm parameter.
 
-   Caller must call LNat_Destroy_Http_Get to destroy the HTTP_GetMessage
+   Caller must call ZNet_Destroy_Http_Get to destroy the HTTP_GetMessage
    stucture when done with it.
 */
-int LNat_Generate_Http_Get(const char * host,
+int ZNet_Generate_Http_Get(const char * host,
                            const char * resource,
                            short int port,
                            HTTP_GetMessage ** gm)
@@ -241,9 +213,9 @@ int LNat_Generate_Http_Get(const char * host,
 
 
 /* Destroys a HTTP_GetMessage structure that was allocated by
-   LNat_Generate_Http_Get.
+   ZNet_Generate_Http_Get.
 */
-int LNat_Destroy_Http_Get(HTTP_GetMessage ** gm)
+int ZNet_Destroy_Http_Get(HTTP_GetMessage ** gm)
 {
   if(NULL == gm || NULL == *gm) {
     return BAD_PARAMS;
@@ -267,11 +239,11 @@ int LNat_Destroy_Http_Get(HTTP_GetMessage ** gm)
    it in the pm parameter. It is generated from the host, resource,
    port, and body params. The body is the message to post.
 
-   Caller must call LNat_Destroy_Http_Post to destroy the HTTP_PostMessage
+   Caller must call ZNet_Destroy_Http_Post to destroy the HTTP_PostMessage
    structure when done with it. The caller can also add Request
    Header Fields and Entity Header Fields to the post message.
 */
-int LNat_Generate_Http_Post(const char * host,
+int ZNet_Generate_Http_Post(const char * host,
                             const char * resource,
                             short int port,
                             const char * body,
@@ -318,7 +290,7 @@ int LNat_Generate_Http_Post(const char * host,
 
 
 /* Add a Request Header Field to the post message */
-int LNat_Http_Post_Add_Request_Header(HTTP_PostMessage * pm,
+int ZNet_Http_Post_Add_Request_Header(HTTP_PostMessage * pm,
                                       const char * token,
                                       const char * value)
 {
@@ -348,7 +320,7 @@ int LNat_Http_Post_Add_Request_Header(HTTP_PostMessage * pm,
 
 
 /* Add an Entity Header Field to a post message */
-int LNat_Http_Post_Add_Entity_Header(HTTP_PostMessage * pm,
+int ZNet_Http_Post_Add_Entity_Header(HTTP_PostMessage * pm,
                                      const char * token,
                                      const char * value)
 {
@@ -381,9 +353,9 @@ int LNat_Http_Post_Add_Entity_Header(HTTP_PostMessage * pm,
 
 
 /* Destroy a HTTP_PostMessage structure that was allocated by
-   LNat_Generate_Http_Post.
+   ZNet_Generate_Http_Post.
 */
-int LNat_Destroy_Http_Post(HTTP_PostMessage ** pm)
+int ZNet_Destroy_Http_Post(HTTP_PostMessage ** pm)
 {
   int i;
   RequestHeader * next_rheader;
@@ -429,13 +401,13 @@ int LNat_Destroy_Http_Post(HTTP_PostMessage ** pm)
 /* This function makes an HTTP Get request to a particular ip
    address and port that is stored in the HTTP_GetMessage struct. One must
    generate the HTTP_GetMessage before calling this function using the
-   LNat_Generate_Http_Get function. 
+   ZNet_Generate_Http_Get function. 
    
    This function allocates space for the response, and returns it
    in the response parameter. The caller must free this space with
    free(). Return OK on success.
 */
-int LNat_Http_Request_Get(HTTP_GetMessage * gm,
+int ZNet_Http_Request_Get(HTTP_GetMessage * gm,
                           char ** response)
 {
   int ret;
@@ -445,7 +417,7 @@ int LNat_Http_Request_Get(HTTP_GetMessage * gm,
     return ret;
   }
 
-  if((ret = LNat_Http_Request(gm->resource, gm->host, gm->port,
+  if((ret = ZNet_Http_Request(gm->resource, gm->host, gm->port,
                             http_get_request, response)) != OK) {
     free(http_get_request);
     return ret;
@@ -455,7 +427,7 @@ int LNat_Http_Request_Get(HTTP_GetMessage * gm,
   return OK;
 }
 
-static int LNat_Http_Request_KL(OsSocket *s,
+static int ZNet_Http_Request_KL(OsSocket *s,
 							 const char * message,
 							 char ** response)
 {
@@ -476,7 +448,7 @@ static int LNat_Http_Request_KL(OsSocket *s,
 /*
 用已经存在的socket发送请求 keep-alive
 */
-int LNat_Http_Request_Get_KL(OsSocket *s,HTTP_GetMessage * gm,
+int ZNet_Http_Request_Get_KL(OsSocket *s,HTTP_GetMessage * gm,
 						  char ** response)
 {
 	int ret;
@@ -486,7 +458,7 @@ int LNat_Http_Request_Get_KL(OsSocket *s,HTTP_GetMessage * gm,
 		return ret;
 	}
 
-	if((ret = LNat_Http_Request_KL(s,http_get_request, response)) != OK) {
+	if((ret = ZNet_Http_Request_KL(s,http_get_request, response)) != OK) {
 			free(http_get_request);
 			return ret;
 	}
@@ -500,13 +472,13 @@ int LNat_Http_Request_Get_KL(OsSocket *s,HTTP_GetMessage * gm,
 /* This function makes an HTTP Post request to a particular ip
    address and port that is stored in the HTTP_PostMessage structure.
    One must generate the HTTP_PostMessage structure before calling this
-   function using the LNat_Generate_Http_Post function.
+   function using the ZNet_Generate_Http_Post function.
 
    This function allocates space for the response, and returns it
    in the response parameter. The caller must free this space with
    free(). Return OK on success.
 */
-int LNat_Http_Request_Post(HTTP_PostMessage * pm,
+int ZNet_Http_Request_Post(HTTP_PostMessage * pm,
                            char ** response)
 {
   int ret;
@@ -516,7 +488,7 @@ int LNat_Http_Request_Post(HTTP_PostMessage * pm,
     return ret;
   }
 
-  if((ret = LNat_Http_Request(pm->resource, pm->host, pm->port,
+  if((ret = ZNet_Http_Request(pm->resource, pm->host, pm->port,
                             http_post_request, response)) != OK) {
     free(http_post_request);
     return ret;
@@ -533,7 +505,7 @@ int LNat_Http_Request_Post(HTTP_PostMessage * pm,
    on failure. It will return an allocated buffer in response. The
    caller must free this buffer when it is through.
 */
-static int LNat_Http_Request(const char * resource,
+static int ZNet_Http_Request(const char * resource,
                              const char * host,
                              short int port,
                              const char * message,
@@ -543,25 +515,25 @@ static int LNat_Http_Request(const char * resource,
   int ret;
 
   /* make the connection to the host and port */
-  if((ret = LNat_Os_Socket_Connect(&s, host, port, 
+  if((ret = ZNet_Os_Socket_Connect(&s, host, port, 
                                     HTTP_CONNECT_TIMEOUT)) != OK ) {
     return ret;
   }
 
   /* send an HTTP request */
   if((ret = Send_Http_Request(s, message)) != OK) {
-    LNat_Os_Socket_Close(&s);
+    ZNet_Os_Socket_Close(&s);
     return ret;
   }
 
   /* get an HTTP response */
   if((ret = Get_Http_Response(s, response)) != OK) {
-    LNat_Os_Socket_Close(&s);
+    ZNet_Os_Socket_Close(&s);
     return ret;
   }
 
   /* close the connection s is connected to */
-  if((ret = LNat_Os_Socket_Close(&s)) != OK) {
+  if((ret = ZNet_Os_Socket_Close(&s)) != OK) {
     return ret;
   }
 
@@ -578,7 +550,7 @@ static int Send_Http_Request(OsSocket * s,
   int ret;
 
   /* now we will send the request */
-  if((ret = LNat_Os_Socket_Send(s, 
+  if((ret = ZNet_Os_Socket_Send(s, 
       (char *)message, (int)strlen(message), &amt_sent)) != OK) {
     return ret;
   }
@@ -632,7 +604,7 @@ static int Get_Http_Content(OsSocket * s,
     return BAD_MALLOC;
   }
 
-  if((ret = LNat_Os_Socket_Recv(s, *http_content, content_length, 
+  if((ret = ZNet_Os_Socket_Recv(s, *http_content, content_length, 
                                 &recv, HTTP_RECEIVE_TIMEOUT)) != OK) {
     free(*http_content);
     return ret;
@@ -655,7 +627,7 @@ static int Get_Http_Content_Length(char * http_header,
   if(NULL == http_upper_header) {
     return -1;
   }
-  (void)LNat_Str_To_Upper(http_header, http_upper_header);
+  (void)ZNet_Str_To_Upper(http_header, http_upper_header);
 
   cl_loc = strstr(http_upper_header, HTTP_CONTENT_LEN_TAG);
   if(NULL == cl_loc) {
@@ -701,7 +673,7 @@ static int Get_Http_Header(OsSocket * s,
   /* recieve of size 1 till we hit the \r\n\r\n terminator
      of an HTTP header */
   do {
-    ret = LNat_Os_Socket_Recv(s, &((*http_response)[recv_sofar]), 
+    ret = ZNet_Os_Socket_Recv(s, &((*http_response)[recv_sofar]), 
                               1, &recv, HTTP_RECEIVE_TIMEOUT);
     recv_sofar += recv;
   } while(ret == OK && recv > 0 && recv_sofar < MAX_HTTP_HEADER_LEN &&
