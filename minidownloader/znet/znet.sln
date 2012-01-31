@@ -1,0 +1,38 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "znet", "znet.vcproj", "{EC14100C-2659-4DD0-ABEE-31176FE17CC0}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "znetserver", "znetserver\znetserver.vcproj", "{78858806-00D4-4E8D-B42F-66A1B8E43B82}"
+	ProjectSection(ProjectDependencies) = postProject
+		{EC14100C-2659-4DD0-ABEE-31176FE17CC0} = {EC14100C-2659-4DD0-ABEE-31176FE17CC0}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "znetclient", "znetclient\znetclient.vcproj", "{CE0420E7-064A-43FE-B0E4-469C68A09585}"
+	ProjectSection(ProjectDependencies) = postProject
+		{EC14100C-2659-4DD0-ABEE-31176FE17CC0} = {EC14100C-2659-4DD0-ABEE-31176FE17CC0}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EC14100C-2659-4DD0-ABEE-31176FE17CC0}.Debug|Win32.ActiveCfg = Debug|Win32
+		{EC14100C-2659-4DD0-ABEE-31176FE17CC0}.Debug|Win32.Build.0 = Debug|Win32
+		{EC14100C-2659-4DD0-ABEE-31176FE17CC0}.Release|Win32.ActiveCfg = Release|Win32
+		{EC14100C-2659-4DD0-ABEE-31176FE17CC0}.Release|Win32.Build.0 = Release|Win32
+		{78858806-00D4-4E8D-B42F-66A1B8E43B82}.Debug|Win32.ActiveCfg = Debug|Win32
+		{78858806-00D4-4E8D-B42F-66A1B8E43B82}.Debug|Win32.Build.0 = Debug|Win32
+		{78858806-00D4-4E8D-B42F-66A1B8E43B82}.Release|Win32.ActiveCfg = Release|Win32
+		{78858806-00D4-4E8D-B42F-66A1B8E43B82}.Release|Win32.Build.0 = Release|Win32
+		{CE0420E7-064A-43FE-B0E4-469C68A09585}.Debug|Win32.ActiveCfg = Debug|Win32
+		{CE0420E7-064A-43FE-B0E4-469C68A09585}.Debug|Win32.Build.0 = Debug|Win32
+		{CE0420E7-064A-43FE-B0E4-469C68A09585}.Release|Win32.ActiveCfg = Release|Win32
+		{CE0420E7-064A-43FE-B0E4-469C68A09585}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
