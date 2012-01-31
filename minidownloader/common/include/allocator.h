@@ -2,7 +2,6 @@
 #define MEM_ALLOCATOR_H
 
 #include <stddef.h>
-#include <stdint.h>
 
 /**
  * @file allocator.h
@@ -13,7 +12,7 @@
 extern "C" {
 #endif
 
-
+typedef unsigned int uint32_t;
 typedef struct allocator_t allocator_t;
 
 typedef struct memnode_t memnode_t;
