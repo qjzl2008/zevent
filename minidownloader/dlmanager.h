@@ -5,6 +5,7 @@
 #include <list>
 #include "dlitem.h"
 #include "conn_pool.h"
+#include "dllist.h"
 
 class dlmanager
 {
@@ -14,9 +15,10 @@ public:
 
 	dlmanager(void);
 	~dlmanager(void);
-	int init(const char *dllist);
+	int init(void);
 	int fini(void);
 	int push_req(dlitem *);
+	int get_from_dllist(dlitem *item);
 
 	int shutdown;
 
@@ -27,9 +29,12 @@ private:
 		size_t *inwords,
 		char *out,
 		size_t *outbytes);
-	int http_uri_encode(const wchar_t *uri,size_t inwords,char *enc_uri);
+	//int http_uri_encode(const wchar_t *uri,size_t inwords,char *enc_uri);
+	int http_uri_encode(const char  *utf8_uri,char *enc_uri);
 
 	int init_conn_pool(void);
+
+	int process_file(dlitem *item,char *data);
 
 private:
 	conn_svr_cfg cfg;
@@ -39,7 +44,7 @@ private:
 	DWORD *m_pdwThreaIDs;
 	queue_t *req_queue;
 
-	thread_mutex_t *list_mutex;
+	dllist filelist;
 };
 
 #endif

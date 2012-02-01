@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".\common\include;.\common\include\arch\win;.\znet"
+				AdditionalIncludeDirectories=".\common\include;.\common\include\arch\win;.\znet;&quot;.\libxml2-2.7.8.win32\include&quot;;&quot;.\libiconv-1.9.1\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;HAS_THREADS;CONN_DECLARE_STATIC"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -61,6 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies=".\libxml2-2.7.8.win32\lib\libxml2.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="1"
@@ -181,6 +182,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\dllist.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\dlmanager.cpp"
 				>
 			</File>
@@ -252,6 +257,10 @@
 			</File>
 			<File
 				RelativePath=".\dlitem.h"
+				>
+			</File>
+			<File
+				RelativePath=".\dllist.h"
 				>
 			</File>
 			<File

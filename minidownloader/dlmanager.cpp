@@ -13,7 +13,6 @@ dlmanager::dlmanager()
 {
 	m_phThreads = NULL;
 	req_queue = NULL;
-	list_mutex = NULL;
 	m_nThreadCount = 0;
 	shutdown = 0;
 }
@@ -26,8 +25,8 @@ int dlmanager::init_conn_pool()
 	GetModuleFileName(NULL,lpModuleFileName,MAX_PATH);
 	GetFullPathName(lpModuleFileName,MAX_PATH,lpModuleFileName,&file);
 	*file = 0;
-	strcpy(lpIniFileName,lpModuleFileName);
-	strcat(lpIniFileName,"dl_cfg.ini");
+	strcpy_s(lpIniFileName,sizeof(lpIniFileName),lpModuleFileName);
+	strcat_s(lpIniFileName,sizeof(lpIniFileName),"dl_cfg.ini");
 	char szServerIP[64] = {0};
 	GetPrivateProfileString("network","server","",szServerIP,sizeof(szServerIP),lpIniFileName);
 	strcpy_s(cfg.host,sizeof(cfg.host),szServerIP);
@@ -43,14 +42,16 @@ int dlmanager::init_conn_pool()
 	return 0;
 }
 
-int dlmanager::init(const char *dllist)
+int dlmanager::init(void)
 {
-	int rv = init_conn_pool();
+	int rv = filelist.init("dllist.xml");
+	if(rv != 0)
+		return -1;
+	rv = init_conn_pool();
 	if(rv < 0)
 		return -1;
 
 	queue_create(&req_queue,1000);
-	thread_mutex_create(&list_mutex,THREAD_MUTEX_DEFAULT);
 
 	m_nThreadCount = cfg.nkeep;
 	m_phThreads = new HANDLE[m_nThreadCount];
@@ -131,19 +132,12 @@ int dlmanager::conv_ucs2_to_utf8(const wchar_t *in,
 	return 0;
 }
 
-int dlmanager::http_uri_encode(const wchar_t *uri,size_t inwords,char *enc_uri)
+int dlmanager::http_uri_encode(const char  *utf8_uri,char *enc_uri)
 {
 	char buf[64];
 	unsigned char c;
-	int i,ret;
-	size_t outwords = 3*inwords + 1;
-	char *utf8_uri = (char *)malloc(outwords);
-	memset(utf8_uri,0,(outwords));
-	memset(buf,0,sizeof(buf));
+	int i;
 
-	ret = conv_ucs2_to_utf8(uri,&inwords,utf8_uri,&outwords);
-	if(ret != 0)
-		return -1;
 	for(i = 0; i < strlen(utf8_uri); i++)
 	{
 		c = utf8_uri[i];
@@ -161,7 +155,30 @@ int dlmanager::http_uri_encode(const wchar_t *uri,size_t inwords,char *enc_uri)
 		*enc_uri++ = buf[1];
 	}
 
-	free(utf8_uri);
+	//free(utf8_uri);
+	return 0;
+}
+
+int dlmanager::process_file(dlitem *item,char *data)
+{
+	if(item->method == 0)
+	{
+		HANDLE hFile;
+		hFile = CreateFile(TEXT(item->fpath),GENERIC_WRITE,0,NULL,
+			CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);
+		if(hFile == INVALID_HANDLE_VALUE)
+		{
+			return -1;
+		}
+		DWORD written = 0;
+		BOOL rv = WriteFile(hFile,data,item->size,&written,NULL);
+		if(!rv || written != item->size)
+		{
+			CloseHandle(hFile);
+			return -1;
+		}
+		CloseHandle(hFile);
+	}
 	return 0;
 }
 
@@ -169,8 +186,6 @@ int dlmanager::dlonefile(dlitem *item)
 {
 	int ret;
 	char enc_uri[2048] = {0};
-	wchar_t ucs2_uri[MAX_PATH];
-	size_t inwords;
 	char host[MAX_HOST_LEN];
 	short int port;
 	char resource[MAX_RESOURCE_LEN];
@@ -181,9 +196,7 @@ int dlmanager::dlonefile(dlitem *item)
 		return ret;
 	}
 
-	inwords = MultiByteToWideChar(CP_ACP,0,resource,-1,ucs2_uri,
-		sizeof(ucs2_uri)/sizeof(ucs2_uri[0]));
-	http_uri_encode(ucs2_uri,inwords,enc_uri);
+	ret = http_uri_encode(resource,enc_uri);
 
 	if((ret = ZNet_Generate_Http_Get(host, enc_uri, port, &gm)) != OK) {
 		return ret;
@@ -201,11 +214,19 @@ int dlmanager::dlonefile(dlitem *item)
 	else
 	{
 		conn_pool_release(&cfg,res);
+		process_file(item,data);
 		free(data);
+		//filelist.set_dlitem_finish(item);
 	}
 
 	(void)ZNet_Destroy_Http_Get(&gm);
 	return ret;
+}
+
+int dlmanager::get_from_dllist(dlitem *item)
+{
+	int rv = filelist.get_next_dlitem(item);
+	return rv;
 }
 
 DWORD dlmanager::dlthread_entry(LPVOID pParam)
@@ -214,13 +235,15 @@ DWORD dlmanager::dlthread_entry(LPVOID pParam)
 	dlmanager *pdlmanger = (dlmanager *)pParam;
 	while(!pdlmanger->shutdown)
 	{
-		thread_mutex_lock(pdlmanger->list_mutex);
 		//test
-		const char *desc_url = "http://127.0.0.1/jdk-1_5_0_06-linux-i586.bin";
+		//const char *desc_url = "http://127.0.0.1/jdk-1_5_0_06-linux-i586.bin";
 		dlitem item;
-		strcpy_s(item.url,desc_url);
-		thread_mutex_unlock(pdlmanger->list_mutex);
-		rv = pdlmanger->dlonefile(&item);
+		rv = pdlmanger->get_from_dllist(&item);
+		//strcpy_s(item.url,desc_url);
+		if(rv == 0)
+			rv = pdlmanger->dlonefile(&item);
+		else
+			return 0;
 		Sleep(50);
 	}
 	return 0;
@@ -230,9 +253,10 @@ int dlmanager::fini(void)
 {
 	shutdown = 1;
 	WaitForMultipleObjects(m_nThreadCount,m_phThreads,TRUE,INFINITE);
+	if(req_queue)
 	queue_destroy(req_queue);
 	conn_pool_fini(&cfg);
-	thread_mutex_destroy(list_mutex);
+	filelist.fini();
 	return 0;
 }
 

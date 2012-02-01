@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<filelist>
+  <file download_path="http://127.0.0.1/jdk-1_5_0_06-linux-i586.bin" pack_path="res.pak" method="1" check_md5="e20c1d9a17fd971efb2e844592dd2064" file_size="48974825"/>
+  <file download_path="http://127.0.0.1/测试SQLite-1.0.2.tgz" file_path="1.tgz" method="0" check_md5="e20c1d9a17fd971efb2e844592dd2067" file_size="362412" />
+</filelist>

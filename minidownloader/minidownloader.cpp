@@ -20,7 +20,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	WSAStartup(MAKEWORD(2,2),&wsaData);
 #endif
 	dlmanager dl_manager;
-	dl_manager.init("");
+	dl_manager.init();
 	while(1)
 	{
 		if(_kbhit())
