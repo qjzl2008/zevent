@@ -11,7 +11,6 @@ extern "C"{
 
 dlmanager::dlmanager()
 {
-	conn_pool_mutex = NULL;
 	m_phThreads = NULL;
 	req_queue = NULL;
 	list_mutex = NULL;
@@ -19,27 +18,41 @@ dlmanager::dlmanager()
 	shutdown = 0;
 }
 
-int dlmanager::init(const char *flilelist)
+int dlmanager::init_conn_pool()
 {
-#ifdef WIN32
-	strcpy_s(cfg.host,sizeof(cfg.host),"127.0.0.1");
-#else
-	strcpy(cfg.host,"127.0.0.1");
-#endif
-	cfg.port = 80;
-	thread_mutex_create(&conn_pool_mutex,THREAD_MUTEX_DEFAULT);
-	cfg.mutex = conn_pool_mutex;
-	cfg.nmin = 2;
-	cfg.nkeep = 5;
-	cfg.nmax = 10;
-	cfg.exptime = 0;
-	cfg.timeout = 1000;
-	conn_pool_init(&cfg);
+	char lpModuleFileName[MAX_PATH] = {0};
+	char lpIniFileName[MAX_PATH] = {0};
+	TCHAR *file;
+	GetModuleFileName(NULL,lpModuleFileName,MAX_PATH);
+	GetFullPathName(lpModuleFileName,MAX_PATH,lpModuleFileName,&file);
+	*file = 0;
+	strcpy(lpIniFileName,lpModuleFileName);
+	strcat(lpIniFileName,"dl_cfg.ini");
+	char szServerIP[64] = {0};
+	GetPrivateProfileString("network","server","",szServerIP,sizeof(szServerIP),lpIniFileName);
+	strcpy_s(cfg.host,sizeof(cfg.host),szServerIP);
+	cfg.port = GetPrivateProfileInt("network","port",80,lpIniFileName);
+	cfg.nmin = GetPrivateProfileInt("network","min_conn",2,lpIniFileName);
+	cfg.nmax = GetPrivateProfileInt("network","max_conn",10,lpIniFileName);
+	cfg.nkeep = GetPrivateProfileInt("network","keep_conn",5,lpIniFileName);
+    cfg.exptime = GetPrivateProfileInt("network","exptime",0,lpIniFileName);
+	cfg.timeout = GetPrivateProfileInt("network","timeout",1000,lpIniFileName);
+	int rv = conn_pool_init(&cfg);
+	if(rv != 0)
+		return -1;
+	return 0;
+}
+
+int dlmanager::init(const char *dllist)
+{
+	int rv = init_conn_pool();
+	if(rv < 0)
+		return -1;
 
 	queue_create(&req_queue,1000);
 	thread_mutex_create(&list_mutex,THREAD_MUTEX_DEFAULT);
 
-	m_nThreadCount = 5;
+	m_nThreadCount = cfg.nkeep;
 	m_phThreads = new HANDLE[m_nThreadCount];
 	m_pdwThreaIDs = new DWORD[m_nThreadCount];
 
@@ -219,7 +232,6 @@ int dlmanager::fini(void)
 	WaitForMultipleObjects(m_nThreadCount,m_phThreads,TRUE,INFINITE);
 	queue_destroy(req_queue);
 	conn_pool_fini(&cfg);
-	thread_mutex_destroy(conn_pool_mutex);
 	thread_mutex_destroy(list_mutex);
 	return 0;
 }

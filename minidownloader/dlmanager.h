@@ -14,7 +14,7 @@ public:
 
 	dlmanager(void);
 	~dlmanager(void);
-	int init(const char *filelist);
+	int init(const char *dllist);
 	int fini(void);
 	int push_req(dlitem *);
 
@@ -29,9 +29,10 @@ private:
 		size_t *outbytes);
 	int http_uri_encode(const wchar_t *uri,size_t inwords,char *enc_uri);
 
+	int init_conn_pool(void);
+
 private:
 	conn_svr_cfg cfg;
-	thread_mutex_t *conn_pool_mutex;
 
 	int m_nThreadCount;
 	HANDLE *m_phThreads;
