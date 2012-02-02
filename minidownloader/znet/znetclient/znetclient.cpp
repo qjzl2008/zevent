@@ -16,7 +16,7 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	int key;
 	nc_arg_t nc_arg;
-	strcpy(nc_arg.ip,"127.0.0.1");
+	strcpy_s(nc_arg.ip,sizeof(nc_arg.ip),"127.0.0.1");
 	nc_arg.port = 8090;
 	nc_arg.func = NULL;
 	nc_arg.timeout = 3;

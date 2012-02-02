@@ -48,7 +48,7 @@ typedef struct{
 
 typedef struct net_server_t net_server_t;
 
-ZNET_DECLARE(int) ns_start_daemon(net_server_t **ns,const ns_arg_t *ns_arg);
+ZNET_DECLARE(int) ns_start_daemon(net_server_t **ns,ns_arg_t *ns_arg);
 ZNET_DECLARE(int) ns_stop_daemon(net_server_t *ns);
 ZNET_DECLARE(int) ns_getpeeraddr(net_server_t *ns,uint64_t peer_id,char *ip);
 ZNET_DECLARE(int) ns_sendmsg(net_server_t *ns,uint64_t peer_id,void *msg,uint32_t len);

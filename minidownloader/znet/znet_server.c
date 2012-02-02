@@ -64,11 +64,12 @@ static DWORD WINAPI event_loop(void *arg)
 	return 0;
 }
 
-static int start_listen(net_server_t *ns,const ns_arg_t *ns_arg)
+static int start_listen(net_server_t *ns,ns_arg_t *ns_arg)
 {
 	int rv;
 	int flag = 1;
 	struct sockaddr_in saddr;
+	int len = sizeof(saddr);
 	SOCKET fd = socket(AF_INET,SOCK_STREAM,0);
 	if(fd == SOCKET_ERROR)
 		return -1;
@@ -80,7 +81,16 @@ static int start_listen(net_server_t *ns,const ns_arg_t *ns_arg)
     rv = bind(fd,(struct sockaddr *)&saddr,sizeof(struct sockaddr_in));
     if(rv < 0)
 	{
+		closesocket(fd);
 		return -1;
+	}
+	if(ns_arg->port == 0)
+	{
+		if (getsockname(fd, (struct sockaddr*)&saddr, &len) == -1){
+			closesocket(fd);
+			return -1;
+		}
+		ns_arg->port = ntohs(saddr.sin_port);
 	}
 	rv = listen(fd,500);
 	set_nonblocking(fd);
@@ -121,7 +131,7 @@ static int default_process_func(uint8_t *buf,uint32_t len,uint32_t *off)
 }
 
 //server interface
-ZNET_DECLARE(int) ns_start_daemon(net_server_t **ns,const ns_arg_t *ns_arg)
+ZNET_DECLARE(int) ns_start_daemon(net_server_t **ns,ns_arg_t *ns_arg)
 {
 	int rv;
 	HANDLE td;
