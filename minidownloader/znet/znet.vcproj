@@ -227,10 +227,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\znet.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\znet_client.c"
 				>
 			</File>

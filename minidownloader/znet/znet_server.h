@@ -11,7 +11,6 @@
 
 struct net_server_t {
     int endgame;
-    int epfd;
     SOCKET fd;
     struct fdev ev; 
 
