@@ -16,7 +16,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	ns_arg_t ns_arg;
 	ns_arg.max_peers = 1000;
 	strcpy_s(ns_arg.ip,sizeof(ns_arg.ip),"127.0.0.1");
-	ns_arg.port = 0;
+	ns_arg.port = 8090;
 	ns_arg.func = NULL;
 
 	net_server_t *ns;

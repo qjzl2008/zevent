@@ -57,7 +57,7 @@ int _tmain(int argc, _TCHAR* argv[])
 			if((key =_getch()) == 115/*s key*/)
 				break;
 		}
-		Sleep(100);
+		Sleep(10);
 	}
 	nc_disconnect(nc);
 	return 0;
