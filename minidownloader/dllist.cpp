@@ -51,17 +51,11 @@ int dllist::init(const char *listfile)
 			xmlFree(value); 
 		}
 
-		value = (char *)xmlGetProp(cur, (const xmlChar *)"pack_path");
-		if(value)
-		{
-			strcpy_s(item->pack_path,sizeof(item->pack_path),value);
-			xmlFree(value);
-		}
 
-		value = (char *)xmlGetProp(cur, (const xmlChar *)"file_path");
+		value = (char *)xmlGetProp(cur, (const xmlChar *)"path");
 		if(value)
 		{
-			strcpy_s(item->fpath,sizeof(item->fpath),value);
+			strcpy_s(item->path,sizeof(item->path),value);
 			xmlFree(value);
 		}
 
@@ -107,6 +101,15 @@ int dllist::fini(void)
 {
 	xmlFreeDoc(doc);//释放xml解析库所用资源
 	xmlCleanupParser();
+
+	dlitem *item = NULL;
+	filelist_iter iter = filelist.begin();
+	for(; iter != filelist.end(); iter++)
+	{
+		item = reinterpret_cast<dlitem *>(*iter);
+		delete item;
+	}
+	filelist.clear();
 	return 0;
 }
 

@@ -1,5 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<!--- 
+    下载列表文件保存为utf8编码
+    download_path:相对于客户端根目录的路径 
+    method: 文件下载完成后的操作方式 0:独立文件 1:打包
+    check_md5:md5码（和pf包一致）
+    file_size:文件大小
+    file_path:文件在本地存储的文件名 含相对于程序工作目录的相对路径信息
+    pack_path:method为1时的打包路径信息
+ -->
 <filelist> 
-      <file download_path="/jdk-1_5_0_06-linux-i586.bin" pack_path="res.pak" method="1" check_md5="e20c1d9a17fd971efb2e844592dd2064" file_size="48974825"/>
-      <file download_path="/测试SQLite-1.0.2.tgz" file_path="1.tgz" method="0" check_md5="e20c1d9a17fd971efb2e844592dd2067" file_size="362412" />
+      <file download_path="/jdk-1_5_0_06-linux-i586.bin" path="res.pak" method="1" check_md5="e20c1d9a17fd971efb2e844592dd2064" file_size="48974825"/>
+      <file download_path="/测试SQLite-1.0.2.tgz" path="测试1.tgz" method="0" check_md5="e20c1d9a17fd971efb2e844592dd2067" file_size="362412" />
 </filelist>

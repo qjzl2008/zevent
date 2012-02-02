@@ -15,8 +15,6 @@ enum METHOD{
 class dlmanager
 {
 public:
-	typedef std::list<dlitem *> dllist_t;
-	typedef std::list<dlitem *>::iterator dllist_iter;
 
 	dlmanager(void);
 	~dlmanager(void);
@@ -28,12 +26,19 @@ public:
 
 private:
 	static DWORD dlthread_entry(LPVOID pParam);
+
 	int dlonefile(dlitem *item);
+
 	int conv_ucs2_to_utf8(const wchar_t *in,
 		size_t *inwords,
 		char *out,
 		size_t *outbytes);
-	//int http_uri_encode(const wchar_t *uri,size_t inwords,char *enc_uri);
+
+	int conv_utf8_to_ucs2(const char *in, 
+		size_t *inbytes,
+		wchar_t *out, 
+		size_t *outwords);
+
 	int http_uri_encode(const char  *utf8_uri,char *enc_uri);
 
 	int init_conn_pool(void);

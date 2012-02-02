@@ -70,6 +70,96 @@ int dlmanager::init(void)
 	return 0;
 }
 
+int dlmanager::conv_utf8_to_ucs2(const char *in, size_t *inbytes,
+					  wchar_t *out, 
+					  size_t *outwords)
+{
+	long newch, mask;
+	size_t expect, eating;
+	int ch;
+
+	while (*inbytes && *outwords) 
+	{
+		ch = (unsigned char)(*in++);
+		if (!(ch & 0200)) {
+			/* US-ASCII-7 plain text
+			*/
+			--*inbytes;
+			--*outwords;
+			*(out++) = ch;
+		}
+		else
+		{
+			if ((ch & 0300) != 0300) { 
+				/* Multibyte Continuation is out of place
+				*/
+				return -1;
+			}
+			else
+			{
+				/* Multibyte Sequence Lead Character
+				*
+				* Compute the expected bytes while adjusting
+				* or lead byte and leading zeros mask.
+				*/
+				mask = 0340;
+				expect = 1;
+				while ((ch & mask) == mask) {
+					mask |= mask >> 1;
+					if (++expect > 3) /* (truly 5 for ucs-4) */
+						return -1;
+				}
+				newch = ch & ~mask;
+				eating = expect + 1;
+				if (*inbytes <= expect)
+					return -1;
+		
+				if (expect == 1) {
+					if (!(newch & 0036))
+						return -1;
+				}
+				else {
+					if (!newch && !((unsigned char)*in & 0077 & (mask << 1)))
+						return -1;
+					if (expect == 2) {
+						if (newch == 0015 && ((unsigned char)*in & 0040))
+							return -1;
+					}
+					else if (expect == 3) {
+						if (newch > 4)
+							return -1;
+						if (newch == 4 && ((unsigned char)*in & 0060))
+							return -1;
+					}
+				}
+				if (*outwords < (size_t)(expect > 2) + 1) 
+					break; /* buffer full */
+				while (expect--)
+				{
+					if (((ch = (unsigned char)*(in++)) & 0300) != 0200)
+						return -1;
+					newch <<= 6;
+					newch |= (ch & 0077);
+				}
+				*inbytes -= eating;
+				if (newch < 0x10000) 
+				{
+					--*outwords;
+					*(out++) = (wchar_t) newch;
+				}
+				else 
+				{
+					*outwords -= 2;
+					newch -= 0x10000;
+					*(out++) = (wchar_t) (0xD800 | (newch >> 10));
+					*(out++) = (wchar_t) (0xDC00 | (newch & 0x03FF));                    
+				}
+			}
+		}
+	}
+	return 0;
+}
+
 int dlmanager::conv_ucs2_to_utf8(const wchar_t *in,
 							 size_t *inwords,
 							 char *out,
@@ -161,24 +251,36 @@ int dlmanager::http_uri_encode(const char  *utf8_uri,char *enc_uri)
 
 int dlmanager::process_file(dlitem *item,char *data)
 {
+	wchar_t w_path[MAX_PATH] = {0};
+	size_t inbytes = strlen(item->path);
+	size_t outbytes = sizeof(w_path);
+	int rv = conv_utf8_to_ucs2(item->path,&inbytes,w_path,&outbytes);
+	DWORD dwNum = WideCharToMultiByte(CP_ACP,NULL,w_path,-1,NULL,0,NULL,FALSE);
+	char *c_path;
+	c_path = new char[dwNum];
+	rv = WideCharToMultiByte (CP_OEMCP,NULL,w_path,-1,c_path,dwNum,NULL,FALSE);
+	
 	if(item->method == STANDALONE)
 	{
 		HANDLE hFile;
-		hFile = CreateFile(TEXT(item->fpath),GENERIC_WRITE,0,NULL,
+		hFile = CreateFile(c_path,GENERIC_WRITE,0,NULL,
 			CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);
 		if(hFile == INVALID_HANDLE_VALUE)
 		{
+			delete []c_path;
 			return -1;
 		}
 		DWORD written = 0;
 		BOOL rv = WriteFile(hFile,data,item->size,&written,NULL);
 		if(!rv || written != item->size)
 		{
+			delete []c_path;
 			CloseHandle(hFile);
 			return -1;
 		}
 		CloseHandle(hFile);
 	}
+	delete []c_path;
 	return 0;
 }
 
@@ -255,7 +357,7 @@ int dlmanager::fini(void)
 	shutdown = 1;
 	WaitForMultipleObjects(m_nThreadCount,m_phThreads,TRUE,INFINITE);
 	if(req_queue)
-	queue_destroy(req_queue);
+		queue_destroy(req_queue);
 	conn_pool_fini(&cfg);
 	filelist.fini();
 	return 0;

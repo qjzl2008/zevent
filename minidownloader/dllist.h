@@ -10,6 +10,7 @@ class dllist
 {
 public:
 	typedef std::list<dlitem *> filelist_t;
+	typedef std::list<dlitem *>::iterator filelist_iter;
 
 	dllist(void);
 	~dllist(void);

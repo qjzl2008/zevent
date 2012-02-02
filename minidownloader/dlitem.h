@@ -9,8 +9,7 @@ struct dlitem{
 	dlitem()
 	{
 		memset(resource,0,sizeof(resource));
-		memset(fpath,0,sizeof(fpath));
-		memset(pack_path,0,sizeof(pack_path));
+		memset(path,0,sizeof(path));
 		memset(md5,0,sizeof(md5));
 		size = 0;
 		node = NULL;
@@ -18,8 +17,7 @@ struct dlitem{
 	}
 	xmlNodePtr node;
 	char resource[MAX_RESOURCE_LEN];
-	char fpath[MAX_PATH];
-	char pack_path[MAX_PATH];
+	char path[MAX_PATH];
 	char md5[64];
 	UINT32 size;
 	int method;
