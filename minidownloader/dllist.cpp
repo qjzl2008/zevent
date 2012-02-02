@@ -5,60 +5,41 @@ using namespace std;
 dllist::dllist(void)
 {
 	doc = NULL;
-	cur = NULL;
 	memset(listname,0,sizeof(listname));
-	thread_mutex_create(&mutex,THREAD_MUTEX_DEFAULT);
+	thread_mutex_create(&list_mutex,THREAD_MUTEX_DEFAULT);
+	thread_mutex_create(&doc_mutex,THREAD_MUTEX_DEFAULT);
 }
 
 dllist::~dllist(void)
 {
-	thread_mutex_destroy(mutex);
+	thread_mutex_destroy(list_mutex);
+	thread_mutex_destroy(doc_mutex);
 }
 
 int dllist::init(const char *listfile)
 {
 	char* name=NULL;
 	char* value=NULL;
-	thread_mutex_lock(mutex);
 	xmlKeepBlanksDefault (0); 
 	doc=xmlParseFile(listfile);//创建Dom树
 	if(doc==NULL)
 	{
-		thread_mutex_unlock(mutex);
 		return -1;
 	}
+	xmlNodePtr  cur;
 	cur=xmlDocGetRootElement(doc);//获取根节点
 	if(cur==NULL)
 	{
-		thread_mutex_unlock(mutex);
 		xmlFreeDoc(doc); 
 		return -1;
 	}
 
 	cur=cur->xmlChildrenNode;
 	strcpy_s(listname,sizeof(listname),listfile);
-	thread_mutex_unlock(mutex);
-	return 0;
-}
 
-int dllist::fini(void)
-{
-	thread_mutex_lock(mutex);
-	xmlFreeDoc(doc);//释放xml解析库所用资源
-	xmlCleanupParser();
-	cur = NULL;
-	thread_mutex_unlock(mutex);
-	return 0;
-}
-
-int dllist::get_next_dlitem(dlitem *item)
-{
-	thread_mutex_lock(mutex);
-
-	char *name,*value;
-	int find = 0;
 	while(cur)
 	{
+		dlitem *item = new dlitem;
 		item->node = cur;
 		name=(char*)(cur->name); 
 		//value=(char *)xmlNodeGetContent(cur);
@@ -113,31 +94,42 @@ int dllist::get_next_dlitem(dlitem *item)
 			xmlFree(value);
 		}
 
-		if(finish)
+		if(!finish)
 		{
-			cur=cur->next;
-			continue;
+			filelist.push_back(item);
 		}
-		else
-		{
-			cur=cur->next;
-			find = 1;
-			break;
-		}
+		cur=cur->next;
 	}
-	thread_mutex_unlock(mutex);
-	if(find)
-		return 0;
-	else
+	return 0;
+}
+
+int dllist::fini(void)
+{
+	xmlFreeDoc(doc);//释放xml解析库所用资源
+	xmlCleanupParser();
+	return 0;
+}
+
+int dllist::get_next_dlitem(dlitem *&item)
+{
+	thread_mutex_lock(list_mutex);
+	if(filelist.empty())
+	{
+		thread_mutex_unlock(list_mutex);
 		return -1;
+	}
+	item = filelist.front();
+	filelist.pop_front();
+	thread_mutex_unlock(list_mutex);
+	return 0;
 }
 
 int dllist::set_dlitem_finish(dlitem *item)
 {
 	int rv = 0;
-	thread_mutex_lock(mutex);
+	thread_mutex_lock(doc_mutex);
 	xmlNewProp(item->node,(const xmlChar *)"finish",(const xmlChar *)"1");
 	rv = xmlSaveFormatFileEnc(listname,doc,"utf-8",1);
-	thread_mutex_unlock(mutex);
+	thread_mutex_unlock(doc_mutex);
 	return 0;
 }

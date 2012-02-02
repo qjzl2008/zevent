@@ -17,8 +17,7 @@ public:
 	~dlmanager(void);
 	int init(void);
 	int fini(void);
-	int push_req(dlitem *);
-	int get_from_dllist(dlitem *item);
+	int get_from_dllist(dlitem *&item);
 
 	int shutdown;
 

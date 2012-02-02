@@ -217,13 +217,14 @@ int dlmanager::dlonefile(dlitem *item)
 		process_file(item,data);
 		free(data);
 		//filelist.set_dlitem_finish(item);
+		delete item;
 	}
 
 	(void)ZNet_Destroy_Http_Get(&gm);
 	return ret;
 }
 
-int dlmanager::get_from_dllist(dlitem *item)
+int dlmanager::get_from_dllist(dlitem *&item)
 {
 	int rv = filelist.get_next_dlitem(item);
 	return rv;
@@ -235,13 +236,10 @@ DWORD dlmanager::dlthread_entry(LPVOID pParam)
 	dlmanager *pdlmanger = (dlmanager *)pParam;
 	while(!pdlmanger->shutdown)
 	{
-		//test
-		//const char *desc_url = "http://127.0.0.1/jdk-1_5_0_06-linux-i586.bin";
-		dlitem item;
-		rv = pdlmanger->get_from_dllist(&item);
-		//strcpy_s(item.url,desc_url);
+		dlitem *item;
+		rv = pdlmanger->get_from_dllist(item);
 		if(rv == 0)
-			rv = pdlmanger->dlonefile(&item);
+			rv = pdlmanger->dlonefile(item);
 		else
 			return 0;
 		Sleep(50);
