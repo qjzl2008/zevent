@@ -91,17 +91,11 @@ int dlmanager::conv_utf8_to_ucs2(const char *in, size_t *inbytes,
 		else
 		{
 			if ((ch & 0300) != 0300) { 
-				/* Multibyte Continuation is out of place
-				*/
+
 				return -1;
 			}
 			else
 			{
-				/* Multibyte Sequence Lead Character
-				*
-				* Compute the expected bytes while adjusting
-				* or lead byte and leading zeros mask.
-				*/
 				mask = 0340;
 				expect = 1;
 				while ((ch & mask) == mask) {
