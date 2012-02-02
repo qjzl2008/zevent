@@ -18,6 +18,8 @@ public:
 	int init(const char *listfile);
 	int fini(void);
 	int get_next_dlitem(dlitem *&item);
+	int put_to_dllist(dlitem *item);
+
 	int set_dlitem_finish(dlitem *item);
 	int save(void);
 

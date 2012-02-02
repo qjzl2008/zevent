@@ -292,13 +292,13 @@ int dlmanager::dlonefile(dlitem *item)
 	sprintf_s(url,sizeof(url),"http://%s:%d%s",
 		cfg.host,cfg.port,item->resource);
 	if((ret = Parse_Url(url, host, resource, &port)) != OK) {
-		return ret;
+		return -1;
 	}
 
 	ret = http_uri_encode(resource,enc_uri);
 
 	if((ret = ZNet_Generate_Http_Get(host, enc_uri, port, &gm)) != OK) {
-		return ret;
+		return -1;
 	}
 	OsSocket s;
 	void *res = conn_pool_acquire(&cfg);
@@ -316,16 +316,20 @@ int dlmanager::dlonefile(dlitem *item)
 		process_file(item,data);
 		free(data);
 		//filelist.set_dlitem_finish(item);
-		delete item;
 	}
-
 	(void)ZNet_Destroy_Http_Get(&gm);
-	return ret;
+	return 0;
 }
 
 int dlmanager::get_from_dllist(dlitem *&item)
 {
 	int rv = filelist.get_next_dlitem(item);
+	return rv;
+}
+
+int dlmanager::put_to_dllist(dlitem *item)
+{
+	int rv = filelist.put_to_dllist(item);
 	return rv;
 }
 
@@ -338,7 +342,15 @@ DWORD dlmanager::dlthread_entry(LPVOID pParam)
 		dlitem *item;
 		rv = pdlmanger->get_from_dllist(item);
 		if(rv == 0)
+		{
 			rv = pdlmanger->dlonefile(item);
+			if(rv != 0)
+			{
+				pdlmanger->put_to_dllist(item);
+			}
+			else
+				delete item;
+		}
 		else
 			return 0;
 		Sleep(50);

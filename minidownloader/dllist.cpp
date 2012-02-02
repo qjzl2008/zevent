@@ -113,6 +113,14 @@ int dllist::fini(void)
 	return 0;
 }
 
+int dllist::put_to_dllist(dlitem *item)
+{
+	thread_mutex_lock(list_mutex);
+	filelist.push_back(item);
+	thread_mutex_unlock(list_mutex);
+	return 0;
+}
+
 int dllist::get_next_dlitem(dlitem *&item)
 {
 	thread_mutex_lock(list_mutex);

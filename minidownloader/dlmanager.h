@@ -21,6 +21,7 @@ public:
 	int init(void);
 	int fini(void);
 	int get_from_dllist(dlitem *&item);
+	int put_to_dllist(dlitem *item);
 
 	int shutdown;
 
