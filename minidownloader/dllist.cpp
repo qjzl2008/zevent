@@ -46,7 +46,7 @@ int dllist::init(const char *listfile)
 		value = (char *)xmlGetProp(cur, (const xmlChar *)"download_path");
 		if(value)
 		{
-			strcpy_s(item->url,sizeof(item->url),value);
+			strcpy_s(item->resource,sizeof(item->resource),value);
 			//cout<<"name is: "<<name<<", value is: "<<value<<endl;
 			xmlFree(value); 
 		}

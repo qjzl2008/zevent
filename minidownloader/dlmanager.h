@@ -7,6 +7,11 @@
 #include "conn_pool.h"
 #include "dllist.h"
 
+enum METHOD{
+	STANDALONE = 0,
+	PACK       = 1
+};
+
 class dlmanager
 {
 public:

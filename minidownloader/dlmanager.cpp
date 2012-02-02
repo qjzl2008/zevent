@@ -161,7 +161,7 @@ int dlmanager::http_uri_encode(const char  *utf8_uri,char *enc_uri)
 
 int dlmanager::process_file(dlitem *item,char *data)
 {
-	if(item->method == 0)
+	if(item->method == STANDALONE)
 	{
 		HANDLE hFile;
 		hFile = CreateFile(TEXT(item->fpath),GENERIC_WRITE,0,NULL,
@@ -187,12 +187,15 @@ int dlmanager::dlonefile(dlitem *item)
 	int ret;
 	char enc_uri[2048] = {0};
 	char host[MAX_HOST_LEN];
+	char url[MAX_URL_LEN] = {0};
 	short int port;
 	char resource[MAX_RESOURCE_LEN];
 	HTTP_GetMessage * gm;
 	char *data;
 
-	if((ret = Parse_Url(item->url, host, resource, &port)) != OK) {
+	sprintf_s(url,sizeof(url),"http://%s:%d%s",
+		cfg.host,cfg.port,item->resource);
+	if((ret = Parse_Url(url, host, resource, &port)) != OK) {
 		return ret;
 	}
 
