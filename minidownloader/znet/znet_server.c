@@ -108,6 +108,7 @@ static DWORD WINAPI start_threads(void *arg)
 	ns->td_evloop = td;
 
 	WaitForSingleObject(td,INFINITE);
+	CloseHandle(td);
 	return 0;
 }
 
@@ -201,6 +202,7 @@ ZNET_DECLARE(int) ns_stop_daemon(net_server_t *ns)
 	closesocket(ns->fd);
 	ns->endgame = 1;
 	WaitForSingleObject(ns->td_start,INFINITE);
+	CloseHandle(ns->td_start);
 
 	p = ptbl_iter_first(ns->ptbl, &it);
 	while (p != NULL) { 

@@ -55,6 +55,10 @@ int dlmanager::init(void)
 
 	m_nThreadCount = cfg.nkeep;
 	m_phThreads = new HANDLE[m_nThreadCount];
+	for(int i = 0; i< m_nThreadCount; ++i)
+	{
+		m_phThreads[i] = INVALID_HANDLE_VALUE;
+	}
 	m_pdwThreaIDs = new DWORD[m_nThreadCount];
 
 	for(int i = 0;i < m_nThreadCount; i++)
@@ -362,6 +366,11 @@ int dlmanager::fini(void)
 {
 	shutdown = 1;
 	WaitForMultipleObjects(m_nThreadCount,m_phThreads,TRUE,INFINITE);
+	for(int i = 0; i < m_nThreadCount; ++i)
+	{
+		if(m_phThreads[i] != INVALID_HANDLE_VALUE)
+			CloseHandle(m_phThreads[i]);
+	}
 	if(req_queue)
 		queue_destroy(req_queue);
 	conn_pool_fini(&cfg);

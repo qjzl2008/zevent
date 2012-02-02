@@ -36,6 +36,7 @@ static DWORD WINAPI start_threads(void *arg)
 	nc->td_evloop = td;
 
 	WaitForSingleObject(td,INFINITE);
+	CloseHandle(td);
 	return 0;
 }
 
@@ -192,6 +193,7 @@ ZNET_DECLARE(int) nc_disconnect(net_client_t *nc)
     closesocket(nc->sd);
     nc->endgame = 1;
 	WaitForSingleObject(nc->td_start,INFINITE);
+	CloseHandle(nc->td_start);
 
     cpeer_kill(nc->peer);
     queue_destroy(nc->recv_queue);

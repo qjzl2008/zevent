@@ -194,6 +194,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ipcserver.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\minidownloader.cpp"
 				>
 			</File>
@@ -273,6 +277,10 @@
 			</File>
 			<File
 				RelativePath=".\http.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ipcserver.h"
 				>
 			</File>
 			<File
