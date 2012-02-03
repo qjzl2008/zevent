@@ -10,6 +10,7 @@ extern "C"
 #include <windows.h>
 #include <stdlib.h>
 #include <string.h>
+#include "protocol.h"
 
 
 int _tmain(int argc, _TCHAR* argv[])
@@ -17,7 +18,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	int key;
 	nc_arg_t nc_arg;
 	strcpy_s(nc_arg.ip,sizeof(nc_arg.ip),"127.0.0.1");
-	nc_arg.port = 8090;
+	nc_arg.port = 7799;
 	nc_arg.func = NULL;
 	nc_arg.timeout = 3;
 
@@ -27,14 +28,26 @@ int _tmain(int argc, _TCHAR* argv[])
 		return -1;
 	//send echo msg
 	void *msg;uint32_t len;
-	char buf[64];
+	char buf[1024];
 	memset(buf,0,sizeof(buf));
-	char *str = "hello baby!";
-	len = strlen(str);
+
+	//char *str = "hello baby!";
+	//len = strlen(str);
+	//int nlen = htonl(len);
+	//memcpy(buf,&nlen,sizeof(nlen));
+	//memcpy(buf+sizeof(len),str,len);
+	//len+= sizeof(len);
+
+	nb_ipcmsg_t ipcmsg;
+	strcpy_s(ipcmsg.path,sizeof(ipcmsg.path),"jdk-1_5_0_06-linux-i586.bin");
+	ipcmsg.file_size = 48974825;
+	ipcmsg.nb_type = MSG_REQUEST;
+	len = sizeof(ipcmsg);
 	int nlen = htonl(len);
 	memcpy(buf,&nlen,sizeof(nlen));
-	memcpy(buf+sizeof(len),str,len);
+	memcpy(buf+sizeof(len),&ipcmsg,len);
 	len+= sizeof(len);
+
 	int count = 0;
 
 	rv = nc_sendmsg(nc,buf,len);

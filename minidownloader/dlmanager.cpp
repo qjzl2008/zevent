@@ -9,12 +9,16 @@ extern "C"{
 #include "thread_mutex.h"
 #include <process.h>
 
+dlmanager * dlmanager::pInstance = NULL;
+
 dlmanager::dlmanager()
 {
 	m_phThreads = NULL;
 	req_queue = NULL;
 	m_nThreadCount = 0;
 	shutdown = 0;
+
+	pInstance = this;
 }
 
 int dlmanager::init_conn_pool()
@@ -293,7 +297,7 @@ int dlmanager::dlonefile(dlitem *item)
 	HTTP_GetMessage * gm;
 	char *data;
 
-	sprintf_s(url,sizeof(url),"http://%s:%d%s",
+	sprintf_s(url,sizeof(url),"http://%s:%d/%s",
 		cfg.host,cfg.port,item->resource);
 	if((ret = Parse_Url(url, host, resource, &port)) != OK) {
 		return -1;
@@ -337,6 +341,19 @@ int dlmanager::put_to_dllist(dlitem *item)
 	return rv;
 }
 
+int dlmanager::return_to_dllist(dlitem *item)
+{
+	int rv = filelist.return_to_dllist(item);
+	return rv;
+}
+
+int dlmanager::remove_from_runlist(dlitem *item)
+{
+	int rv = filelist.remove_from_runlist(item);
+	return rv;
+}
+
+
 DWORD dlmanager::dlthread_entry(LPVOID pParam)
 {
 	int rv;
@@ -350,10 +367,17 @@ DWORD dlmanager::dlthread_entry(LPVOID pParam)
 			rv = pdlmanger->dlonefile(item);
 			if(rv != 0)
 			{
-				pdlmanger->put_to_dllist(item);
+				rv = pdlmanger->return_to_dllist(item);
+				if(rv != 0)
+				{
+					delete item;
+				}
 			}
 			else
+			{
+				//从下载列表中移除
 				delete item;
+			}
 		}
 		else
 			return 0;

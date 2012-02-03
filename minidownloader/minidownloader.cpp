@@ -7,6 +7,7 @@
 #include "stdlib.h"
 #include "dlmanager.h"
 #include "znet.h"
+#include "ipcserver.h"
 
 #ifdef WIN32
 #pragma comment(lib,"ws2_32.lib")
@@ -19,6 +20,10 @@ int _tmain(int argc, _TCHAR* argv[])
 	WSADATA wsaData;
 	WSAStartup(MAKEWORD(2,2),&wsaData);
 #endif
+	ipc_server ns;
+	int rv = ns.start();
+	if(rv != 0)
+		return -1;
 	dlmanager dl_manager;
 	dl_manager.init();
 	while(1)
@@ -30,6 +35,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 		Sleep(1000);
 	}
+	ns.stop();
 	dl_manager.fini();
 	return 0;
 }

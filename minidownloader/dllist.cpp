@@ -116,6 +116,37 @@ int dllist::fini(void)
 int dllist::put_to_dllist(dlitem *item)
 {
 	thread_mutex_lock(list_mutex);
+	filelist_iter iter = running_list.begin();
+	for(; iter != running_list.end(); iter++)
+	{
+		dlitem *tmp = reinterpret_cast<dlitem *>(*iter);
+		if((item == tmp) || !strcmp(item->md5,tmp->md5))
+		{
+			thread_mutex_unlock(list_mutex);
+			return 1;
+		}
+	}
+	filelist.push_back(item);
+	thread_mutex_unlock(list_mutex);
+	return 0;
+}
+
+int dllist::return_to_dllist(dlitem *item)
+{
+	thread_mutex_lock(list_mutex);
+	filelist_iter iter = running_list.begin();
+	while(iter != running_list.end())
+	{
+		dlitem *tmp = reinterpret_cast<dlitem *>(*iter);
+		if(item == tmp)
+		{
+		    iter = running_list.erase(iter);	
+		}
+		else
+		{
+			iter++;
+		}
+	}
 	filelist.push_back(item);
 	thread_mutex_unlock(list_mutex);
 	return 0;
@@ -131,9 +162,26 @@ int dllist::get_next_dlitem(dlitem *&item)
 	}
 	item = filelist.front();
 	filelist.pop_front();
+	running_list.push_back(item);
 	thread_mutex_unlock(list_mutex);
 	return 0;
 }
+
+int dllist::remove_from_runlist(dlitem *item)
+{
+	thread_mutex_lock(list_mutex);
+	filelist_iter iter = running_list.begin();
+	for(; iter != running_list.end(); iter++)
+	{
+		if(item == reinterpret_cast<dlitem *>(*iter))
+		{
+			iter = running_list.erase(iter);
+		}
+	}
+	thread_mutex_unlock(list_mutex);
+	return 0;
+}
+
 
 int dllist::set_dlitem_finish(dlitem *item)
 {

@@ -9,6 +9,6 @@
     pack_path:method为1时的打包路径信息
  -->
 <filelist> 
-      <file download_path="/jdk-1_5_0_06-linux-i586.bin" path="res.pak" method="1" check_md5="e20c1d9a17fd971efb2e844592dd2064" file_size="48974825"/>
-      <file download_path="/测试SQLite-1.0.2.tgz" path="测试1.tgz" method="0" check_md5="e20c1d9a17fd971efb2e844592dd2067" file_size="362412" />
+      <file download_path="jdk-1_5_0_06-linux-i586.bin" path="res.pak" method="1" check_md5="e20c1d9a17fd971efb2e844592dd2064" file_size="48974825"/>
+      <file download_path="测试SQLite-1.0.2.tgz" path="测试1.tgz" method="0" check_md5="e20c1d9a17fd971efb2e844592dd2067" file_size="362412" />
 </filelist>

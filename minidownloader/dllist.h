@@ -19,6 +19,8 @@ public:
 	int fini(void);
 	int get_next_dlitem(dlitem *&item);
 	int put_to_dllist(dlitem *item);
+	int return_to_dllist(dlitem *item);
+	int remove_from_runlist(dlitem *item);
 
 	int set_dlitem_finish(dlitem *item);
 	int save(void);
@@ -28,6 +30,7 @@ private:
 
 	thread_mutex_t *list_mutex;
 	filelist_t filelist;
+	filelist_t running_list;
 
 	thread_mutex_t *doc_mutex;
 	xmlDocPtr doc;

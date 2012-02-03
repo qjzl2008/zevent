@@ -292,6 +292,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\protocol.h"
+				>
+			</File>
+			<File
 				RelativePath=".\common\include\reslist.h"
 				>
 			</File>

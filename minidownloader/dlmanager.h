@@ -15,13 +15,18 @@ enum METHOD{
 class dlmanager
 {
 public:
-
 	dlmanager(void);
 	~dlmanager(void);
+	static dlmanager * Instance()
+	{
+		return pInstance;
+	}
 	int init(void);
 	int fini(void);
 	int get_from_dllist(dlitem *&item);
 	int put_to_dllist(dlitem *item);
+	int return_to_dllist(dlitem *item);
+	int remove_from_runlist(dlitem *item);
 
 	int shutdown;
 
@@ -55,6 +60,8 @@ private:
 	queue_t *req_queue;
 
 	dllist filelist;
+private:
+	static dlmanager *pInstance;
 };
 
 #endif
