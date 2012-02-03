@@ -110,6 +110,14 @@ int dllist::fini(void)
 		delete item;
 	}
 	filelist.clear();
+
+	iter = running_list.begin();
+	for(; iter != running_list.end(); iter++)
+	{
+		item = reinterpret_cast<dlitem *>(*iter);
+		delete item;
+	}
+	running_list.clear();
 	return 0;
 }
 
@@ -171,11 +179,16 @@ int dllist::remove_from_runlist(dlitem *item)
 {
 	thread_mutex_lock(list_mutex);
 	filelist_iter iter = running_list.begin();
-	for(; iter != running_list.end(); iter++)
+	while(iter != running_list.end())
 	{
-		if(item == reinterpret_cast<dlitem *>(*iter))
+		dlitem *tmp = reinterpret_cast<dlitem *>(*iter);
+		if(item == tmp)
 		{
-			iter = running_list.erase(iter);
+			iter = running_list.erase(iter);	
+		}
+		else
+		{
+			iter++;
 		}
 	}
 	thread_mutex_unlock(list_mutex);

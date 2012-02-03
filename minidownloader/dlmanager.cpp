@@ -367,15 +367,12 @@ DWORD dlmanager::dlthread_entry(LPVOID pParam)
 			rv = pdlmanger->dlonefile(item);
 			if(rv != 0)
 			{
-				rv = pdlmanger->return_to_dllist(item);
-				if(rv != 0)
-				{
-					delete item;
-				}
+				pdlmanger->return_to_dllist(item);
 			}
 			else
 			{
 				//从下载列表中移除
+				pdlmanger->remove_from_runlist(item);
 				delete item;
 			}
 		}
