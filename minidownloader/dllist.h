@@ -6,6 +6,22 @@
 #include <libxml/tree.h>
 #include "thread_mutex.h"
 #include "dlitem.h"
+
+struct _equal_list_
+{
+	bool operator()(const dlitem* item1, const dlitem* item2)
+	{
+		if(!strcmp(item1->md5,item2->md5))
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+};
+
 class dllist
 {
 public:

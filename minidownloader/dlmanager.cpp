@@ -376,8 +376,6 @@ DWORD dlmanager::dlthread_entry(LPVOID pParam)
 				delete item;
 			}
 		}
-		else
-			return 0;
 		Sleep(50);
 	}
 	return 0;

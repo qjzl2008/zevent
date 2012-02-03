@@ -31,6 +31,13 @@ DWORD ipc_server::thread_entry(LPVOID pParam)
 		if(rv == 0)
 		{
 			memcpy(&ipcmsg,(char *)msg+4,len-4);
+			dlitem *item = new dlitem;
+			strcpy_s(item->path,sizeof(item->path),ipcmsg.path);
+			strcpy_s(item->resource,sizeof(item->path),ipcmsg.path);
+			strcpy_s(item->md5,sizeof(item->md5),ipcmsg.check_code);
+		    item->method = ipcmsg.method;
+			item->size = ipcmsg.file_size;
+			dlmanager::Instance()->put_to_dllist(item);
 			ns_free(server->ns,msg);
 		}
 	}

@@ -134,7 +134,9 @@ int dllist::put_to_dllist(dlitem *item)
 			return 1;
 		}
 	}
-	filelist.push_back(item);
+	//这种用户请求总是优先处理
+	filelist.push_front(item);
+	//filelist.unique(_equal_list_());
 	thread_mutex_unlock(list_mutex);
 	return 0;
 }
