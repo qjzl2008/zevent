@@ -18,7 +18,7 @@ struct dlitem{
 	xmlNodePtr node;
 	char resource[MAX_RESOURCE_LEN];
 	char path[MAX_PATH];
-	char md5[64];
+	char md5[33];
 	UINT32 size;
 	int method;
 };

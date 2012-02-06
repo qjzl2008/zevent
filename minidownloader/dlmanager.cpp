@@ -4,6 +4,7 @@ extern "C"{
 #include "http.h"
 #include "utility.h"
 #include "error.h"
+#include "md5.h"
 };
 #include "dlmanager.h"
 #include "thread_mutex.h"
@@ -253,6 +254,13 @@ int dlmanager::http_uri_encode(const char  *utf8_uri,char *enc_uri)
 
 int dlmanager::process_file(dlitem *item,char *data)
 {
+	//ÑéÖ¤MD5
+	char md5[64]={0};
+	file_md5(md5,sizeof(md5),data,item->size);
+	if(strcmp(item->md5,md5))
+	{
+		return -1;
+	}
 	wchar_t w_path[MAX_PATH] = {0};
 	size_t inbytes = strlen(item->path);
 	size_t outbytes = sizeof(w_path);
@@ -278,11 +286,30 @@ int dlmanager::process_file(dlitem *item,char *data)
 		{
 			delete []c_path;
 			CloseHandle(hFile);
+			DeleteFile(c_path);
 			return -1;
 		}
 		CloseHandle(hFile);
 	}
 	delete []c_path;
+	return 0;
+}
+
+int dlmanager::file_md5(char md5code[],
+			 int size,
+			 char *data,unsigned len)
+{
+	unsigned char ss[16];
+	struct MD5Context md5c;
+	MD5Init( &md5c );
+	MD5Update( &md5c, (unsigned char *)data, len );
+	MD5Final( ss, &md5c );
+	int off = 0;
+	for(int i=0; i<16; i++ )
+	{
+		sprintf_s(md5code+off,size-off,"%02x", ss[i] );
+		off += 2;
+	}
 	return 0;
 }
 

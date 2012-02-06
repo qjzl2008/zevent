@@ -190,6 +190,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\md5.c"
+				>
+			</File>
+			<File
 				RelativePath=".\minidownloader.cpp"
 				>
 			</File>
@@ -281,6 +285,10 @@
 			</File>
 			<File
 				RelativePath=".\ipcserver.h"
+				>
+			</File>
+			<File
+				RelativePath=".\md5.h"
 				>
 			</File>
 			<File

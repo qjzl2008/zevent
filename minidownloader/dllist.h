@@ -38,6 +38,8 @@ public:
 	int return_to_dllist(dlitem *item);
 	int remove_from_runlist(dlitem *item);
 
+	int get_file_nums(void){ return file_nums;}
+
 	int set_dlitem_finish(dlitem *item);
 	int save(void);
 
@@ -47,6 +49,8 @@ private:
 	thread_mutex_t *list_mutex;
 	filelist_t filelist;
 	filelist_t running_list;
+
+	int file_nums;
 
 	thread_mutex_t *doc_mutex;
 	xmlDocPtr doc;

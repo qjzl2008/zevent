@@ -28,6 +28,8 @@ public:
 	int return_to_dllist(dlitem *item);
 	int remove_from_runlist(dlitem *item);
 
+	int get_file_nums(void){return filelist.get_file_nums();}
+
 	int shutdown;
 
 private:
@@ -50,6 +52,10 @@ private:
 	int init_conn_pool(void);
 
 	int process_file(dlitem *item,char *data);
+
+	int file_md5(char md5code[],
+		int size,
+		char *data,unsigned len);
 
 private:
 	conn_svr_cfg cfg;

@@ -5,6 +5,7 @@ using namespace std;
 dllist::dllist(void)
 {
 	doc = NULL;
+	file_nums = 0;
 	memset(listname,0,sizeof(listname));
 	thread_mutex_create(&list_mutex,THREAD_MUTEX_DEFAULT);
 	thread_mutex_create(&doc_mutex,THREAD_MUTEX_DEFAULT);
@@ -91,6 +92,7 @@ int dllist::init(const char *listfile)
 		if(!finish)
 		{
 			filelist.push_back(item);
+			++file_nums;
 		}
 		cur=cur->next;
 	}
