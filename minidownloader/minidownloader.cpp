@@ -5,9 +5,7 @@
 #include "stdafx.h"
 #include <string.h>
 #include "stdlib.h"
-#include "dlmanager.h"
-#include "znet.h"
-#include "ipcserver.h"
+#include "downloader.h"
 
 #ifdef WIN32
 #pragma comment(lib,"ws2_32.lib")
@@ -16,16 +14,8 @@
 int _tmain(int argc, _TCHAR* argv[])
 {
 	int key;
-#ifdef WIN32
-	WSADATA wsaData;
-	WSAStartup(MAKEWORD(2,2),&wsaData);
-#endif
-	ipc_server ns;
-	int rv = ns.start();
-	if(rv != 0)
-		return -1;
-	dlmanager dl_manager;
-	dl_manager.init();
+	downloader downloader_;
+	downloader_.start();
 	while(1)
 	{
 		if(_kbhit())
@@ -35,8 +25,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 		Sleep(1000);
 	}
-	ns.stop();
-	dl_manager.fini();
+	downloader_.stop();
 	return 0;
 }
 

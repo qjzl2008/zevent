@@ -186,6 +186,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\downloader.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ipcserver.cpp"
 				>
 			</File>
@@ -281,6 +285,10 @@
 			</File>
 			<File
 				RelativePath=".\dlmanager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\downloader.h"
 				>
 			</File>
 			<File
