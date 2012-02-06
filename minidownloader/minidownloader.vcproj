@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".\common\include;.\common\include\arch\win;.\znet;&quot;.\libxml2-2.7.8.win32\include&quot;;&quot;.\libiconv-1.9.1\include&quot;"
+				AdditionalIncludeDirectories=".\common\include;.\common\include\arch\win;.\znet;&quot;.\libxml2-2.7.8.win32\include&quot;;&quot;.\iconv-1.9.2.win32\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;HAS_THREADS;CONN_DECLARE_STATIC"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -61,7 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies=".\libxml2-2.7.8.win32\lib\libxml2.lib"
+				AdditionalDependencies=".\libxml2-2.7.8.win32\lib\libxml2_a.lib .\iconv-1.9.2.win32\lib\iconv_a.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="1"
@@ -97,7 +97,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			CharacterSet="1"
+			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -117,7 +117,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories=".\common\include;.\common\include\arch\win;.\znet"
+				AdditionalIncludeDirectories=".\common\include;.\common\include\arch\win;.\znet;&quot;.\libxml2-2.7.8.win32\include&quot;;&quot;.\iconv-1.9.2.win32\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;HAS_THREADS;CONN_DECLARE_STATIC"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -136,6 +136,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies=".\libxml2-2.7.8.win32\lib\libxml2_a.lib .\iconv-1.9.2.win32\lib\iconv_a.lib"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
 				SubSystem="1"
