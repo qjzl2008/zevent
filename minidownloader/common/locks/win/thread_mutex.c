@@ -10,17 +10,10 @@ int thread_mutex_create(thread_mutex_t **mutex,
 	memset(*mutex,0,sizeof(thread_mutex_t));
 
     if (flags & THREAD_MUTEX_UNNESTED) {
-        /* Use an auto-reset signaled event, ready to accept one
-         * waiting thread.
-         */
         (*mutex)->type = thread_mutex_unnested_event;
         (*mutex)->handle = CreateEvent(NULL, FALSE, TRUE, NULL);
     }
     else {
-        /* Critical Sections are terrific, performance-wise, on NT.
-         * On Win9x, we cannot 'try' on a critical section, so we 
-         * use a [slower] mutex object, instead.
-         */
             InitializeCriticalSection(&(*mutex)->section);
             (*mutex)->type = thread_mutex_critical_section;
     }
