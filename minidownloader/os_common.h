@@ -22,11 +22,9 @@
   };
 #endif
 #if OS_WIN
-  /* defines for win32 */
   #include <windows.h>
   #include <winsock.h>
   
-  /* this is the win32 version of the OsSocket struct */
   struct OsSocket {
     SOCKET sock;
   };

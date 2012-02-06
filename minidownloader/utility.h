@@ -1,3 +1,5 @@
+#ifndef HTTP_UTILITY_H
+#define HTTP_UTILITY_H
 
 #define NULL_TERM_LEN                 1
 #define NULL_TERM                     '\0'
@@ -15,3 +17,5 @@
 
 
 int ZNet_Str_To_Upper(const char * str, char * dest);
+
+#endif

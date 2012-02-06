@@ -23,9 +23,6 @@ extern "C"{
 #define CONN_DECLARE_DATA             __declspec(dllimport)
 #endif
 
-/* A default nmin of >0 will help with generating meaningful
- * startup error messages if the database is down.
- */
 #define DEFAULT_NMIN    5
 #define DEFAULT_NKEEP   10
 #define DEFAULT_NMAX    30

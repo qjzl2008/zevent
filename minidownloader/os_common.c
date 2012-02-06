@@ -5,14 +5,12 @@
 #include "error.h"
 
 
-/* This function will send data over a udp socket to address host_addr,
-   and port port. You need to specify the buffer */
 int ZNet_Common_Socket_Udp_Send(OsSocket * s, const char * host_addr, 
                                 short int port, char * buf, int amt, 
                                 int * amt_sent)
 {
   int ret;
-  int send_ret = 1; /* if not more than 0, will fail the first check */
+  int send_ret = 1; 
   int sent_sofar = 0;
   struct sockaddr_in server;
   struct hostent* hp;
@@ -21,9 +19,6 @@ int ZNet_Common_Socket_Udp_Send(OsSocket * s, const char * host_addr,
     return ret;
   }
 
-  /* A send amount of 0 could indicate a socket close, and less means error,
-     so loop while there is still stuff to send and send hasn't returned
-     one of these values */
   while(amt && !(send_ret <= 0)) {
     send_ret = sendto(s->sock, &(buf[sent_sofar]), amt, 0,
                       (struct sockaddr*)&server,
@@ -33,10 +28,8 @@ int ZNet_Common_Socket_Udp_Send(OsSocket * s, const char * host_addr,
       sent_sofar += send_ret;
     }
   }
-  *amt_sent = sent_sofar; /* now log the amoutn we sent so far param */
+  *amt_sent = sent_sofar; 
 
-  /* if send failed, set amnt_sent to 0, and return socket_send_failed.
-     a socket closure for a send indicates failure for us. */
   if(send_ret <= 0) {
     return SOCKET_SEND_FAILED;
   }
@@ -44,16 +37,12 @@ int ZNet_Common_Socket_Udp_Send(OsSocket * s, const char * host_addr,
   return OK;
 }
                                 
-/* This function will recieve data over a udp socket form address host_addr,
-   and port port. You need to specify the buffer to store it in, and the
-   amt you are expecting to receive.
-*/
 int ZNet_Common_Socket_Udp_Recv(OsSocket * s, const char * host_addr, 
                                 short int port, char * buf, int amt, 
                                 int * amt_recv, int timeout_sec)
 {
   int ret;
-  int recv_ret = 1; /* if not more than 0, will fail the first check */
+  int recv_ret = 1; 
   int recv_sofar = 0;
   struct sockaddr_in server;
   struct hostent* hp;
@@ -63,8 +52,6 @@ int ZNet_Common_Socket_Udp_Recv(OsSocket * s, const char * host_addr,
     return ret;
   }
   
-  /* The entire packet must be read in a single request, so there is no
-     need to loop here. Just wait till ready and receive */
   if(Select_Till_Readyread(s, timeout_sec) == OK) {
     recv_ret = recvfrom(s->sock, &(buf[recv_sofar]), amt, 0,
                     (struct sockaddr*)&server,
@@ -74,8 +61,6 @@ int ZNet_Common_Socket_Udp_Recv(OsSocket * s, const char * host_addr,
     recv_ret = 0;
   }
 
-  /* if recv failed, set amnt_recv to 0, and return socket_recv_failed.
-     a socket closure for recv DOES NOT indicate failure for us */
   if(recv_ret < 0) {
     *amt_recv = 0;
     return SOCKET_RECV_FAILED;
@@ -85,17 +70,11 @@ int ZNet_Common_Socket_Udp_Recv(OsSocket * s, const char * host_addr,
   return OK;
 }
                                 
-/* function to send the data of length amt, in buffer buf, over a connected
-socket s. If send is successful, return OK. set the amount actually sent in
-amt_sent parameter */
 int ZNet_Common_Socket_Send(OsSocket * s, char * buf, int amt, int * amt_sent)
 {
-  int send_ret = 1; /* if not more than 0, will fail the first check */
+  int send_ret = 1; 
   int sent_sofar = 0;
   
-  /* A send amount of 0 could indicate a socket close, and less means error,
-     so loop while there is still stuff to send and send hasn't returned
-     one of these values */
   while(amt && !(send_ret <= 0)) {
     send_ret = send(s->sock, &(buf[sent_sofar]), amt, 0);
     if(send_ret > 0) {
@@ -103,10 +82,8 @@ int ZNet_Common_Socket_Send(OsSocket * s, char * buf, int amt, int * amt_sent)
       sent_sofar += send_ret;
     }
   }
-  *amt_sent = sent_sofar; /* log the amount sent so far param */
+  *amt_sent = sent_sofar;
 
-  /* if send failed, return socket_send_failed.
-     a socket closure for a send indicates failure for us. */
   if(send_ret <= 0) {
     return SOCKET_SEND_FAILED;
   }
@@ -114,18 +91,12 @@ int ZNet_Common_Socket_Send(OsSocket * s, char * buf, int amt, int * amt_sent)
   return OK;
 }
 
-/* function to recv the data of length amt, into an already allocated buffer
-buf, over a connected socket s. If recv is successful, return oK. Set the
-amount actually recieved in amt_recv parameter */
 int ZNet_Common_Socket_Recv(OsSocket * s, char * buf, int amt, 
                             int * amt_recv, int timeout_sec)
 {
-  int recv_ret = 1;   /* must be greater than 0 or will fail first check */
+  int recv_ret = 1;   
   int recv_sofar = 0;
   
-  /* A recv amount of 0 will indicate a socket close, and less means error,
-     so loop while there is still stuff to recv, or until the connection
-     closed */
   while(amt && !(recv_ret <= 0)) {
     if(Select_Till_Readyread(s, timeout_sec) == OK) {
       recv_ret = recv(s->sock, &(buf[recv_sofar]), amt, 0);
@@ -135,8 +106,6 @@ int ZNet_Common_Socket_Recv(OsSocket * s, char * buf, int amt,
       recv_ret = 0;
     }
   }
-  /* if recv failed, set amnt_recv to 0, and return socket_recv_failed.
-     a socket closure for recv DOES NOT indicate failure for us */
   if(recv_ret < 0) {
     *amt_recv = 0;
     return SOCKET_RECV_FAILED;
@@ -147,7 +116,6 @@ int ZNet_Common_Socket_Recv(OsSocket * s, char * buf, int amt,
 }
 
 
-/* function to intitialize a sockaddr_in structure */
 int Common_Initialize_Sockaddr_in(struct sockaddr_in* server,
                                   struct hostent** hp,
                                   const char * host_addr,
@@ -166,8 +134,6 @@ int Common_Initialize_Sockaddr_in(struct sockaddr_in* server,
   return OK;
 }
 
-/* This function will call select which will block till timeout, 
-   or until there is data ready to be read on the socket */
 int Select_Till_Readyread(OsSocket * s,
                           int timeout_sec)
 {
@@ -187,7 +153,6 @@ int Select_Till_Readyread(OsSocket * s,
     rv = select((int)(s->sock+1), &read_fds, NULL, &error_fds, &tv);
   } while(rv < 0 && errno == EINTR);
 
-  /* if data is ready to be read, return OK */
   if(FD_ISSET(s->sock, &read_fds)) {
     return OK;
   } else {
@@ -196,8 +161,6 @@ int Select_Till_Readyread(OsSocket * s,
 }
 
 
-/* This function will call seelct which will block till timeout,
-   or until the socket is ready to be written to */
 int Select_Till_Readywrite(OsSocket * s,
                            int timeout_sec)
 {
@@ -217,7 +180,6 @@ int Select_Till_Readywrite(OsSocket * s,
     rv = select((int)(s->sock+1), NULL, &write_fds, &error_fds, &tv);
   } while(rv < 0 && errno == EINTR);
 
-  /* if data is ready to be written, return OK */
   if(FD_ISSET(s->sock, &write_fds)) {
     return OK;
   } else {
@@ -226,7 +188,6 @@ int Select_Till_Readywrite(OsSocket * s,
 }
 
 
-/* get the local ip address from a connected socket */
 int ZNet_Common_Get_Local_Ip(OsSocket * s, char ** local_ip)
 {
   struct sockaddr_in local;
