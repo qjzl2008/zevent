@@ -246,6 +246,50 @@ ZNET_DECLARE(int) ns_getpeeraddr(net_server_t *ns,uint64_t peer_id,char *ip)
     strcpy(ip,peer_ip);
     return 0;
 }
+
+ZNET_DECLARE(int) ns_broadcastmsg(net_server_t *ns,void *msg,uint32_t len)
+{
+	int rv;
+	struct htbl_iter it;
+	struct peer *p = NULL;
+	struct msg_t *message = NULL;
+
+	thread_mutex_lock(ns->ptbl_mutex);
+	for (p = ptbl_iter_first(ns->ptbl,&it); p != NULL; p = ptbl_iter_next(&it))
+	{
+		if(!p || p->status == PEER_DISCONNECTED)
+		{
+			continue;
+		}
+		InterlockedIncrement(&p->refcount);
+
+		message = (struct msg_t *)mmalloc(p->allocator,
+			sizeof(struct msg_t));
+		message->buf = (uint8_t *)mmalloc(p->allocator,len);
+		memcpy(message->buf,(char *)msg,len);
+		message->len = len;
+		message->peer_id = p->id;
+
+		thread_mutex_lock(p->sq_mutex);
+		BTPDQ_INSERT_TAIL(&p->send_queue, message, msg_entry);  
+		thread_mutex_unlock(p->sq_mutex);
+
+		rv = fdev_enable(&p->ioev,EV_WRITE);
+		if(rv<0)
+		{
+			InterlockedDecrement(&p->refcount);
+			thread_mutex_unlock(ns->ptbl_mutex);
+			peer_kill(p);
+			thread_mutex_lock(ns->ptbl_mutex);
+			continue;
+		}
+		InterlockedDecrement(&p->refcount);
+		continue;
+	}
+	thread_mutex_unlock(ns->ptbl_mutex);
+	return 0;
+}
+
 ZNET_DECLARE(int) ns_sendmsg(net_server_t *ns,uint64_t peer_id,void *msg,uint32_t len)
 {
 	int rv;

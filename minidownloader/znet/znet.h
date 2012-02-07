@@ -52,6 +52,7 @@ ZNET_DECLARE(int) ns_start_daemon(net_server_t **ns,ns_arg_t *ns_arg);
 ZNET_DECLARE(int) ns_stop_daemon(net_server_t *ns);
 ZNET_DECLARE(int) ns_getpeeraddr(net_server_t *ns,uint64_t peer_id,char *ip);
 ZNET_DECLARE(int) ns_sendmsg(net_server_t *ns,uint64_t peer_id,void *msg,uint32_t len);
+ZNET_DECLARE(int) ns_broadcastmsg(net_server_t *ns,void *msg,uint32_t len);
 /*
  * @param timeout milliseconds
  * rv: 0 recv one data message
