@@ -18,6 +18,7 @@ public:
     int start(void);
 	int stop(void);
 	int ipc_port(int *port);
+	int broadcastmsg(void *msg,uint32_t len);
 
 private:
 	static DWORD thread_entry(LPVOID pParam); 

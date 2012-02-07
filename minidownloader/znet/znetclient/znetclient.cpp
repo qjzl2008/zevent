@@ -50,7 +50,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	int count = 0;
 
-	rv = nc_sendmsg(nc,buf,len);
+	//rv = nc_sendmsg(nc,buf,len);
 	while(1)
 	{
 		rv = nc_recvmsg(nc,&msg,&len,1000000);

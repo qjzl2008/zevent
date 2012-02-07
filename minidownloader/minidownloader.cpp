@@ -15,7 +15,7 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 	int key;
 	downloader downloader_;
-	downloader_.rate(500000);
+	downloader_.rate(1000000);
 	downloader_.start();
 	struct dlstat state;
 	while(1)

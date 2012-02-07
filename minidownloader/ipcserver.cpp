@@ -40,6 +40,10 @@ DWORD ipc_server::thread_entry(LPVOID pParam)
 			dlmanager::Instance()->put_to_dllist(item);
 			ns_free(server->ns,msg);
 		}
+		else if(rv == 1)
+		{
+			printf("peer id:%llu disconnect!\n",peer_id);
+		}
 	}
 	return 0;
 }
@@ -73,5 +77,12 @@ int ipc_server::stop(void)
 		WaitForSingleObject(m_hRecvThread,INFINITE);
 	CloseHandle(m_hRecvThread);
 	ns_stop_daemon(ns);
+	return 0;
+}
+
+int ipc_server::broadcastmsg(void *msg,uint32_t len)
+{
+	if(ns)
+		ns_broadcastmsg(ns,msg,len);
 	return 0;
 }

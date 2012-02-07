@@ -32,6 +32,8 @@ public:
 	int return_to_dllist(dlitem *item);
 	int remove_from_runlist(dlitem *item);
 
+	int notify_clients(dlitem *item);
+
 	int shutdown;
 
 	int filenums;

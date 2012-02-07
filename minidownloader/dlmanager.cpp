@@ -9,6 +9,8 @@ extern "C"{
 #include <windows.h>
 #include "dlmanager.h"
 #include "thread_mutex.h"
+#include "protocol.h"
+#include "ipcserver.h"
 #include <process.h>
 
 dlmanager * dlmanager::pInstance = NULL;
@@ -327,7 +329,7 @@ int dlmanager::dlonefile(dlitem *item)
 		//filelist.set_dlitem_finish(item);
 	}
 	(void)ZNet_Destroy_Http_Get(&gm);
-	return 0;
+	return ret;
 }
 
 int dlmanager::get_from_dllist(dlitem *&item)
@@ -397,6 +399,23 @@ DWORD dlmanager::tick_thread_entry(LPVOID pParam)
 	return 0;
 }
 
+int dlmanager::notify_clients(dlitem *item)
+{
+	char buf[1024];
+	memset(buf,0,sizeof(buf));
+	nb_ipcmsg_t ipcmsg;
+	strcpy_s(ipcmsg.path,sizeof(ipcmsg.path),item->path);
+	ipcmsg.file_size = item->size;
+	ipcmsg.nb_type = MSG_RESPONSE;
+	int len = sizeof(ipcmsg);
+	int nlen = htonl(len);
+	memcpy(buf,&nlen,sizeof(nlen));
+	memcpy(buf+sizeof(len),&ipcmsg,len);
+	len+= sizeof(len);
+	ipc_server::Instance()->broadcastmsg(buf,len);
+	return 0;
+}
+
 DWORD dlmanager::dlthread_entry(LPVOID pParam)
 {
 	int rv;
@@ -416,8 +435,9 @@ DWORD dlmanager::dlthread_entry(LPVOID pParam)
 			{
 				//从下载列表中移除
 				pdlmanger->remove_from_runlist(item);
-				delete item;
 				InterlockedIncrement((long *)(&pdlmanger->filennums_done));
+				pdlmanger->notify_clients(item);
+				delete item;
 			}
 		}
 		Sleep(50);
