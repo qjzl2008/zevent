@@ -8,49 +8,37 @@
 #include "utility.h"
 #include "error.h"
 
-/* the format string for the host info that resides in an http header */
 #define HTTP_HOST               "%s:%d"
 #define HTTP_HOST_LEN_WO_VARS   1
 
-/* The format strings for a get request, and the host to send it to. */
 #define HTTP_GET                "GET /%s HTTP/1.1\r\nHost: %s\r\n\r\n"
 #define HTTP_GET_LEN_WO_VARS    26
 
 #define HTTP_GET_KL                "GET /%s HTTP/1.1\r\nHost: %s\r\nConnection: keep-alive\r\n\r\n"
 #define HTTP_GET_LEN_WO_VARS_KL    50
 
-/* The format strings for a post request, and the host to send it to */
 #define HTTP_POST                "POST /%s HTTP/1.1\r\nHost: %s\r\n%s%s\r\n%s"
 #define HTTP_POST_LEN_WO_VARS    27
 
-/* The strings to search for in the http header to find the body length */
 #define HTTP_CONTENT_LEN_TAG     "CONTENT-LENGTH:"
 #define HTTP_CONTENT_LEN_SEARCH  "%d"
 
-/* The fromat string for a request header field for a post message */
 #define HTTP_REQUEST_FIELD          "%s: %s\r\n"
 #define HTTP_REQUEST_LEN_WO_VARS    4
 
-/* the format string for an entity header field for a post message */
 #define HTTP_ENTITY_FIELD           "%s: %s\r\n"
 #define HTTP_ENTITY_LEN_WO_VARS     4
 
-/* the terminating sequence of an HTTP header */
 #define HTTP_HEADER_TERM           "\r\n\r\n"
 
-/* Maximum size of an http response header */
 #define MAX_HTTP_HEADER_LEN        4096
 
-/* For our purposes, if no Content-Length is returned in the http header
-   we don't want to receive a document more than 65536 bytes in length */
 #define MAX_HTTP_BODY_LEN          100*1024*1024/*65536*/
 
-/* timeouts in seconds */
 #define HTTP_CONNECT_TIMEOUT       2
 #define HTTP_RECEIVE_TIMEOUT       10
 
 
-/* Function Prototypes */
 static int ZNet_Http_Request(const char * resource, const char * host, short int port, const char * message, char ** response);
 static int ZNet_Http_Request_KL(OsSocket *s,const char * message,char ** response);
 static int Send_Http_Request(OsSocket * s, const char * message);
@@ -67,7 +55,6 @@ static int Create_Entity_Header_String(HTTP_PostMessage * pm, char ** entity_hea
 static int Create_Http_Header_Host_String(const char * host, short int port, char ** request_host);
 
 
-/* structure to represent a HTTP_GetMessage */
 struct HTTP_GetMessage
 {
   char * resource;
@@ -75,8 +62,6 @@ struct HTTP_GetMessage
   short int port;
 };
 
-/* structure to represent a Request Header Field
-   that will reside in a Post Message */
 typedef struct RequestHeader
 {
   char * token;
@@ -84,8 +69,6 @@ typedef struct RequestHeader
   struct RequestHeader * next;
 } RequestHeader;
 
-/* structure to represent an Entity Header Field
-   that will reside in a Post Message */
 typedef struct EntityHeader
 {
   char * token;
@@ -101,11 +84,11 @@ struct HTTP_PostMessage
   short int port;
   char * body;
 
-  int num_request_headers;  /* num request headers in the request header linked list */
-  int num_entity_headers;   /* num entity headers in the entity header linked list */
+  int num_request_headers;  
+  int num_entity_headers;  
 
-  RequestHeader * rh_head; /* head of linked list of request headers */
-  EntityHeader * eh_head;  /* head of linked list of entity headers */
+  RequestHeader * rh_head; 
+  EntityHeader * eh_head; 
 };
 
 int Parse_Url(const char * url, char * host, 
@@ -127,14 +110,12 @@ int Parse_Url(const char * url, char * host,
 	loc_of_semicolon = strchr(url_wo_http, ':');
 	loc_of_slash = strchr(url_wo_http, '/');
 
-	/* we need a slash for the resource */
 	if(NULL == loc_of_slash) {
 		return HTTP_INVALID_URL;
 	} else {
 		loc_of_resource = loc_of_slash+1;
 	}
 
-	/* dont necessarily need a port, so if we don't have one default port is 80 */
 	if(NULL == loc_of_semicolon || loc_of_semicolon > loc_of_slash) {
 		loc_of_semicolon = NULL;
 		if(NULL != port) {
@@ -142,21 +123,17 @@ int Parse_Url(const char * url, char * host,
 		}
 		end_of_host_loc = loc_of_slash;
 	} else {
-		/* port is right after the semicolon */
 		loc_of_port = loc_of_semicolon + 1;
-		/* make sure it is not larger than MAX_PORT_STRING_LENGTH */
 		if((loc_of_slash - loc_of_port) > MAX_PORT_STRING_LEN) {
 			return HTTP_INVALID_URL;
 		}
 		end_of_host_loc = loc_of_semicolon;
 	}
 
-	/* store the host */
 	if(NULL != host) {
 		strncpy(host, url_wo_http, end_of_host_loc - url_wo_http);
 		host[end_of_host_loc - url_wo_http] = NULL_TERM;
 	}
-	/* extract the port */
 	if(NULL != loc_of_semicolon) {
 		if(sscanf(loc_of_port, "%hd", port) != 1) {
 			*port = DEFAULT_HTTP_PORT;
@@ -165,21 +142,13 @@ int Parse_Url(const char * url, char * host,
 			return HTTP_INVALID_URL;
 		}
 	}
-	/* extract the resource */
 	if(NULL != resource) {
 		strcpy(resource, loc_of_resource);
 	}
 
 	return OK;
 }
-/* This function will generate a HTTP_GetMessage structure and return
-   it in the gm parameter from the host, resource, and port params.
-   On success, OK is returned. If error, gm will not be allocated,
-   so null is returned in the gm parameter.
 
-   Caller must call ZNet_Destroy_Http_Get to destroy the HTTP_GetMessage
-   stucture when done with it.
-*/
 int ZNet_Generate_Http_Get(const char * host,
                            const char * resource,
                            short int port,
@@ -212,9 +181,6 @@ int ZNet_Generate_Http_Get(const char * host,
 
 
 
-/* Destroys a HTTP_GetMessage structure that was allocated by
-   ZNet_Generate_Http_Get.
-*/
 int ZNet_Destroy_Http_Get(HTTP_GetMessage ** gm)
 {
   if(NULL == gm || NULL == *gm) {
@@ -234,15 +200,6 @@ int ZNet_Destroy_Http_Get(HTTP_GetMessage ** gm)
 }
 
 
-
-/* This function will generate a HTTP_PostMessage structure and return
-   it in the pm parameter. It is generated from the host, resource,
-   port, and body params. The body is the message to post.
-
-   Caller must call ZNet_Destroy_Http_Post to destroy the HTTP_PostMessage
-   structure when done with it. The caller can also add Request
-   Header Fields and Entity Header Fields to the post message.
-*/
 int ZNet_Generate_Http_Post(const char * host,
                             const char * resource,
                             short int port,
@@ -289,7 +246,6 @@ int ZNet_Generate_Http_Post(const char * host,
 
 
 
-/* Add a Request Header Field to the post message */
 int ZNet_Http_Post_Add_Request_Header(HTTP_PostMessage * pm,
                                       const char * token,
                                       const char * value)
@@ -319,7 +275,6 @@ int ZNet_Http_Post_Add_Request_Header(HTTP_PostMessage * pm,
 
 
 
-/* Add an Entity Header Field to a post message */
 int ZNet_Http_Post_Add_Entity_Header(HTTP_PostMessage * pm,
                                      const char * token,
                                      const char * value)
@@ -351,10 +306,6 @@ int ZNet_Http_Post_Add_Entity_Header(HTTP_PostMessage * pm,
 }
 
 
-
-/* Destroy a HTTP_PostMessage structure that was allocated by
-   ZNet_Generate_Http_Post.
-*/
 int ZNet_Destroy_Http_Post(HTTP_PostMessage ** pm)
 {
   int i;
@@ -398,15 +349,6 @@ int ZNet_Destroy_Http_Post(HTTP_PostMessage ** pm)
 }
 
 
-/* This function makes an HTTP Get request to a particular ip
-   address and port that is stored in the HTTP_GetMessage struct. One must
-   generate the HTTP_GetMessage before calling this function using the
-   ZNet_Generate_Http_Get function. 
-   
-   This function allocates space for the response, and returns it
-   in the response parameter. The caller must free this space with
-   free(). Return OK on success.
-*/
 int ZNet_Http_Request_Get(HTTP_GetMessage * gm,
                           char ** response)
 {
@@ -468,16 +410,6 @@ int ZNet_Http_Request_Get_KL(OsSocket *s,HTTP_GetMessage * gm,
 }
 
 
-
-/* This function makes an HTTP Post request to a particular ip
-   address and port that is stored in the HTTP_PostMessage structure.
-   One must generate the HTTP_PostMessage structure before calling this
-   function using the ZNet_Generate_Http_Post function.
-
-   This function allocates space for the response, and returns it
-   in the response parameter. The caller must free this space with
-   free(). Return OK on success.
-*/
 int ZNet_Http_Request_Post(HTTP_PostMessage * pm,
                            char ** response)
 {
@@ -500,11 +432,6 @@ int ZNet_Http_Request_Post(HTTP_PostMessage * pm,
 
 
 
-/* This function makes an HTTP request to the specified IP address
-   and port. This function will return OK on success, or some error
-   on failure. It will return an allocated buffer in response. The
-   caller must free this buffer when it is through.
-*/
 static int ZNet_Http_Request(const char * resource,
                              const char * host,
                              short int port,
@@ -540,9 +467,6 @@ static int ZNet_Http_Request(const char * resource,
   return OK;
 }
 
-/* this function will send an HTTP request to the http server that
-   the OsSocket object is connected to. Returns OK on success.
-*/
 static int Send_Http_Request(OsSocket * s, 
                              const char * message)
 {
@@ -558,14 +482,6 @@ static int Send_Http_Request(OsSocket * s,
   return OK;
 }
 
-/* receives an HTTP response form the http server that
-   the OsSocket object is connected to. Returns OK on success.
-   The response is stored in the http_response parameter. This
-   function allocates space for it, so the caller must free it.
-
-   The http_response does not contain the HTTP Header, this function
-   will parse that header out.
-*/
 static int Get_Http_Response(OsSocket * s, 
                              char ** http_response)
 {
@@ -616,9 +532,6 @@ static int Get_Http_Content(OsSocket * s,
 }
 
 
-/* Get the HTTP Content length from the HTTP Header. If content length
-   can't be found in the header, it will return -1 in the content_length
-   parameter. */
 static int Get_Http_Content_Length(char * http_header, 
                                    int * content_length)
 {
@@ -653,12 +566,6 @@ static int Get_Http_Content_Length(char * http_header,
   return OK;
 }
 
-/* receive the HTTP Header from the http server that
-   the OsSocket object is connected to. Returns OK on
-   success. The response is stored in the http_header
-   parameter. This function allocates space for it, so
-   the caller must free it
-*/
 static int Get_Http_Header(OsSocket * s, 
                            char ** http_response)
 {
@@ -704,9 +611,6 @@ static int Get_Http_Header(OsSocket * s,
 }
 
 
-/* if the data ends with /r/n/r/n, then return 1, else return 0. http_response
-   probably doesn't contain a /0 null terminator, so the caller has to make
-   sure that there is no buffer overrun going on. */
 static int Http_Header_Terminator_Reached(char * http_response, 
                                           int size_recv_sofar)
 {
@@ -722,37 +626,29 @@ static int Http_Header_Terminator_Reached(char * http_response,
   return 0;
 }
 
-/* create an HTTP Get request for retreiving a resource from the
-   specified host for example...
-   GET /rootDesc.xml HTTP/1.1\r\nHost: 192.168.1.1:5678\r\n\r\n */
 static int Create_Get_Request(HTTP_GetMessage * gm, 
                               char ** http_get_request)
 {
   int ret;
   char * get_request_host;
 
-  /* make sure params are ok */
   if(NULL == gm || NULL == http_get_request) {
     return BAD_PARAMS;
   }
 
-  /* get the host string that will be in the get request */
   if((ret = Create_Http_Header_Host_String(gm->host, gm->port, 
                                     &get_request_host)) != OK) {
     return ret;
   }
 
-  /* allocate the get request variable */
   *http_get_request = (char *)malloc(HTTP_GET_LEN_WO_VARS +
                                      strlen(gm->resource) +
                                      strlen(get_request_host) +
                                      NULL_TERM_LEN);
-  /* make sure the malloc was ok */
   if(NULL == *http_get_request) {
     free(get_request_host);
     return BAD_MALLOC;
   }
-  /* fill the array with the appropriate string */
   (void)sprintf(*http_get_request, HTTP_GET, gm->resource, get_request_host);
 
   free(get_request_host);
@@ -765,28 +661,23 @@ static int Create_Get_Request_KL(HTTP_GetMessage * gm,
 	int ret;
 	char * get_request_host;
 
-	/* make sure params are ok */
 	if(NULL == gm || NULL == http_get_request) {
 		return BAD_PARAMS;
 	}
 
-	/* get the host string that will be in the get request */
 	if((ret = Create_Http_Header_Host_String(gm->host, gm->port, 
 		&get_request_host)) != OK) {
 			return ret;
 	}
 
-	/* allocate the get request variable */
 	*http_get_request = (char *)malloc(HTTP_GET_LEN_WO_VARS_KL +
 		strlen(gm->resource) +
 		strlen(get_request_host) +
 		NULL_TERM_LEN);
-	/* make sure the malloc was ok */
 	if(NULL == *http_get_request) {
 		free(get_request_host);
 		return BAD_MALLOC;
 	}
-	/* fill the array with the appropriate string */
 	(void)sprintf(*http_get_request, HTTP_GET_KL, gm->resource, get_request_host);
 
 	free(get_request_host);
@@ -794,9 +685,6 @@ static int Create_Get_Request_KL(HTTP_GetMessage * gm,
 }
 
 
-/* create an http post request from a HTTP_PostMessage structure and return
-   it in the http_post_request param. Caller must free this data when
-   done with it */
 static int Create_Post_Request(HTTP_PostMessage * pm,
                                char ** http_post_request)
 {
@@ -805,24 +693,20 @@ static int Create_Post_Request(HTTP_PostMessage * pm,
   char * request_header;
   char * entity_header;
 
-  /* make sure params are ok */
   if(NULL == pm || NULL == http_post_request) {
     return BAD_PARAMS;
   }
 
-  /* get the host string that will be in the post request */
   if((ret = Create_Http_Header_Host_String(pm->host, pm->port, 
                                     &post_request_host)) != OK) {
     return ret;
   } 
 
-  /* create the request header fields */
   if((ret = Create_Request_Header_String(pm, &request_header)) != OK) {
     free(post_request_host);
     return ret;
   }
 
-  /* create the entity header fields */
   if((ret = Create_Entity_Header_String(pm, &entity_header)) != OK) {
     free(post_request_host);
     free(request_header);
@@ -852,9 +736,6 @@ static int Create_Post_Request(HTTP_PostMessage * pm,
   return OK;
 }
 
-/* This function will generate the request header field string
-   needed by an http post message. This string will be returned
-   in request_header, and must be deallocated by the caller */
 static int Create_Request_Header_String(HTTP_PostMessage * pm,
                                         char ** request_header)
 {
@@ -886,9 +767,7 @@ static int Create_Request_Header_String(HTTP_PostMessage * pm,
   return OK;
 }
 
-/* this function will generate the entity header field string
-   needed by an http post message. This string will be returned
-   in entity_header, and must be deallocated by the caller */
+
 static int Create_Entity_Header_String(HTTP_PostMessage * pm,
                                        char ** entity_header)
 {
@@ -920,29 +799,22 @@ static int Create_Entity_Header_String(HTTP_PostMessage * pm,
   return OK;
 }
 
-/* this function generate the header info common between a post
-   header and a get header message for http */
 static int Create_Http_Header_Host_String(const char * host,
                                           short int port,
                                           char ** request_host)
 {
-  /* check to make sure port number isn't out of range */
   if(port > MAX_PORT_SIZE) {
     return HTTP_PORT_OUT_OF_RANGE;
   }
 
-  /* allocate the host:port variable to store in the get request 
-     a check on the size of the port number is done first to make
-     sure we con't get a buffer overflow */
+
   *request_host = (char *)malloc(HTTP_HOST_LEN_WO_VARS + 
                                  strlen(host) +
                                  MAX_PORT_STRING_LEN +
                                  NULL_TERM_LEN);
-  /* make sure malloc was ok */
   if(NULL == *request_host) {
     return BAD_MALLOC;
   }
-  /* fill the get_request_host variable with appropriate string */
   (void)sprintf(*request_host, HTTP_HOST, host, port);
 
   return OK;
