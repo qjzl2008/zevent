@@ -5,7 +5,9 @@ extern "C"{
 #include "utility.h"
 #include "error.h"
 #include "md5.h"
+#include "encode.h"
 };
+#include <windows.h>
 #include "dlmanager.h"
 #include "thread_mutex.h"
 #include <process.h>
@@ -18,6 +20,10 @@ dlmanager::dlmanager()
 	req_queue = NULL;
 	m_nThreadCount = 0;
 	shutdown = 0;
+	filenums = 0;
+	filennums_done = 0;
+	m_dwRateDwn = 0;
+	m_dwDwn = 0;
 
 	pInstance = this;
 }
@@ -52,9 +58,14 @@ int dlmanager::init(void)
 	int rv = filelist.init("dllist.xml");
 	if(rv != 0)
 		return -1;
+	rv = init_timer_socket();
+	if(rv < 0)
+		return -1;
 	rv = init_conn_pool();
 	if(rv < 0)
 		return -1;
+
+	filenums = filelist.get_file_nums();
 
 	queue_create(&req_queue,1000);
 
@@ -76,152 +87,12 @@ int dlmanager::init(void)
 			0,
 			(unsigned int *)&m_pdwThreaIDs[i]);
 	}
-	return 0;
-}
-
-int dlmanager::conv_utf8_to_ucs2(const char *in, size_t *inbytes,
-					  wchar_t *out, 
-					  size_t *outwords)
-{
-	long newch, mask;
-	size_t expect, eating;
-	int ch;
-
-	while (*inbytes && *outwords) 
-	{
-		ch = (unsigned char)(*in++);
-		if (!(ch & 0200)) {
-			/* US-ASCII-7 plain text
-			*/
-			--*inbytes;
-			--*outwords;
-			*(out++) = ch;
-		}
-		else
-		{
-			if ((ch & 0300) != 0300) { 
-
-				return -1;
-			}
-			else
-			{
-				mask = 0340;
-				expect = 1;
-				while ((ch & mask) == mask) {
-					mask |= mask >> 1;
-					if (++expect > 3) /* (truly 5 for ucs-4) */
-						return -1;
-				}
-				newch = ch & ~mask;
-				eating = expect + 1;
-				if (*inbytes <= expect)
-					return -1;
-		
-				if (expect == 1) {
-					if (!(newch & 0036))
-						return -1;
-				}
-				else {
-					if (!newch && !((unsigned char)*in & 0077 & (mask << 1)))
-						return -1;
-					if (expect == 2) {
-						if (newch == 0015 && ((unsigned char)*in & 0040))
-							return -1;
-					}
-					else if (expect == 3) {
-						if (newch > 4)
-							return -1;
-						if (newch == 4 && ((unsigned char)*in & 0060))
-							return -1;
-					}
-				}
-				if (*outwords < (size_t)(expect > 2) + 1) 
-					break; /* buffer full */
-				while (expect--)
-				{
-					if (((ch = (unsigned char)*(in++)) & 0300) != 0200)
-						return -1;
-					newch <<= 6;
-					newch |= (ch & 0077);
-				}
-				*inbytes -= eating;
-				if (newch < 0x10000) 
-				{
-					--*outwords;
-					*(out++) = (wchar_t) newch;
-				}
-				else 
-				{
-					*outwords -= 2;
-					newch -= 0x10000;
-					*(out++) = (wchar_t) (0xD800 | (newch >> 10));
-					*(out++) = (wchar_t) (0xDC00 | (newch & 0x03FF));                    
-				}
-			}
-		}
-	}
-	return 0;
-}
-
-int dlmanager::conv_ucs2_to_utf8(const wchar_t *in,
-							 size_t *inwords,
-							 char *out,
-							 size_t *outbytes)
-{
-	long newch,require;
-	size_t need;
-	char *invout;
-	int ch;
-
-	while(*inwords)
-	{
-		ch = (unsigned short)(*in++);
-		if(ch < 0x80)
-		{
-			--*inwords;
-			--*outbytes;
-			*(out++) = (unsigned char ) ch;
-		}
-		else
-		{
-			if((ch & 0xFC00) == 0xDC00) {
-				return -1;
-			}
-			if((ch & 0xFC00) == 0xD800) {
-				if(*inwords < 2) {
-					return -1;
-				}
-
-				if(((unsigned short)(*in) & 0xFC00) != 0xDC00) {
-					return -1;
-				}
-				newch = (ch & 0x03FF) << 10 | ((unsigned short)(*in++) & 0x03FF);
-				newch += 0x10000;
-			}
-			else {
-				newch = ch;
-			}
-
-			require = newch >> 11;
-			need = 1;
-			while (require)
-				require >>=5, ++need;
-			if(need >= *outbytes)
-				break;
-			*inwords -= (need > 2) + 1;
-			*outbytes -= need + 1;
-
-			ch = 0200;
-			out += need + 1;
-			invout = out;
-			while(need--) {
-				ch |= ch >> 1;
-				*(--invout) = (unsigned char)(0200 | (newch & 0077));
-				newch >>= 6;
-			}
-			*(--invout) = (unsigned char)(ch | newch);
-		}
-	}
+	m_hTickThread = (HANDLE)_beginthreadex(NULL,
+		0,
+		(unsigned int (__stdcall *)(void *))dlmanager::tick_thread_entry,
+		this,
+		0,
+		NULL);
 	return 0;
 }
 
@@ -350,6 +221,7 @@ int dlmanager::dlonefile(dlitem *item)
 		conn_pool_release(&cfg,res);
 		process_file(item,data);
 		free(data);
+		InterlockedExchangeAdd((LONG volatile *)&m_dwDwn,item->size);
 		//filelist.set_dlitem_finish(item);
 	}
 	(void)ZNet_Destroy_Http_Get(&gm);
@@ -380,6 +252,47 @@ int dlmanager::remove_from_runlist(dlitem *item)
 	return rv;
 }
 
+int dlmanager::init_timer_socket(void)
+{
+	m_TimerSocket = socket(AF_INET, SOCK_STREAM, 0);
+	if(m_TimerSocket == SOCKET_ERROR)
+		return -1;
+	return 0;
+}
+
+int dlmanager::net_tick(void)
+{
+	m_dwRateDwn = m_dwDwn;
+	InterlockedExchange((long *)&m_dwDwn,0);
+	return 0;
+}
+
+DWORD dlmanager::tick_thread_entry(LPVOID pParam)
+{
+	dlmanager *pdlmanger = (dlmanager *)pParam;
+	fd_set readset;
+	int rev;
+	DWORD wsacode;
+
+	struct timeval timeout;
+	timeout.tv_sec = 1;//1s
+	timeout.tv_usec = 0;
+	while(!pdlmanger->shutdown)
+	{
+		FD_ZERO(&readset);
+		FD_SET(pdlmanger->m_TimerSocket,&readset);
+		if((rev = select(0,&readset,NULL,NULL,&timeout)) == SOCKET_ERROR) {
+			wsacode = WSAGetLastError();
+			break;
+		}
+		if(rev == 0)
+		{
+			//超时
+			pdlmanger->net_tick();
+		}
+	}
+	return 0;
+}
 
 DWORD dlmanager::dlthread_entry(LPVOID pParam)
 {
@@ -401,6 +314,7 @@ DWORD dlmanager::dlthread_entry(LPVOID pParam)
 				//从下载列表中移除
 				pdlmanger->remove_from_runlist(item);
 				delete item;
+				InterlockedIncrement((long *)(&pdlmanger->filennums_done));
 			}
 		}
 		Sleep(50);
@@ -417,6 +331,8 @@ int dlmanager::fini(void)
 		if(m_phThreads[i] != INVALID_HANDLE_VALUE)
 			CloseHandle(m_phThreads[i]);
 	}
+	closesocket(m_TimerSocket);
+	WaitForSingleObject(m_hTickThread,INFINITE);
 	if(req_queue)
 		queue_destroy(req_queue);
 	conn_pool_fini(&cfg);

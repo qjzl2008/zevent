@@ -30,5 +30,8 @@ int downloader ::stop(void)
 
 int downloader::state(struct dlstat *dl_state)
 {
+	dl_state->files_got = dl_manager->filennums_done;
+	dl_state->files_total = dl_manager->filenums;
+	dl_state->rate_down = dl_manager->m_dwRateDwn;
 	return 0;
 }

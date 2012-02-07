@@ -28,24 +28,22 @@ public:
 	int return_to_dllist(dlitem *item);
 	int remove_from_runlist(dlitem *item);
 
-	int get_file_nums(void){return filelist.get_file_nums();}
-
 	int shutdown;
 
+	int filenums;
+	int filennums_done;
+	DWORD m_dwRateDwn;
+
 private:
+	//dl thread
 	static DWORD dlthread_entry(LPVOID pParam);
+	//tick thread
+	static DWORD tick_thread_entry(LPVOID pParam);
+	int net_tick(void);
+
+	int init_timer_socket(void);
 
 	int dlonefile(dlitem *item);
-
-	int conv_ucs2_to_utf8(const wchar_t *in,
-		size_t *inwords,
-		char *out,
-		size_t *outbytes);
-
-	int conv_utf8_to_ucs2(const char *in, 
-		size_t *inbytes,
-		wchar_t *out, 
-		size_t *outwords);
 
 	int http_uri_encode(const char  *utf8_uri,char *enc_uri);
 
@@ -66,6 +64,12 @@ private:
 	queue_t *req_queue;
 
 	dllist filelist;
+
+	//¶¨Ê±Æ÷
+	SOCKET m_TimerSocket;
+	HANDLE m_hTickThread;
+
+	DWORD m_dwDwn;
 private:
 	static dlmanager *pInstance;
 };

@@ -20,10 +20,6 @@ struct dlstat{
 	//任务状态
 	enum state st;
 	/*
-	* peers:连接数
-	*/
-	int peers;
-	/*
 	* files_got:已经下载的文件数
 	* files_total: 总文件数
 	* rate_down: 下载速率

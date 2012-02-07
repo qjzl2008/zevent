@@ -16,8 +16,12 @@ int _tmain(int argc, _TCHAR* argv[])
 	int key;
 	downloader downloader_;
 	downloader_.start();
+	struct dlstat state;
 	while(1)
 	{
+		downloader_.state(&state);
+		printf("tot:%d,done:%d,rate_dwn:%d\n",state.files_total,
+			state.files_got,state.rate_down);
 		if(_kbhit())
 		{
 			if((key =_getch()) == 115/*s key*/)

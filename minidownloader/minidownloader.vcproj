@@ -191,6 +191,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\encode.c"
+				>
+			</File>
+			<File
 				RelativePath=".\ipcserver.cpp"
 				>
 			</File>
@@ -290,6 +294,10 @@
 			</File>
 			<File
 				RelativePath=".\downloader.h"
+				>
+			</File>
+			<File
+				RelativePath=".\encode.h"
 				>
 			</File>
 			<File
