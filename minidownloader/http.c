@@ -41,14 +41,9 @@
 
 static int ZNet_Http_Request(const char * resource, const char * host, short int port, const char * message, char ** response);
 static int ZNet_Http_Request_KL(OsSocket *s,const char * message,char ** response);
-static int Send_Http_Request(OsSocket * s, const char * message);
 static int Get_Http_Response(OsSocket * s, char ** http_response);
-static int Get_Http_Content(OsSocket * s, int content_length, char ** http_content);
-static int Get_Http_Content_Length(char * http_header, int * content_length);
-static int Get_Http_Header(OsSocket * s, char ** http_response);
 static int Http_Header_Terminator_Reached(char * http_response, int size_recv_sofar);
 static int Create_Get_Request(HTTP_GetMessage * gm, char ** http_get_request);
-static int Create_Get_Request_KL(HTTP_GetMessage * gm, char ** http_get_request);
 static int Create_Post_Request(HTTP_PostMessage * pm, char ** http_post_request);
 static int Create_Request_Header_String(HTTP_PostMessage * pm, char ** request_header);
 static int Create_Entity_Header_String(HTTP_PostMessage * pm, char ** entity_header);
@@ -467,7 +462,7 @@ static int ZNet_Http_Request(const char * resource,
   return OK;
 }
 
-static int Send_Http_Request(OsSocket * s, 
+int Send_Http_Request(OsSocket * s, 
                              const char * message)
 {
   int amt_sent;
@@ -509,7 +504,7 @@ static int Get_Http_Response(OsSocket * s,
 
 
 /* get the http content */
-static int Get_Http_Content(OsSocket * s, 
+int Get_Http_Content(OsSocket * s, 
                             int content_length, 
                             char ** http_content)
 {
@@ -532,7 +527,7 @@ static int Get_Http_Content(OsSocket * s,
 }
 
 
-static int Get_Http_Content_Length(char * http_header, 
+int Get_Http_Content_Length(char * http_header, 
                                    int * content_length)
 {
   char * cl_loc;
@@ -566,7 +561,7 @@ static int Get_Http_Content_Length(char * http_header,
   return OK;
 }
 
-static int Get_Http_Header(OsSocket * s, 
+int Get_Http_Header(OsSocket * s, 
                            char ** http_response)
 {
   int ret;
@@ -655,7 +650,7 @@ static int Create_Get_Request(HTTP_GetMessage * gm,
   return OK;
 }
 
-static int Create_Get_Request_KL(HTTP_GetMessage * gm, 
+int Create_Get_Request_KL(HTTP_GetMessage * gm, 
 							  char ** http_get_request)
 {
 	int ret;

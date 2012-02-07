@@ -6,6 +6,9 @@
 #include "dlitem.h"
 #include "conn_pool.h"
 #include "dllist.h"
+extern "C"{
+#include "http.h"
+}
 
 enum METHOD{
 	STANDALONE = 0,
@@ -23,6 +26,7 @@ public:
 	}
 	int init(void);
 	int fini(void);
+	int rate(DWORD down);
 	int get_from_dllist(dlitem *&item);
 	int put_to_dllist(dlitem *item);
 	int return_to_dllist(dlitem *item);
@@ -42,6 +46,9 @@ private:
 	int net_tick(void);
 
 	int init_timer_socket(void);
+
+	int http_request_get(OsSocket *s,HTTP_GetMessage * gm,
+		char ** response);
 
 	int dlonefile(dlitem *item);
 
@@ -69,7 +76,11 @@ private:
 	SOCKET m_TimerSocket;
 	HANDLE m_hTickThread;
 
-	DWORD m_dwDwn;
+	//限速和速率计算
+	DWORD m_bytes_in;
+	DWORD m_bw_bytes_in;
+	DWORD net_bw_limit_in;
+	CRITICAL_SECTION m_bwMutex;
 private:
 	static dlmanager *pInstance;
 };

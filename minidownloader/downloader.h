@@ -30,8 +30,11 @@ struct dlstat{
 class DL_DECLARE_DATA downloader
 {
 public:
+	downloader();
+	~downloader();
 	static int start(void);
 	static int stop(void);
+	static int rate(DWORD down);
 	static int state(struct dlstat *dl_state);
 };
 

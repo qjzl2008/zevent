@@ -4,27 +4,41 @@
 
 static ipc_server *ns;
 static dlmanager *dl_manager;
+	
+downloader::downloader(void)
+{
+	ns = new ipc_server;
+	dl_manager = new dlmanager;
+}
+
+downloader::~downloader(void)
+{
+	delete ns;
+	delete dl_manager;
+}
 
 int downloader::start(void)
 {
 	WSADATA wsaData;
 	WSAStartup(MAKEWORD(2,2),&wsaData);
 
-	ns = new ipc_server;
 	int rv = ns->start();
 	if(rv != 0)
 		return -1;
-	dl_manager = new dlmanager;
     dl_manager->init();
+	return 0;
+}
+
+int downloader::rate(DWORD down)
+{
+	dl_manager->rate(down);
 	return 0;
 }
 
 int downloader ::stop(void)
 {
 	ns->stop();
-	delete ns;
 	dl_manager->fini();
-	delete dl_manager;
 	return 0;
 }
 

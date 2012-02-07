@@ -1,7 +1,6 @@
 extern "C"{
 #include "os.h"
 #include "os_common.h"
-#include "http.h"
 #include "utility.h"
 #include "error.h"
 #include "md5.h"
@@ -23,9 +22,12 @@ dlmanager::dlmanager()
 	filenums = 0;
 	filennums_done = 0;
 	m_dwRateDwn = 0;
-	m_dwDwn = 0;
+	m_bytes_in = 0;
+	m_bw_bytes_in = 0;
+	net_bw_limit_in = 0;
 
 	pInstance = this;
+	InitializeCriticalSectionAndSpinCount(&m_bwMutex,512);
 }
 
 int dlmanager::init_conn_pool()
@@ -93,6 +95,18 @@ int dlmanager::init(void)
 		this,
 		0,
 		NULL);
+	return 0;
+}
+
+int dlmanager::rate(DWORD down)
+{
+	EnterCriticalSection(&m_bwMutex);
+    if(down > 0)
+	{
+		net_bw_limit_in = down;
+		m_bw_bytes_in = down;
+	}
+	LeaveCriticalSection(&m_bwMutex);
 	return 0;
 }
 
@@ -184,6 +198,95 @@ int dlmanager::file_md5(char md5code[],
 	return 0;
 }
 
+int dlmanager::http_request_get(OsSocket *s,HTTP_GetMessage * gm,
+					 char ** response)
+{
+	int ret;
+	char * http_get_request;
+	int content_length;
+	char * http_header;
+
+	if((ret = Create_Get_Request_KL(gm, &http_get_request)) != OK) {
+		return -1;
+	}
+	/* send an HTTP request */
+	if((ret = Send_Http_Request(s, http_get_request)) != OK) {
+		free(http_get_request);
+		return -1;
+	}
+	free(http_get_request);
+
+	if((ret = Get_Http_Header(s, &http_header)) != OK) {
+		return -1;
+	}
+
+	/* get http data size from the header */
+	if((ret = Get_Http_Content_Length(http_header, &content_length)) != OK) {
+		free(http_header);
+		return -1;
+	}
+	free(http_header);
+
+	//Get http content
+	char *http_content = (char *)malloc(content_length + NULL_TERM_LEN);
+	if(NULL == *http_content) {
+		return -1;
+	}
+
+	int recv = 0,received = 0,remain = content_length;
+
+	while(remain > 0 && !shutdown)
+	{
+		int want_read = 0;
+		if(net_bw_limit_in == 0)
+		{
+			//不进行限速
+			want_read = content_length;
+		}
+		else
+		{
+			EnterCriticalSection(&m_bwMutex);
+			if(m_bw_bytes_in >= remain)
+			{
+				want_read = remain;
+				m_bw_bytes_in -= remain;
+			}
+			else
+			{
+				//这里我们平均分配下可用余量吧
+				want_read = m_bw_bytes_in / m_nThreadCount;
+				m_bw_bytes_in -= want_read;
+			}
+			LeaveCriticalSection(&m_bwMutex);
+		}
+
+		if(want_read <= 0)
+		{
+			Sleep(100);
+			continue;
+		}
+
+		if((ret = ZNet_Os_Socket_Recv(s, http_content, want_read, 
+			&recv, HTTP_RECEIVE_TIMEOUT)) != OK) {
+				free(http_content);
+				return -1;
+		}
+		InterlockedExchangeAdd((LONG volatile *)&m_bytes_in,recv);
+		received += recv;
+		remain -=recv;
+	}
+	if(remain > 0)
+	{
+		free(http_content);
+		return -1;
+	}
+
+	/* null terminate it */
+	http_content[received] = NULL_TERM;
+	*response = http_content;
+	return 0;
+}
+
 int dlmanager::dlonefile(dlitem *item)
 {
 	int ret;
@@ -213,7 +316,7 @@ int dlmanager::dlonefile(dlitem *item)
 		return -1;
 	}
 	s.sock= *(SOCKET *)res;
-	if((ret = ZNet_Http_Request_Get_KL(&s,gm, &data)) != OK) {
+	if((ret = http_request_get(&s,gm, &data)) != 0) {
 		conn_pool_remove(&cfg,res);
 	}
 	else
@@ -221,7 +324,6 @@ int dlmanager::dlonefile(dlitem *item)
 		conn_pool_release(&cfg,res);
 		process_file(item,data);
 		free(data);
-		InterlockedExchangeAdd((LONG volatile *)&m_dwDwn,item->size);
 		//filelist.set_dlitem_finish(item);
 	}
 	(void)ZNet_Destroy_Http_Get(&gm);
@@ -262,8 +364,9 @@ int dlmanager::init_timer_socket(void)
 
 int dlmanager::net_tick(void)
 {
-	m_dwRateDwn = m_dwDwn;
-	InterlockedExchange((long *)&m_dwDwn,0);
+	InterlockedExchange((long *)&m_dwRateDwn,m_bytes_in);
+	InterlockedExchange((long *)&m_bytes_in,0);
+	InterlockedExchange((long *)&m_bw_bytes_in,net_bw_limit_in);
 	return 0;
 }
 
@@ -342,4 +445,5 @@ int dlmanager::fini(void)
 
 dlmanager::~dlmanager(void)
 {
+	DeleteCriticalSection(&m_bwMutex);
 }
