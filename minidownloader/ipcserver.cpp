@@ -27,7 +27,7 @@ DWORD ipc_server::thread_entry(LPVOID pParam)
 	nb_ipcmsg_t ipcmsg;
 	while(!server->m_shutdown)
 	{
-		rv = ns_recvmsg(server->ns,&msg,&len,&peer_id,1000000);
+		rv = ns_recvmsg(server->ns,&msg,&len,&peer_id,100000);
 		if(rv == 0)
 		{
 			memcpy(&ipcmsg,(char *)msg+4,len-4);
