@@ -14,9 +14,12 @@
 int _tmain(int argc, _TCHAR* argv[])
 {
 	int key;
+	int rv;
 	downloader downloader_;
 	downloader_.rate(0);
-	downloader_.start();
+	rv = downloader_.start();
+	if(rv != 0)
+		return -1;
 	struct dlstat state;
 	while(1)
 	{
