@@ -206,6 +206,7 @@ int dlmanager::gen_md5(char md5code[],
 	return 0;
 }
 
+#define MAX_BYTES_PERRECV (100*1024)
 int dlmanager::http_request_get(dlitem *item,OsSocket *s,HTTP_GetMessage * gm,
 					 char ** response)
 {
@@ -254,7 +255,7 @@ int dlmanager::http_request_get(dlitem *item,OsSocket *s,HTTP_GetMessage * gm,
 		if(net_bw_limit_in == 0)
 		{
 			//不进行限速
-			want_read = content_length;
+			want_read = remain;
 		}
 		else
 		{
@@ -278,8 +279,12 @@ int dlmanager::http_request_get(dlitem *item,OsSocket *s,HTTP_GetMessage * gm,
 			Sleep(100);
 			continue;
 		}
+		else if(want_read > MAX_BYTES_PERRECV)
+		{
+			want_read = MAX_BYTES_PERRECV;
+		}
 
-		if((ret = ZNet_Os_Socket_Recv(s, http_content, want_read, 
+		if((ret = ZNet_Os_Socket_Recv(s, http_content + received, want_read, 
 			&recv, HTTP_RECEIVE_TIMEOUT)) != OK) {
 				free(http_content);
 				return -1;
