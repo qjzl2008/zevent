@@ -11,14 +11,7 @@
 #define DL_DECLARE_DATA             __declspec(dllexport)
 #endif
 
-enum state {
-	DL_STATE_LEECH = 0,   //正在下载
-	DL_STATE_COMPLETE = 1    //完成
-};
-
 struct dlstat{
-	//任务状态
-	enum state st;
 	/*
 	* files_got:已经下载的文件数
 	* files_total: 总文件数
