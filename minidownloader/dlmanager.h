@@ -49,7 +49,7 @@ private:
 
 	int init_timer_socket(void);
 
-	int http_request_get(OsSocket *s,HTTP_GetMessage * gm,
+	int http_request_get(dlitem *item,OsSocket *s,HTTP_GetMessage * gm,
 		char ** response);
 
 	/*
@@ -73,6 +73,8 @@ private:
 		char *data,unsigned len);
 
 private:
+	char m_IniFileName[MAX_PATH];
+	char m_szWebRoot[MAX_PATH];
 	conn_svr_cfg cfg;
 
 	int m_nThreadCount;

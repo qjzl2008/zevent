@@ -30,27 +30,21 @@ dlmanager::dlmanager()
 
 	pInstance = this;
 	InitializeCriticalSectionAndSpinCount(&m_bwMutex,512);
+	memset(m_IniFileName,0,sizeof(m_IniFileName));
+	memset(m_szWebRoot,0,sizeof(m_szWebRoot));
 }
 
 int dlmanager::init_conn_pool()
 {
-	char lpModuleFileName[MAX_PATH] = {0};
-	char lpIniFileName[MAX_PATH] = {0};
-	TCHAR *file;
-	GetModuleFileName(NULL,lpModuleFileName,MAX_PATH);
-	GetFullPathName(lpModuleFileName,MAX_PATH,lpModuleFileName,&file);
-	*file = 0;
-	strcpy_s(lpIniFileName,sizeof(lpIniFileName),lpModuleFileName);
-	strcat_s(lpIniFileName,sizeof(lpIniFileName),"dl_cfg.ini");
 	char szServerIP[64] = {0};
-	GetPrivateProfileString("network","server","",szServerIP,sizeof(szServerIP),lpIniFileName);
+	GetPrivateProfileString("network","server","",szServerIP,sizeof(szServerIP),m_IniFileName);
 	strcpy_s(cfg.host,sizeof(cfg.host),szServerIP);
-	cfg.port = GetPrivateProfileInt("network","port",80,lpIniFileName);
-	cfg.nmin = GetPrivateProfileInt("network","min_conn",2,lpIniFileName);
-	cfg.nmax = GetPrivateProfileInt("network","max_conn",10,lpIniFileName);
-	cfg.nkeep = GetPrivateProfileInt("network","keep_conn",5,lpIniFileName);
-    cfg.exptime = GetPrivateProfileInt("network","exptime",0,lpIniFileName);
-	cfg.timeout = GetPrivateProfileInt("network","timeout",1000,lpIniFileName);
+	cfg.port = GetPrivateProfileInt("network","port",80,m_IniFileName);
+	cfg.nmin = GetPrivateProfileInt("network","min_conn",2,m_IniFileName);
+	cfg.nmax = GetPrivateProfileInt("network","max_conn",10,m_IniFileName);
+	cfg.nkeep = GetPrivateProfileInt("network","keep_conn",5,m_IniFileName);
+    cfg.exptime = GetPrivateProfileInt("network","exptime",0,m_IniFileName);
+	cfg.timeout = GetPrivateProfileInt("network","timeout",1000,m_IniFileName);
 	int rv = conn_pool_init(&cfg);
 	if(rv != 0)
 		return -1;
@@ -59,7 +53,19 @@ int dlmanager::init_conn_pool()
 
 int dlmanager::init(void)
 {
-	int rv = filelist.init("dllist.xml");
+	char lpModuleFileName[MAX_PATH] = {0};
+	TCHAR *file;
+	GetModuleFileName(NULL,lpModuleFileName,MAX_PATH);
+	GetFullPathName(lpModuleFileName,MAX_PATH,lpModuleFileName,&file);
+	*file = 0;
+	strcpy_s(m_IniFileName,sizeof(m_IniFileName),lpModuleFileName);
+	strcat_s(m_IniFileName,sizeof(m_IniFileName),"dl_cfg.ini");
+
+	char szList[MAX_PATH]={0};
+	GetPrivateProfileString("misc","web_root","",m_szWebRoot,sizeof(m_szWebRoot),m_IniFileName);
+	GetPrivateProfileString("misc","dllist","",szList,sizeof(szList),m_IniFileName);
+
+	int rv = filelist.init(szList);
 	if(rv != 0)
 		return -1;
 	rv = init_timer_socket();
@@ -200,7 +206,7 @@ int dlmanager::gen_md5(char md5code[],
 	return 0;
 }
 
-int dlmanager::http_request_get(OsSocket *s,HTTP_GetMessage * gm,
+int dlmanager::http_request_get(dlitem *item,OsSocket *s,HTTP_GetMessage * gm,
 					 char ** response)
 {
 	int ret;
@@ -228,6 +234,11 @@ int dlmanager::http_request_get(OsSocket *s,HTTP_GetMessage * gm,
 		return -1;
 	}
 	free(http_header);
+
+	if(content_length != item->size)
+	{
+		return -1;
+	}
 
 	//Get http content
 	char *http_content = (char *)malloc(content_length + NULL_TERM_LEN);
@@ -381,8 +392,8 @@ int dlmanager::dlonefile(dlitem *item)
 	HTTP_GetMessage * gm;
 	char *data;
 
-	sprintf_s(url,sizeof(url),"http://%s:%d/%s",
-		cfg.host,cfg.port,item->resource);
+	sprintf_s(url,sizeof(url),"http://%s:%d/%s/%s",
+		cfg.host,cfg.port,m_szWebRoot,item->resource);
 	if((ret = Parse_Url(url, host, resource, &port)) != OK) {
 		return -1;
 	}
@@ -399,7 +410,7 @@ int dlmanager::dlonefile(dlitem *item)
 		return -1;
 	}
 	s.sock= *(SOCKET *)res;
-	if((ret = http_request_get(&s,gm, &data)) != 0) {
+	if((ret = http_request_get(item,&s,gm, &data)) != 0) {
 		conn_pool_remove(&cfg,res);
 	}
 	else

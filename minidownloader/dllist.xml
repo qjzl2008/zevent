@@ -9,6 +9,5 @@
     pack_path:method为1时的打包路径信息
  -->
 <filelist> 
-      <file download_path="Plants_vs_Zombies.rar" path="Plants_vs_Zombies.rar" method="0" check_md5="30df24c9fd8515053572466683664e49" file_size="52341177"/>
-      <file download_path="测试SQLite-1.0.2.tgz" path="测试1.tgz" method="0" check_md5="a6ddfe1136e35ad7feddc9ce9bfac991" file_size="362412" />
+      <file download_path="jdk-1_5_0_06-linux-i586.bin" path="jdk-1_5_0_06-linux-i586.bin" method="0" check_md5="30df24c9fd8515053572466683664e49" file_size="52341177"/>
 </filelist>
