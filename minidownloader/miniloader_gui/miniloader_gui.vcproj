@@ -2,10 +2,10 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="miniloader"
-	ProjectGUID="{878AA96F-DD3C-4B9D-879E-C6D078A18F83}"
-	RootNamespace="minidownloader"
-	Keyword="Win32Proj"
+	Name="miniloader_gui"
+	ProjectGUID="{2F5A8150-E17A-412A-8D79-572CF4320490}"
+	RootNamespace="miniloader_gui"
+	Keyword="MFCProj"
 	>
 	<Platforms>
 		<Platform
@@ -19,8 +19,9 @@
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="2"
-			CharacterSet="2"
+			ConfigurationType="1"
+			UseOfMFC="2"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -36,16 +37,18 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
+				PreprocessorDefinitions="_DEBUG"
+				MkTypLibCompatible="false"
+				ValidateParameters="false"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".\common\include;.\common\include\arch\win;.\znet;&quot;.\libxml2-2.7.8.win32\include&quot;;&quot;.\iconv-1.9.2.win32\include&quot;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;HAS_THREADS;CONN_DECLARE_STATIC;_WIN32_WINNT=0x0501"
+				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="2"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="4"
@@ -55,16 +58,18 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="2052"
+				AdditionalIncludeDirectories="$(IntDir)"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies=".\libxml2-2.7.8.win32\lib\libxml2_a.lib .\iconv-1.9.2.win32\lib\iconv_a.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
-				SubSystem="1"
+				SubSystem="2"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -97,7 +102,8 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			CharacterSet="2"
+			UseOfMFC="2"
+			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -114,13 +120,16 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
+				PreprocessorDefinitions="NDEBUG"
+				MkTypLibCompatible="false"
+				ValidateParameters="false"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories=".\common\include;.\common\include\arch\win;.\znet;&quot;.\libxml2-2.7.8.win32\include&quot;;&quot;.\iconv-1.9.2.win32\include&quot;"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;HAS_THREADS;CONN_DECLARE_STATIC"
+				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG"
+				MinimalRebuild="false"
 				RuntimeLibrary="2"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="2"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
@@ -130,16 +139,18 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="2052"
+				AdditionalIncludeDirectories="$(IntDir)"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies=".\libxml2-2.7.8.win32\lib\libxml2_a.lib .\iconv-1.9.2.win32\lib\iconv_a.lib"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
-				SubSystem="1"
+				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				TargetMachine="1"
@@ -179,31 +190,11 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\dllist.cpp"
+				RelativePath=".\miniloader_dlg.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\dlmanager.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\downloader.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\encode.c"
-				>
-			</File>
-			<File
-				RelativePath=".\ipcserver.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\md5.c"
-				>
-			</File>
-			<File
-				RelativePath=".\minidownloader.cpp"
+				RelativePath=".\miniloader_gui.cpp"
 				>
 			</File>
 			<File
@@ -226,54 +217,6 @@
 					/>
 				</FileConfiguration>
 			</File>
-			<Filter
-				Name="http"
-				>
-				<File
-					RelativePath=".\http.c"
-					>
-				</File>
-				<File
-					RelativePath=".\os_common.c"
-					>
-				</File>
-				<File
-					RelativePath=".\os_win.c"
-					>
-				</File>
-				<File
-					RelativePath=".\utility.c"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="connpool"
-				>
-				<File
-					RelativePath=".\common\pool\conn_pool.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\misc\reslist.c"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="common"
-				>
-				<File
-					RelativePath=".\common\misc\queue.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\locks\win\thread_cond.c"
-					>
-				</File>
-				<File
-					RelativePath=".\common\locks\win\thread_mutex.c"
-					>
-				</File>
-			</Filter>
 		</Filter>
 		<Filter
 			Name="头文件"
@@ -281,99 +224,39 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\dlitem.h"
+				RelativePath=".\miniloader_dlg.h"
 				>
 			</File>
 			<File
-				RelativePath=".\dllist.h"
+				RelativePath=".\miniloader_gui.h"
 				>
 			</File>
 			<File
-				RelativePath=".\dlmanager.h"
-				>
-			</File>
-			<File
-				RelativePath=".\downloader.h"
-				>
-			</File>
-			<File
-				RelativePath=".\encode.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ipcserver.h"
-				>
-			</File>
-			<File
-				RelativePath=".\md5.h"
-				>
-			</File>
-			<File
-				RelativePath=".\protocol.h"
+				RelativePath=".\Resource.h"
 				>
 			</File>
 			<File
 				RelativePath=".\stdafx.h"
 				>
 			</File>
-			<Filter
-				Name="http"
-				>
-				<File
-					RelativePath=".\error.h"
-					>
-				</File>
-				<File
-					RelativePath=".\http.h"
-					>
-				</File>
-				<File
-					RelativePath=".\os.h"
-					>
-				</File>
-				<File
-					RelativePath=".\os_common.h"
-					>
-				</File>
-				<File
-					RelativePath=".\utility.h"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="connpool"
-				>
-				<File
-					RelativePath=".\common\include\conn_pool.h"
-					>
-				</File>
-				<File
-					RelativePath=".\common\include\reslist.h"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="common"
-				>
-				<File
-					RelativePath=".\common\include\queue.h"
-					>
-				</File>
-				<File
-					RelativePath=".\common\include\thread_cond.h"
-					>
-				</File>
-				<File
-					RelativePath=".\common\include\thread_mutex.h"
-					>
-				</File>
-			</Filter>
 		</Filter>
 		<Filter
 			Name="资源文件"
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
+			<File
+				RelativePath=".\res\miniloader_gui.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\miniloader_gui.rc"
+				>
+			</File>
+			<File
+				RelativePath=".\res\miniloader_gui.rc2"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\ReadMe.txt"
