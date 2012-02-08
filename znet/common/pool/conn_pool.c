@@ -21,8 +21,11 @@ static int conn_pool_construct(void **con, void *params)
 #endif
 	struct sockaddr_in serv_addr;    
 	*sockfd = socket(AF_INET, SOCK_STREAM, 0);    
-	if (*sockfd < 0)    
-		return -1;    
+	if (*sockfd < 0)   
+	{	
+		free(sockfd);
+		return -1;  
+	}	
 
 	memset(&serv_addr,0,sizeof(serv_addr));
 
@@ -31,7 +34,10 @@ static int conn_pool_construct(void **con, void *params)
 	serv_addr.sin_port = htons(svr->port);    
 	serv_addr.sin_addr.s_addr = inet_addr(svr->host);    
 	if (connect(*sockfd,(struct sockaddr *)&serv_addr,sizeof(serv_addr)) < 0)    
+	{
+		free(sockfd);
 		return -1;  
+	}
 
 	*con = sockfd;
 
