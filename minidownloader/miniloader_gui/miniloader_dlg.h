@@ -2,7 +2,7 @@
 //
 
 #pragma once
-
+#include "downloader.h"
 
 // CMiniloaderDlg ¶Ô»°¿ò
 class CMiniloaderDlg : public CDialog
@@ -28,4 +28,8 @@ protected:
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
+private:
+	downloader downloader_;
+public:
+	afx_msg void OnBnClickedButton1();
 };

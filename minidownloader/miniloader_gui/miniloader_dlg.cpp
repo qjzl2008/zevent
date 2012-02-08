@@ -9,7 +9,9 @@
 #define new DEBUG_NEW
 #endif
 
-
+#ifdef WIN32
+#pragma comment(lib,"ws2_32.lib")
+#endif
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
 
 class CAboutDlg : public CDialog
@@ -62,6 +64,7 @@ BEGIN_MESSAGE_MAP(CMiniloaderDlg, CDialog)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	//}}AFX_MSG_MAP
+	ON_BN_CLICKED(IDC_BUTTON1, &CMiniloaderDlg::OnBnClickedButton1)
 END_MESSAGE_MAP()
 
 
@@ -95,6 +98,10 @@ BOOL CMiniloaderDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	ShowWindow(SW_MINIMIZE);
+
+	int rv;
+	downloader_.rate(0);
+	rv = downloader_.start();
 
 	// TODO: 在此添加额外的初始化代码
 
@@ -150,3 +157,9 @@ HCURSOR CMiniloaderDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+
+void CMiniloaderDlg::OnBnClickedButton1()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	downloader_.stop();
+}

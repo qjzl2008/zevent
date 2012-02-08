@@ -74,9 +74,7 @@ int thread_mutex_destroy(thread_mutex_t *mutex)
 		DeleteCriticalSection(&mutex->section);
 	}
 	else {
-		if (CloseHandle(mutex->handle)) {
-			return -1;
-		}
+		CloseHandle(mutex->handle);
 	}
 	free(mutex);
 	return 0;

@@ -88,6 +88,7 @@ EXSTYLE WS_EX_APPWINDOW
 CAPTION "miniloader_gui"
 FONT 9, "ËÎÌו", 0, 0, 0x1
 BEGIN
+    PUSHBUTTON      "Button1",IDC_BUTTON1,157,51,50,14
 END
 
 

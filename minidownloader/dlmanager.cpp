@@ -328,6 +328,7 @@ int dlmanager::check_standalone(dlitem *item)
 		FILE_ATTRIBUTE_NORMAL,   
 		NULL                             
 		);
+	delete []c_path;
 	if(hFile == INVALID_HANDLE_VALUE)
 	{
 		return -1;
@@ -356,6 +357,7 @@ int dlmanager::check_standalone(dlitem *item)
 				);
 
 			if( FALSE == bReadFile ){
+				free(pFileData);
 				CloseHandle(hFile);
 				return -1;
 			}
@@ -535,6 +537,7 @@ DWORD dlmanager::dlthread_entry(LPVOID pParam)
 			{
 				pdlmanger->remove_from_runlist(item);
 				InterlockedIncrement((long *)(&pdlmanger->filennums_done));
+				delete item;
 				continue;
 			}
 			rv = pdlmanger->dlonefile(item);
@@ -565,8 +568,11 @@ int dlmanager::fini(void)
 		if(m_phThreads[i] != INVALID_HANDLE_VALUE)
 			CloseHandle(m_phThreads[i]);
 	}
+	delete []m_pdwThreaIDs;
+	delete []m_phThreads;
 	closesocket(m_TimerSocket);
 	WaitForSingleObject(m_hTickThread,INFINITE);
+	CloseHandle(m_hTickThread);
 	if(req_queue)
 		queue_destroy(req_queue);
 	conn_pool_fini(&cfg);

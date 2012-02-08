@@ -114,7 +114,10 @@ static int conn_pool_construct(void **con, void *params)
     SOCKET *sockfd = (SOCKET *)malloc(sizeof(SOCKET));
 	rv = net_connect_block(svr->host,svr->port,sockfd,1);
     if(rv < 0)
+	{
+		free(sockfd);
 		return -1;
+	}
     *con = sockfd;
 	return 0;
 }

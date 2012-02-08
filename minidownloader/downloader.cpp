@@ -25,7 +25,12 @@ int downloader::start(void)
 	int rv = ns->start();
 	if(rv != 0)
 		return -1;
-    dl_manager->init();
+    rv = dl_manager->init();
+	if(rv != 0)
+	{
+		rv = ns->stop();
+		return -1;
+	}
 	return 0;
 }
 

@@ -25,6 +25,7 @@ int dllist::init(const char *listfile)
 	doc=xmlParseFile(listfile);//创建Dom树
 	if(doc==NULL)
 	{
+		xmlCleanupParser(); 
 		return -1;
 	}
 	xmlNodePtr  cur;
@@ -94,6 +95,10 @@ int dllist::init(const char *listfile)
 			filelist.push_back(item);
 			++file_nums;
 		}
+		else
+		{
+			free(item);
+		}
 		cur=cur->next;
 	}
 	return 0;
@@ -101,8 +106,11 @@ int dllist::init(const char *listfile)
 
 int dllist::fini(void)
 {
-	xmlFreeDoc(doc);//释放xml解析库所用资源
-	xmlCleanupParser();
+	if(doc)
+	{
+		xmlFreeDoc(doc);//释放xml解析库所用资源
+		xmlCleanupParser();
+	}
 
 	dlitem *item = NULL;
 	filelist_iter iter = filelist.begin();

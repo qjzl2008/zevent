@@ -9,6 +9,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "znet", "znet\znet.vcproj", "{EC14100C-2659-4DD0-ABEE-31176FE17CC0}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "miniloader_gui", "miniloader_gui\miniloader_gui.vcproj", "{2F5A8150-E17A-412A-8D79-572CF4320490}"
+	ProjectSection(ProjectDependencies) = postProject
+		{878AA96F-DD3C-4B9D-879E-C6D078A18F83} = {878AA96F-DD3C-4B9D-879E-C6D078A18F83}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
