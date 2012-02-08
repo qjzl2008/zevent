@@ -60,7 +60,7 @@ private:
 
 	int process_file(dlitem *item,char *data);
 
-	int file_md5(char md5code[],
+	int gen_md5(char md5code[],
 		int size,
 		char *data,unsigned len);
 

@@ -143,7 +143,7 @@ int dlmanager::process_file(dlitem *item,char *data)
 {
 	//ÑéÖ¤MD5
 	char md5[64]={0};
-	file_md5(md5,sizeof(md5),data,item->size);
+	gen_md5(md5,sizeof(md5),data,item->size);
 	if(strcmp(item->md5,md5))
 	{
 		return -1;
@@ -182,7 +182,7 @@ int dlmanager::process_file(dlitem *item,char *data)
 	return 0;
 }
 
-int dlmanager::file_md5(char md5code[],
+int dlmanager::gen_md5(char md5code[],
 			 int size,
 			 char *data,unsigned len)
 {
