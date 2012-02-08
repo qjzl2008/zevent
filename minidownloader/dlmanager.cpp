@@ -392,8 +392,16 @@ int dlmanager::dlonefile(dlitem *item)
 	HTTP_GetMessage * gm;
 	char *data;
 
-	sprintf_s(url,sizeof(url),"http://%s:%d/%s/%s",
-		cfg.host,cfg.port,m_szWebRoot,item->resource);
+	if(strcmp(m_szWebRoot,""))
+	{
+		sprintf_s(url,sizeof(url),"http://%s:%d/%s/%s",
+			cfg.host,cfg.port,m_szWebRoot,item->resource);
+	}
+	else
+	{
+			sprintf_s(url,sizeof(url),"http://%s:%d/%s",
+				cfg.host,cfg.port,item->resource);
+	}
 	if((ret = Parse_Url(url, host, resource, &port)) != OK) {
 		return -1;
 	}
