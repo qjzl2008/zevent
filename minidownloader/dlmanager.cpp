@@ -534,6 +534,7 @@ DWORD dlmanager::dlthread_entry(LPVOID pParam)
 			if(pdlmanger->check_file(item) == 0)
 			{
 				pdlmanger->remove_from_runlist(item);
+				InterlockedIncrement((long *)(&pdlmanger->filennums_done));
 				continue;
 			}
 			rv = pdlmanger->dlonefile(item);
