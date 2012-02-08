@@ -289,6 +289,87 @@ int dlmanager::http_request_get(OsSocket *s,HTTP_GetMessage * gm,
 	return 0;
 }
 
+int dlmanager::check_pfile(dlitem *item)
+{
+	return 0;
+}
+
+int dlmanager::check_standalone(dlitem *item)
+{
+	wchar_t w_path[MAX_PATH] = {0};
+	size_t inbytes = strlen(item->path);
+	size_t outbytes = sizeof(w_path);
+	int rv = conv_utf8_to_ucs2(item->path,&inbytes,w_path,&outbytes);
+	DWORD dwNum = WideCharToMultiByte(CP_ACP,NULL,w_path,-1,NULL,0,NULL,FALSE);
+	char *c_path;
+	c_path = new char[dwNum];
+	rv = WideCharToMultiByte (CP_OEMCP,NULL,w_path,-1,c_path,dwNum,NULL,FALSE);
+	HANDLE hFile = CreateFile(c_path,     
+		GENERIC_READ,    
+		0,                       
+		NULL,                 
+		OPEN_EXISTING,      
+		FILE_ATTRIBUTE_NORMAL,   
+		NULL                             
+		);
+	if(hFile == INVALID_HANDLE_VALUE)
+	{
+		return -1;
+	}
+	else
+	{
+		DWORD dwFileSize = GetFileSize(hFile,NULL);
+		if(dwFileSize == INVALID_FILE_SIZE)
+		{
+			CloseHandle(hFile);
+			return -1;
+		}
+		DWORD dwToReadCharNums = dwFileSize;
+		DWORD dwReadBytes = 0;
+		char  *pFileData = NULL;
+		pFileData = (char *)malloc(dwFileSize + 1);
+		memset(pFileData,0,(dwFileSize + 1));
+		while(dwReadBytes < dwFileSize)
+		{
+			DWORD dwRecvBytes = 0;
+			BOOL bReadFile = ReadFile(hFile,           
+				pFileData ,   
+				dwToReadCharNums,
+				&dwRecvBytes,
+				NULL                  
+				);
+
+			if( FALSE == bReadFile ){
+				CloseHandle(hFile);
+				return -1;
+			}
+			dwReadBytes += dwRecvBytes;
+			dwToReadCharNums = dwFileSize - dwReadBytes;
+		}
+		CloseHandle(hFile);
+		char md5[64]={0};
+		gen_md5(md5,sizeof(md5),pFileData,dwReadBytes);
+		free(pFileData);
+		if(strcmp(item->md5,md5))
+		{
+			return -1;
+		}
+	}
+	return 0;
+}
+
+int dlmanager::check_file(dlitem *item)
+{
+	if(item->method == PACK)
+	{
+		return check_pfile(item);
+	}
+	else
+	{
+		return check_standalone(item);
+	}
+}
+
 int dlmanager::dlonefile(dlitem *item)
 {
 	int ret;
@@ -426,6 +507,11 @@ DWORD dlmanager::dlthread_entry(LPVOID pParam)
 		rv = pdlmanger->get_from_dllist(item);
 		if(rv == 0)
 		{
+			if(pdlmanger->check_file(item) == 0)
+			{
+				pdlmanger->remove_from_runlist(item);
+				continue;
+			}
 			rv = pdlmanger->dlonefile(item);
 			if(rv != 0)
 			{

@@ -52,6 +52,14 @@ private:
 	int http_request_get(OsSocket *s,HTTP_GetMessage * gm,
 		char ** response);
 
+	/*
+	*如果文件存在并且校验正确返回0
+	*否则返回-1
+	*/
+	int check_file(dlitem *item);
+	int check_standalone(dlitem *item);
+	int check_pfile(dlitem *item);
+
 	int dlonefile(dlitem *item);
 
 	int http_uri_encode(const char  *utf8_uri,char *enc_uri);
