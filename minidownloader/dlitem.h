@@ -1,7 +1,7 @@
 #ifndef DL_ITEM_H
 #define DL_ITEM_H
 #include <windows.h>
-#include "utility.h"
+#include "http/utility.h"
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 

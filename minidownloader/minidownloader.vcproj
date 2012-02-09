@@ -230,19 +230,19 @@
 				Name="http"
 				>
 				<File
-					RelativePath=".\http.c"
+					RelativePath=".\http\http.c"
 					>
 				</File>
 				<File
-					RelativePath=".\os_common.c"
+					RelativePath=".\http\os_common.c"
 					>
 				</File>
 				<File
-					RelativePath=".\os_win.c"
+					RelativePath=".\http\os_win.c"
 					>
 				</File>
 				<File
-					RelativePath=".\utility.c"
+					RelativePath=".\http\utility.c"
 					>
 				</File>
 			</Filter>
@@ -320,23 +320,23 @@
 				Name="http"
 				>
 				<File
-					RelativePath=".\error.h"
+					RelativePath=".\http\error.h"
 					>
 				</File>
 				<File
-					RelativePath=".\http.h"
+					RelativePath=".\http\http.h"
 					>
 				</File>
 				<File
-					RelativePath=".\os.h"
+					RelativePath=".\http\os.h"
 					>
 				</File>
 				<File
-					RelativePath=".\os_common.h"
+					RelativePath=".\http\os_common.h"
 					>
 				</File>
 				<File
-					RelativePath=".\utility.h"
+					RelativePath=".\http\utility.h"
 					>
 				</File>
 			</Filter>
