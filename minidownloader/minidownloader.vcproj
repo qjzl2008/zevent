@@ -199,6 +199,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\log.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\md5.c"
 				>
 			</File>
@@ -302,6 +306,10 @@
 			</File>
 			<File
 				RelativePath=".\ipcserver.h"
+				>
+			</File>
+			<File
+				RelativePath=".\log.h"
 				>
 			</File>
 			<File

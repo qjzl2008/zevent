@@ -1,6 +1,7 @@
 #include "dlmanager.h"
 #include "ipcserver.h"
 #include "downloader.h"
+#include "log.h"
 
 static ipc_server *ns;
 static dlmanager *dl_manager;
@@ -22,7 +23,8 @@ int downloader::start(void)
 	WSADATA wsaData;
 	WSAStartup(MAKEWORD(2,2),&wsaData);
 
-	int rv = ns->start();
+	int rv = init_log("minilog.txt");
+	rv = ns->start();
 	if(rv != 0)
 		return -1;
     rv = dl_manager->init();
@@ -31,6 +33,7 @@ int downloader::start(void)
 		rv = ns->stop();
 		return -1;
 	}
+	log("testlog:%s","жпнд");
 	return 0;
 }
 
