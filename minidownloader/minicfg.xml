@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<!--- 
+     host: 远程主机名（ip或域名)
+     port: 远程服务端口
+     min_conn:初始最小连接数
+     keep_con:维持的长连接数
+     max_con:允许的最大连接数
+     exptime:允许的最大存活时间，为0则不主动关闭。否则生命期超过该时间的连接将被关闭
+     timeout:从该服务器连接池中获取连接时的超时时间
+     webroot:该web服务器上的web根路径 http://host:port/webroot/file
+ -->
+<filelist listname="dllist.xml"/>
+<serverlist> 
+      <server host="127.0.0.1" port="80" min_conn="0" keep_con="5" max_conn="10" exptime="0" timeout="1000" webroot=""/>
+      <server host="127.0.0.1" port="80" min_conn="0" keep_con="5" max_conn="10" exptime="0" timeout="1000" webroot=""/>
+</serverlist>
