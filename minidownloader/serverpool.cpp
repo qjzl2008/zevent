@@ -153,6 +153,8 @@ int serverpool::acquire_conn(conn_info_t *conn)
 		for(idx = 0; idx < m_nServerNum; ++idx)
 		{
 			res = conn_pool_acquire(&connpool[idx]);
+			if(res)
+				break;
 		}
 	}
 	if(!res)
