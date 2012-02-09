@@ -18,7 +18,6 @@ dlmanager * dlmanager::pInstance = NULL;
 dlmanager::dlmanager()
 {
 	m_phThreads = NULL;
-	req_queue = NULL;
 	m_nThreadCount = 0;
 	shutdown = 0;
 	filenums = 0;
@@ -31,21 +30,11 @@ dlmanager::dlmanager()
 	pInstance = this;
 	InitializeCriticalSectionAndSpinCount(&m_bwMutex,512);
 	memset(m_IniFileName,0,sizeof(m_IniFileName));
-	memset(m_szWebRoot,0,sizeof(m_szWebRoot));
 }
 
-int dlmanager::init_conn_pool()
+int dlmanager::init_conn_pool(const char *svrlist)
 {
-	char szServerIP[64] = {0};
-	GetPrivateProfileString("network","server","",szServerIP,sizeof(szServerIP),m_IniFileName);
-	strcpy_s(cfg.host,sizeof(cfg.host),szServerIP);
-	cfg.port = GetPrivateProfileInt("network","port",80,m_IniFileName);
-	cfg.nmin = GetPrivateProfileInt("network","min_conn",2,m_IniFileName);
-	cfg.nmax = GetPrivateProfileInt("network","max_conn",10,m_IniFileName);
-	cfg.nkeep = GetPrivateProfileInt("network","keep_conn",5,m_IniFileName);
-    cfg.exptime = GetPrivateProfileInt("network","exptime",0,m_IniFileName);
-	cfg.timeout = GetPrivateProfileInt("network","timeout",1000,m_IniFileName);
-	int rv = conn_pool_init(&cfg);
+	int rv = m_serverpool.init_server_pool(svrlist);
 	if(rv != 0)
 		return -1;
 	return 0;
@@ -59,11 +48,12 @@ int dlmanager::init(void)
 	GetFullPathName(lpModuleFileName,MAX_PATH,lpModuleFileName,&file);
 	*file = 0;
 	strcpy_s(m_IniFileName,sizeof(m_IniFileName),lpModuleFileName);
-	strcat_s(m_IniFileName,sizeof(m_IniFileName),"dl_cfg.ini");
+	strcat_s(m_IniFileName,sizeof(m_IniFileName),"minicfg.ini");
 
-	char szList[MAX_PATH]={0};
-	GetPrivateProfileString("misc","web_root","",m_szWebRoot,sizeof(m_szWebRoot),m_IniFileName);
-	GetPrivateProfileString("misc","dllist","",szList,sizeof(szList),m_IniFileName);
+	char szList[MAX_PATH]={0},szServerList[MAX_PATH]={0};
+	GetPrivateProfileString("misc","serverlist","",szServerList,sizeof(szServerList),m_IniFileName);
+	GetPrivateProfileString("misc","minilist","",szList,sizeof(szList),m_IniFileName);
+	m_nThreadCount = GetPrivateProfileInt("misc","threads",3,m_IniFileName);
 
 	int rv = filelist.init(szList);
 	if(rv != 0)
@@ -71,15 +61,12 @@ int dlmanager::init(void)
 	rv = init_timer_socket();
 	if(rv < 0)
 		return -1;
-	rv = init_conn_pool();
+	rv = init_conn_pool(szServerList);
 	if(rv < 0)
 		return -1;
 
 	filenums = filelist.get_file_nums();
 
-	queue_create(&req_queue,1000);
-
-	m_nThreadCount = cfg.nkeep;
 	m_phThreads = new HANDLE[m_nThreadCount];
 	for(int i = 0; i< m_nThreadCount; ++i)
 	{
@@ -399,15 +386,22 @@ int dlmanager::dlonefile(dlitem *item)
 	HTTP_GetMessage * gm;
 	char *data;
 
-	if(strcmp(m_szWebRoot,""))
+	conn_info_t conn_info;
+	int rv = serverpool::Instance()->acquire_conn(&conn_info);
+	if(rv != 0)
+	{
+		return -1;
+	}
+
+	if(strcmp(conn_info.webroot,""))
 	{
 		sprintf_s(url,sizeof(url),"http://%s:%d/%s/%s",
-			cfg.host,cfg.port,m_szWebRoot,item->resource);
+			conn_info.host,conn_info.port,conn_info.webroot,item->resource);
 	}
 	else
 	{
 			sprintf_s(url,sizeof(url),"http://%s:%d/%s",
-				cfg.host,cfg.port,item->resource);
+				conn_info.host,conn_info.port,item->resource);
 	}
 	if((ret = Parse_Url(url, host, resource, &port)) != OK) {
 		return -1;
@@ -419,18 +413,13 @@ int dlmanager::dlonefile(dlitem *item)
 		return -1;
 	}
 	OsSocket s;
-	void *res = conn_pool_acquire(&cfg);
-	if(!res)
-	{
-		return -1;
-	}
-	s.sock= *(SOCKET *)res;
+	s.sock= *(SOCKET *)conn_info.conn;
 	if((ret = http_request_get(item,&s,gm, &data)) != 0) {
-		conn_pool_remove(&cfg,res);
+		serverpool::Instance()->remove_conn(&conn_info);
 	}
 	else
 	{
-		conn_pool_release(&cfg,res);
+		serverpool::Instance()->release_conn(&conn_info);
 		process_file(item,data);
 		free(data);
 		//filelist.set_dlitem_finish(item);
@@ -573,9 +562,7 @@ int dlmanager::fini(void)
 	closesocket(m_TimerSocket);
 	WaitForSingleObject(m_hTickThread,INFINITE);
 	CloseHandle(m_hTickThread);
-	if(req_queue)
-		queue_destroy(req_queue);
-	conn_pool_fini(&cfg);
+	serverpool::Instance()->fini_server_pool();
 	filelist.fini();
 	return 0;
 }

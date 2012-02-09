@@ -207,6 +207,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\serverpool.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -262,10 +266,6 @@
 				Name="common"
 				>
 				<File
-					RelativePath=".\common\misc\queue.c"
-					>
-				</File>
-				<File
 					RelativePath=".\common\locks\win\thread_cond.c"
 					>
 				</File>
@@ -313,6 +313,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\serverpool.h"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.h"
 				>
 			</File>
@@ -355,10 +359,6 @@
 			<Filter
 				Name="common"
 				>
-				<File
-					RelativePath=".\common\include\queue.h"
-					>
-				</File>
 				<File
 					RelativePath=".\common\include\thread_cond.h"
 					>

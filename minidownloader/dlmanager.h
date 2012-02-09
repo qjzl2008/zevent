@@ -4,8 +4,8 @@
 #include "queue.h"
 #include <list>
 #include "dlitem.h"
-#include "conn_pool.h"
 #include "dllist.h"
+#include "serverpool.h"
 extern "C"{
 #include "http/http.h"
 }
@@ -64,7 +64,7 @@ private:
 
 	int http_uri_encode(const char  *utf8_uri,char *enc_uri);
 
-	int init_conn_pool(void);
+	int init_conn_pool(const char *svrlist);
 
 	int process_file(dlitem *item,char *data);
 
@@ -73,14 +73,12 @@ private:
 		char *data,unsigned len);
 
 private:
+	serverpool m_serverpool;
 	char m_IniFileName[MAX_PATH];
-	char m_szWebRoot[MAX_PATH];
-	conn_svr_cfg cfg;
 
 	int m_nThreadCount;
 	HANDLE *m_phThreads;
 	DWORD *m_pdwThreaIDs;
-	queue_t *req_queue;
 
 	dllist filelist;
 
