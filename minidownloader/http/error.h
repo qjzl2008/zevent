@@ -1,7 +1,6 @@
 #ifndef _ZNet_ERROR_H_
 #define _ZNet_ERROR_H_
 
-/* error/status codes defined here */
 
 /* no error */
 #define OK 0
@@ -34,7 +33,6 @@
 #define HTTP_HEADER_NOT_OK          -895
 #define HTTP_INVALID_URL            -894
 
-/* call this to print an error to stderr. */
 void ZNet_Print_Internal_Error(int error);
 
 
