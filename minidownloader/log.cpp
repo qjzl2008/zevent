@@ -50,7 +50,7 @@ void simple_log::log_common(const char *fmt, va_list ap)
 		LeaveCriticalSection(&m_csLog);
 		return;
 	}
-	strftime(log,sizeof(log), "[%b %d %H:%M:%S]",&newtime);
+	strftime(log,sizeof(log), "[%Y %b %d %H:%M:%S]",&newtime);
 	off = strlen(log);
 	vsprintf_s(log+off,sizeof(log) - off,fmt,ap);
 	strcpy(log + strlen(log),"\r\n");

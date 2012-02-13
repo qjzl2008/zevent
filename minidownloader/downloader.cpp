@@ -26,14 +26,18 @@ int downloader::start(void)
 	int rv = init_log("minilog.txt");
 	rv = ns->start();
 	if(rv != 0)
+	{
+		log("start ipc server failed!");
 		return -1;
+	}
     rv = dl_manager->init();
 	if(rv != 0)
 	{
+		log("start down load manager failed!");
 		rv = ns->stop();
 		return -1;
 	}
-	log("testlog:%s","ÖÐÎÄ");
+	log("start loader ok!");
 	return 0;
 }
 
@@ -47,6 +51,7 @@ int downloader ::stop(void)
 {
 	ns->stop();
 	dl_manager->fini();
+	log("stop loader ok!");
 	return 0;
 }
 

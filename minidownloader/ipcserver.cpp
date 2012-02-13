@@ -18,6 +18,20 @@ ipc_server::ipc_server()
 	pInstance = this;
 }
 
+int ipc_server::record_ipc_port(int port)
+{
+	HANDLE m_hFile = CreateFile("ipc",GENERIC_WRITE,
+		FILE_SHARE_READ | FILE_SHARE_WRITE,
+		NULL,CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);
+
+	if(INVALID_HANDLE_VALUE == m_hFile)
+		return -1;
+	DWORD written = 0;
+	WriteFile(m_hFile,&port,sizeof(port),&written,NULL);
+	CloseHandle(m_hFile);
+	return 0;
+}
+
 DWORD ipc_server::thread_entry(LPVOID pParam) 
 {
 	ipc_server *server = (ipc_server *)pParam;
@@ -53,6 +67,7 @@ int ipc_server::start(void)
 	int rv = ns_start_daemon(&ns,&ns_arg);
 	if(rv < 0)
 		return -1;
+	rv = record_ipc_port(ns_arg.port);
 
     unsigned int dwThreadID = 0;
 	m_hRecvThread = (HANDLE)_beginthreadex(NULL,

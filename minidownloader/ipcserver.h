@@ -22,6 +22,7 @@ public:
 
 private:
 	static DWORD thread_entry(LPVOID pParam); 
+	int record_ipc_port(int port);
 
 private:
 	ns_arg_t ns_arg;

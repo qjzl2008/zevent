@@ -12,6 +12,7 @@ extern "C"{
 #include "protocol.h"
 #include "ipcserver.h"
 #include <process.h>
+#include "log.h"
 
 dlmanager * dlmanager::pInstance = NULL;
 
@@ -57,13 +58,21 @@ int dlmanager::init(void)
 
 	int rv = filelist.init(szList);
 	if(rv != 0)
+	{
+		log("load download file list:%s failed!",szList);
 		return -1;
+	}
+	log("load download file list:%s ok!",szList);
 	rv = init_timer_socket();
 	if(rv < 0)
 		return -1;
 	rv = init_conn_pool(szServerList);
 	if(rv < 0)
+	{
+		log("init server pool:%s failed!",szServerList);
 		return -1;
+	}
+	log("init server pool:%s ok!",szServerList);
 
 	filenums = filelist.get_file_nums();
 
@@ -76,20 +85,24 @@ int dlmanager::init(void)
 
 	for(int i = 0;i < m_nThreadCount; i++)
 	{
-		DWORD dwThreadID = 0;
 		m_phThreads[i] = (HANDLE)_beginthreadex(NULL,
 			0,
 			(unsigned int (__stdcall *)(void *))dlmanager::dlthread_entry,
 			this,
 			0,
 			(unsigned int *)&m_pdwThreaIDs[i]);
+
+		log("start loader work thread idx:%d,ID:%d.",i,m_pdwThreaIDs[i]);
 	}
+	DWORD dwThreadID = 0;
 	m_hTickThread = (HANDLE)_beginthreadex(NULL,
 		0,
 		(unsigned int (__stdcall *)(void *))dlmanager::tick_thread_entry,
 		this,
 		0,
-		NULL);
+		(unsigned int *)&dwThreadID);
+
+	log("start timer thread ID:%d.",dwThreadID);
 	return 0;
 }
 
@@ -100,6 +113,7 @@ int dlmanager::rate(DWORD down)
 	{
 		net_bw_limit_in = down;
 		m_bw_bytes_in = down;
+		log("limit down rate:%uB/s.",down);
 	}
 	LeaveCriticalSection(&m_bwMutex);
 	return 0;
@@ -134,13 +148,6 @@ int dlmanager::http_uri_encode(const char  *utf8_uri,char *enc_uri)
 
 int dlmanager::process_file(dlitem *item,char *data)
 {
-	//验证MD5
-	char md5[64]={0};
-	gen_md5(md5,sizeof(md5),data,item->size);
-	if(strcmp(item->md5,md5))
-	{
-		return -1;
-	}
 	wchar_t w_path[MAX_PATH] = {0};
 	size_t inbytes = strlen(item->path);
 	size_t outbytes = sizeof(w_path);
@@ -149,7 +156,17 @@ int dlmanager::process_file(dlitem *item,char *data)
 	char *c_path;
 	c_path = new char[dwNum];
 	rv = WideCharToMultiByte (CP_OEMCP,NULL,w_path,-1,c_path,dwNum,NULL,FALSE);
-	
+
+	//验证MD5
+	char md5[64]={0};
+	gen_md5(md5,sizeof(md5),data,item->size);
+	if(strcmp(item->md5,md5))
+	{
+		log("check md5 for file:%s failed!",c_path);
+		delete[]c_path;
+		return -1;
+	}
+
 	if(item->method == STANDALONE)
 	{
 		HANDLE hFile;
@@ -158,6 +175,7 @@ int dlmanager::process_file(dlitem *item,char *data)
 		if(hFile == INVALID_HANDLE_VALUE)
 		{
 			delete []c_path;
+			log("create file:%s failed!",c_path);
 			return -1;
 		}
 		DWORD written = 0;
@@ -167,6 +185,7 @@ int dlmanager::process_file(dlitem *item,char *data)
 			delete []c_path;
 			CloseHandle(hFile);
 			DeleteFile(c_path);
+			log("write file:%s failed!",c_path);
 			return -1;
 		}
 		CloseHandle(hFile);
@@ -208,23 +227,27 @@ int dlmanager::http_request_get(dlitem *item,OsSocket *s,HTTP_GetMessage * gm,
 	/* send an HTTP request */
 	if((ret = Send_Http_Request(s, http_get_request)) != OK) {
 		free(http_get_request);
+		log("send http request:%s failed!",http_get_request);
 		return -1;
 	}
 	free(http_get_request);
 
 	if((ret = Get_Http_Header(s, &http_header)) != OK) {
+		log("get http header for request:%s failed!",http_get_request);
 		return -1;
 	}
 
 	/* get http data size from the header */
 	if((ret = Get_Http_Content_Length(http_header, &content_length)) != OK) {
 		free(http_header);
+		log("get http content length for request:%s failed!",http_get_request);
 		return -1;
 	}
 	free(http_header);
 
 	if(content_length != item->size)
 	{
+		log("content length:%u <> filesize:%u! for request:%s!",http_get_request);
 		return -1;
 	}
 
@@ -274,6 +297,7 @@ int dlmanager::http_request_get(dlitem *item,OsSocket *s,HTTP_GetMessage * gm,
 		if((ret = ZNet_Os_Socket_Recv(s, http_content + received, want_read, 
 			&recv, HTTP_RECEIVE_TIMEOUT)) != OK) {
 				free(http_content);
+				log("ZNet_Os_Socket_Recv failed,wsacode:%d!\n",WSAGetLastError());
 				return -1;
 		}
 		InterlockedExchangeAdd((LONG volatile *)&m_bytes_in,recv);
@@ -390,6 +414,7 @@ int dlmanager::dlonefile(dlitem *item)
 	int rv = serverpool::Instance()->acquire_conn(&conn_info);
 	if(rv != 0)
 	{
+		log("loader acquire connection failed!");
 		return -1;
 	}
 
@@ -404,6 +429,7 @@ int dlmanager::dlonefile(dlitem *item)
 				conn_info.host,conn_info.port,item->resource);
 	}
 	if((ret = Parse_Url(url, host, resource, &port)) != OK) {
+		log("loader parse url:%s failed!",url);
 		return -1;
 	}
 
@@ -416,12 +442,17 @@ int dlmanager::dlonefile(dlitem *item)
 	s.sock= *(SOCKET *)conn_info.conn;
 	if((ret = http_request_get(item,&s,gm, &data)) != 0) {
 		serverpool::Instance()->remove_conn(&conn_info);
+		log("loader http request file:%s failed!",url);
 	}
 	else
 	{
 		serverpool::Instance()->release_conn(&conn_info);
-		process_file(item,data);
+		ret = process_file(item,data);
 		free(data);
+		if(ret != 0)
+		{
+			log("process file url:%s failed!",url);
+		}
 		//filelist.set_dlitem_finish(item);
 	}
 	(void)ZNet_Destroy_Http_Get(&gm);
