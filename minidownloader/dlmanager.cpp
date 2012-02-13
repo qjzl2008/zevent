@@ -416,7 +416,7 @@ int dlmanager::dlonefile(dlitem *item)
 	int rv = serverpool::Instance()->acquire_conn(&conn_info);
 	if(rv != 0)
 	{
-		log("loader acquire connection failed!");
+		//log("loader acquire connection failed!");
 		return -1;
 	}
 
