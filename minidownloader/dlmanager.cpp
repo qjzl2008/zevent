@@ -226,8 +226,8 @@ int dlmanager::http_request_get(dlitem *item,OsSocket *s,HTTP_GetMessage * gm,
 	}
 	/* send an HTTP request */
 	if((ret = Send_Http_Request(s, http_get_request)) != OK) {
-		free(http_get_request);
 		log("send http request:%s failed!",http_get_request);
+		free(http_get_request);
 		return -1;
 	}
 
