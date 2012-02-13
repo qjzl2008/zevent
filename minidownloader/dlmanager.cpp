@@ -299,7 +299,7 @@ int dlmanager::http_request_get(dlitem *item,OsSocket *s,HTTP_GetMessage * gm,
 		if((ret = ZNet_Os_Socket_Recv(s, http_content + received, want_read, 
 			&recv, HTTP_RECEIVE_TIMEOUT)) != OK) {
 				free(http_content);
-				log("ZNet_Os_Socket_Recv failed,wsacode:%d!\n",WSAGetLastError());
+				log("ZNet_Os_Socket_Recv failed,wsacode:%d!",WSAGetLastError());
 				return -1;
 		}
 		InterlockedExchangeAdd((LONG volatile *)&m_bytes_in,recv);
