@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\common\include;.\;..\common\include\arch\win"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;ZNET_EXPORTS;HAS_THREADS;_CRT_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;ZNET_EXPORTS;HAS_THREADS;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0501"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -118,7 +118,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="..\common\include;.\;..\common\include\arch\win"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;ZNET_EXPORTS;HAS_THREADS;_CRT_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;ZNET_EXPORTS;HAS_THREADS;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0501"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
