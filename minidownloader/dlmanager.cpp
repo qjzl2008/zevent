@@ -230,10 +230,10 @@ int dlmanager::http_request_get(dlitem *item,OsSocket *s,HTTP_GetMessage * gm,
 		log("send http request:%s failed!",http_get_request);
 		return -1;
 	}
-	free(http_get_request);
 
 	if((ret = Get_Http_Header(s, &http_header)) != OK) {
 		log("get http header for request:%s failed!",http_get_request);
+		free(http_get_request);
 		return -1;
 	}
 
@@ -241,6 +241,7 @@ int dlmanager::http_request_get(dlitem *item,OsSocket *s,HTTP_GetMessage * gm,
 	if((ret = Get_Http_Content_Length(http_header, &content_length)) != OK) {
 		free(http_header);
 		log("get http content length for request:%s failed!",http_get_request);
+		free(http_get_request);
 		return -1;
 	}
 	free(http_header);
@@ -248,9 +249,10 @@ int dlmanager::http_request_get(dlitem *item,OsSocket *s,HTTP_GetMessage * gm,
 	if(content_length != item->size)
 	{
 		log("content length:%u <> filesize:%u! for request:%s!",http_get_request);
+		free(http_get_request);
 		return -1;
 	}
-
+	free(http_get_request);
 	//Get http content
 	char *http_content = (char *)malloc(content_length + NULL_TERM_LEN);
 	if(NULL == *http_content) {

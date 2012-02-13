@@ -182,6 +182,6 @@ int serverpool::release_conn(conn_info_t *conn)
 int serverpool::remove_conn(conn_info_t *conn)
 {	
 	assert(conn->idx < m_nServerNum);
-	conn_pool_remove(&connpool[conn->idx],conn);
+	conn_pool_remove(&connpool[conn->idx],conn->conn);
 	return 0;
 }
