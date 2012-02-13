@@ -14,7 +14,7 @@ ipc_server::ipc_server()
 	ns_arg.func = NULL;
     strcpy_s(ns_arg.ip,sizeof(ns_arg.ip),"127.0.0.1");
 	ns_arg.max_peers = 1000;
-	ns_arg.port = 7799;
+	ns_arg.port = 0;
 	pInstance = this;
 }
 
