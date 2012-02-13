@@ -587,6 +587,8 @@ error:
 void
 http_cancel(struct http_req *req)
 {
+	if(!req)
+		return;
     if (req->parsing)
         req->cancel = 1;
     else
