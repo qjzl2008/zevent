@@ -209,7 +209,7 @@ int peer_kill(struct peer *p)
 	struct msg_t *msg,*next;
     if(!p)
 	    return 0;
-	if(InterlockedCompareExchange((volatile LONG *)(&p->status),PEER_CONNECTED,PEER_DISCONNECTED))
+	if(InterlockedCompareExchange((volatile LONG *)(&p->status),PEER_DISCONNECTED,PEER_CONNECTED))
 	{
 		printf("ref:%d,close peer id:%llu,peer:%p,ns:%p\n",p->refcount,p->id,p,p->ns);
 		closesocket(p->sd);
@@ -225,7 +225,7 @@ int peer_kill(struct peer *p)
 		queue_push(p->ns->recv_queue,msg);
 	}
 
-	if(!InterlockedCompareExchange(&p->refcount,0,1))
+	if(!InterlockedCompareExchange(&p->refcount,1,0))
 	{
 		printf("free peer id:%llu\n",p->id);
 		iobuf_free(p->allocator,&p->recvbuf);
