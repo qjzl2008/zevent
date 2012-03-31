@@ -75,13 +75,21 @@ static int peer_read_cb(struct cpeer *p)
 	}
 
 	uint32_t off = 0;
-	if(p->nc->func && p->recvbuf.off > 0)
+	if(p->nc->data_func && p->recvbuf.off > 0)
 	{
-		while((rv = p->nc->func(p->recvbuf.buf,p->recvbuf.off,&off)) == 0)
+		while((rv = p->nc->data_func(p->recvbuf.buf,p->recvbuf.off,&off)) == 0)
 		{
 			if(off > p->recvbuf.off)
 			{
 				return -1;
+			}
+			
+			//回调方式
+			if(p->nc->msg_func)
+			{
+			    p->nc->msg_func(p->nc,p->id,p->recvbuf.buf,off);
+			    iobuf_consumed(&p->recvbuf,off);
+			    continue;
 			}
 
 			struct msg_t *msg = (struct msg_t *)mmalloc(p->nc->allocator,

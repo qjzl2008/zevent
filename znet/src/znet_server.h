@@ -31,7 +31,8 @@ struct net_server_t {
     pthread_t td_start;
     pthread_t td_evloop;
 
-    data_process_fp func;
+    data_process_fp data_func;
+    msg_process_fp msg_func;
 
     struct allocator_t *allocator;
     struct thread_mutex_t *mpool_mutex;

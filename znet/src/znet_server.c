@@ -158,10 +158,13 @@ int ns_start_daemon(net_server_t **ns,const ns_arg_t *ns_arg)
 	thread_mutex_create(&((*ns)->ptbl_mutex),0);
 	
 	(*ns)->max_peers = ns_arg->max_peers;
-	if(ns_arg->func)
-		(*ns)->func = ns_arg->func;
+	if(ns_arg->data_func)
+		(*ns)->data_func = ns_arg->data_func;
 	else
-		(*ns)->func = default_process_func;
+		(*ns)->data_func = default_process_func;
+
+	if(ns_arg->msg_func)
+		(*ns)->msg_func = ns_arg->msg_func;
 
 	int epfd = evloop_init();
 	(*ns)->epfd = epfd;

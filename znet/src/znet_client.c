@@ -175,10 +175,13 @@ int nc_connect(net_client_t **nc,const nc_arg_t *nc_arg)
 
 	thread_mutex_create(&((*nc)->peer_mutex),0);
 	
-	if(nc_arg->func)
-		(*nc)->func = nc_arg->func;
+	if(nc_arg->data_func)
+		(*nc)->data_func = nc_arg->data_func;
 	else
-		(*nc)->func = default_process_func;
+		(*nc)->data_func = default_process_func;
+
+	if(nc_arg->msg_func)
+		(*nc)->msg_func = nc_arg->msg_func;
 
 	int epfd = evloop_init();
 	(*nc)->epfd = epfd;

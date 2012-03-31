@@ -82,16 +82,29 @@ static int daemonize()
     return 0;
 }
 
+static uint32_t count = 0;
+static int msg_process_func(void *net,uint64_t peerid, void *buf,uint32_t len)
+{
+    ++count;
+    if(count % 10000 == 0)
+	printf("count:%u,time:%u\n",count,time(NULL));
+
+    net_server_t *ns = (net_server_t*)net;
+    ns_sendmsg(ns,peerid,buf,len);
+    return 0;
+}
+
 int main()
 {
 //    daemonize();
     int rv;
     net_server_t *ns;
     ns_arg_t sinfo;
-    sinfo.func = NULL;
+    sinfo.data_func = NULL;
     strcpy(sinfo.ip,"127.0.0.1");
     sinfo.port = 8899;
     sinfo.max_peers = 1000;
+    sinfo.msg_func = msg_process_func;
     ns_start_daemon(&ns,&sinfo);
 
     void *msg;uint32_t len;
@@ -128,24 +141,25 @@ int main()
 
     while(!stop_daemon)
     {
-	rv = ns_recvmsg(ns,&msg,&len,&peer_id,1000000);
+//	rv = ns_recvmsg(ns,&msg,&len,&peer_id,1000000);
 //	rv = ns_tryrecvmsg(ns,&msg,&len,&peer_id);
-	if(rv == 0)
-	{
+//	if(rv == 0)
+//	{
 /*	    pthread_mutex_lock(&mutex);
 	    void *page = mpool_new(mp,&pgno);
 	    memcpy(page,msg,len);
 	    mpool_put(mp,page,MPOOL_DIRTY);
 	    pthread_mutex_unlock(&mutex);
 */
-	    memcpy(buf,(char *)msg,len);
-	    ns_sendmsg(ns,peer_id,buf,len);
+//	    memcpy(buf,(char *)msg,len);
+//	    ns_sendmsg(ns,peer_id,buf,len);
 	    //ns_disconnect(ns,peer_id);
-	    ++count;
-	 //   printf("count:%d,%u\n",count,time(NULL));
-	    ns_free(ns,msg);
-	}
+	 //++count;
+	 //printf("count:%d,%u\n",count,time(NULL));
+//	    ns_free(ns,msg);
+//	}
 	//printf("time:%d\n",time(NULL));
+	sleep(1);
     }
     ns_stop_daemon(ns);
     //tell check data thread to exit

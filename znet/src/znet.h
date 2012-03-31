@@ -17,19 +17,22 @@
  *    等待下次回调处理
  */
 typedef int (*data_process_fp)(uint8_t *buf,uint32_t len,uint32_t *off);
+typedef int (*msg_process_fp)(void *net,uint64_t peerid, void *buf,uint32_t len);
 
 typedef struct{
 	char ip[32];
 	uint16_t port;
 	uint32_t max_peers;
-	data_process_fp func;
+	data_process_fp data_func;
+	msg_process_fp msg_func;
 }ns_arg_t;
 
 typedef struct{
 	char ip[32];
 	uint16_t port;
 	int timeout;
-	data_process_fp func;
+	data_process_fp data_func;
+	msg_process_fp msg_func;
 }nc_arg_t;
 
 //////////////////////////////////////////////////////////////////////
@@ -37,7 +40,6 @@ typedef struct{
 /////////////////////////////////////////////////////////////////////
 
 typedef struct net_server_t net_server_t;
-
 int ns_start_daemon(net_server_t **ns,const ns_arg_t *ns_arg);
 int ns_stop_daemon(net_server_t *ns);
 int ns_getpeeraddr(net_server_t *ns,uint64_t peer_id,char *ip);

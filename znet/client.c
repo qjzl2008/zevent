@@ -19,6 +19,18 @@ static void handler(int sig)
     }
 }
 
+static int count = 0;
+static int msg_process_func(void *net,uint64_t peerid, void *buf,uint32_t len)
+{
+    net_client_t *nc = (net_client_t*)net;
+    nc_sendmsg(nc,buf,len);
+    ++count;
+    if(count % 100000 == 0)
+	printf("count:%d,tm:%u\n",count,time(NULL));
+    return 0;
+}
+
+
 int main(void)
 {
     //process signal
@@ -30,7 +42,8 @@ int main(void)
 
     net_client_t *nc;
     nc_arg_t cinfo;
-    cinfo.func = NULL;
+    cinfo.data_func = NULL;
+    cinfo.msg_func = msg_process_func;
     strcpy(cinfo.ip,"127.0.0.1");
     cinfo.port = 8899;
     cinfo.timeout = 10;
@@ -53,19 +66,25 @@ int main(void)
     int count = 0;
 
     rv = nc_sendmsg(nc,buf,len);
-    while(!stop_daemon && count < 100000)
+    while(!stop_daemon /*&& count < 100000*/)
     {
-	rv = nc_recvmsg(nc,&msg,&len,1000000);
-	//rv = nc_tryrecvmsg(nc,&msg,&len);
-	if(rv == 0)
-	{
-	    memcpy(buf,(char *)msg,len);
-//	    nc_sendmsg(nc,buf,len);
-	    //nc_disconnect(nc);
-	    ++count;
-	    printf("count:%d,%u\n",count,time(NULL));
-	    nc_free(nc,msg);
-	}
+	struct timeval outtime;
+	outtime.tv_sec=0;
+	outtime.tv_usec=100000;
+	select(0,NULL,NULL,NULL,&outtime);   
+//	sleep(1);
+//	rv = nc_recvmsg(nc,&msg,&len,1000000);
+//	//rv = nc_tryrecvmsg(nc,&msg,&len);
+//	if(rv == 0)
+//	{
+//	    memcpy(buf,(char *)msg,len);
+	    rv = nc_sendmsg(nc,buf,len);
+	    //printf("rv:%d\n",rv);
+//	    //nc_disconnect(nc);
+//	    ++count;
+//	    //printf("count:%d,time:%u,data:%s\n",count,time(NULL),(char*)msg+4);
+//	    nc_free(nc,msg);
+//	}
     }
     nc_disconnect(nc);
     return 0;

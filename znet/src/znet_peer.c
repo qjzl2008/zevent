@@ -103,13 +103,22 @@ static int peer_read_cb(struct peer *p)
 	}
 
 	uint32_t off = 0;
-	if(p->ns->func && p->recvbuf.off > 0)
+	if(p->ns->data_func && p->recvbuf.off > 0)
 	{
-		while((rv = p->ns->func(p->recvbuf.buf,p->recvbuf.off,&off)) == 0)
+		while((rv = p->ns->data_func(p->recvbuf.buf,p->recvbuf.off,&off)) == 0)
 		{
 			if(off > p->recvbuf.off)
 			{
 				return -1;
+			}
+
+			//回调方式
+			if(p->ns->msg_func)
+			{
+			    p->ns->msg_func(p->ns,p->id,p->recvbuf.buf,off);
+
+			    iobuf_consumed(&p->recvbuf,off);
+			    continue;
 			}
 
 			struct msg_t *msg = (struct msg_t *)mmalloc(p->ns->allocator,
@@ -214,7 +223,6 @@ int peer_kill(struct peer *p)
 	    return 0;
 	if(__sync_bool_compare_and_swap(&p->status,PEER_CONNECTED,PEER_DISCONNECTED))
 	{
-		printf("ref:%d,close peer id:%llu,peer:%p,ns:%p\n",p->refcount,p->id,p,p->ns);
 		close(p->sd);
 		fdev_del(&p->ioev);
 		//push one msg to notify disconnect
