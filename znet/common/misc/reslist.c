@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <assert.h>
 #ifdef WIN32
 #include <Windows.h>
@@ -118,7 +119,7 @@ static res_t *get_container(reslist_t *reslist)
     }
     else
 	    //fix me may be use allocator
-        res = malloc(sizeof(*res));
+        res = (res_t *)malloc(sizeof(*res));
 	
     return res;
 }
@@ -161,7 +162,7 @@ static int destroy_resource(reslist_t *reslist, res_t *res)
 static int reslist_cleanup(void *data_)
 {
     int rv = 0;
-    reslist_t *rl = data_;
+    reslist_t *rl = (reslist_t *)data_;
     res_t *res;
     
     if(!rl)
@@ -212,7 +213,9 @@ static int reslist_maint(reslist_t *reslist)
         /* Create the resource */
         rv = create_resource(reslist, &res);
         if (rv != 0) {
-            free_container(reslist, res);
+            //FIX:memory leak we reconnect by zhou
+            //free_container(reslist, res);
+            free(res);
             thread_mutex_unlock(reslist->listlock);
             return rv;
         }
@@ -279,7 +282,8 @@ int reslist_create(reslist_t **reslist,
         return -1;
     }
 
-    rl = malloc(sizeof(*rl));
+    rl = (reslist_t *)malloc(sizeof(*rl));
+
 	memset(rl,0,sizeof(*rl));
     rl->min = min;
     rl->smax = smax;
@@ -293,6 +297,7 @@ int reslist_create(reslist_t **reslist,
     RING_INIT(&rl->free_list, res_t, link);
 
     rv = thread_mutex_create(&rl->listlock, THREAD_MUTEX_DEFAULT);
+
     if (rv != 0) {
         return rv;
     }
