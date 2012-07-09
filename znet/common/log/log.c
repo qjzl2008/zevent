@@ -49,6 +49,7 @@ char *cpystrn(char *dst, const char *src, size_t dst_size)
  *                   pool and filled in with copies of the tokens
  *                   found during parsing of the arg_str. 
  */
+
 static int tokenize_to_argv(const char *arg_str, 
 	char ***argv_out)
 {
@@ -130,7 +131,7 @@ static int tokenize_to_argv(const char *arg_str,
 	numargs++;
 	SKIP_WHITESPACE(ct);
     }
-    *argv_out = calloc(sizeof(char*),numargs);
+    *argv_out = (char **)calloc(sizeof(char*),numargs);
 
     /*  determine first argument */
     for (argnum = 0; argnum < (numargs-1); argnum++) {
@@ -139,7 +140,7 @@ static int tokenize_to_argv(const char *arg_str,
 	ct = cp;
 	DETERMINE_NEXTSTRING(cp, isquoted);
 	cp++;
-	(*argv_out)[argnum] = malloc(cp - ct);
+	(*argv_out)[argnum] = (char *)malloc(cp - ct);
 	cpystrn((*argv_out)[argnum], ct, cp - ct);
 	cleaned = dirty = (*argv_out)[argnum];
 	REMOVE_ESCAPE_CHARS(cleaned, dirty, escaped);
@@ -204,7 +205,7 @@ static int log_child(const char *progname,
 	    default:
 		{
 		    char *ch, *onearg;
-		    ch = onearg = malloc(onearg_len);
+		    ch = onearg = (char *)malloc(onearg_len);
 		    i = 0;
 		    while (args[i]) {
 			size_t len = strlen(args[i]);
@@ -230,7 +231,7 @@ static int log_child(const char *progname,
     return 0;
 }
 
-int open_log(log_t **log,const char *filename)
+int log_open(log_t **log,const char *filename)
 {
     int rc;
     *log = NULL;
