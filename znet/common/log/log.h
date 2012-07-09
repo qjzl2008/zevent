@@ -10,7 +10,7 @@ extern "C" {
 
 typedef struct log_t log_t;
 
-int open_log(log_t **log,const char *filename);
+int log_open(log_t **log,const char *filename);
 
 void log_error(log_t *log,const char *file, 
 		             int line,
