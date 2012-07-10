@@ -44,6 +44,7 @@ int ns_start_daemon(net_server_t **ns,const ns_arg_t *ns_arg);
 int ns_stop_daemon(net_server_t *ns);
 int ns_getpeeraddr(net_server_t *ns,uint64_t peer_id,char *ip);
 int ns_sendmsg(net_server_t *ns,uint64_t peer_id,void *msg,uint32_t len);
+int ns_broadcastmsg(net_server_t *ns,void *msg,uint32_t len);
 /*
  * @param timeout milliseconds
  * rv: 0 recv one data message

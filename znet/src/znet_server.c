@@ -239,6 +239,53 @@ int ns_getpeeraddr(net_server_t *ns,uint64_t peer_id,char *ip)
     strcpy(ip,peer_ip);
     return 0;
 }
+
+int ns_broadcastmsg(net_server_t *ns,void *msg,uint32_t len)
+{
+	int rv;
+	struct htbl_iter it;
+	struct peer *p = NULL;
+	struct msg_t *message = NULL;
+	thread_mutex_lock(ns->ptbl_mutex);
+
+	for (p = ptbl_iter_first(ns->ptbl,&it); p != NULL; p = ptbl_iter_next(&it))
+	{
+		if(!p || p->status == PEER_DISCONNECTED)
+		{
+			continue;
+		}
+		/*InterlockedIncrement(&p->refcount);*/
+        __sync_fetch_and_add(&p->refcount,1);
+
+		message = (struct msg_t *)mmalloc(p->allocator,
+			sizeof(struct msg_t));
+		message->buf = (uint8_t *)mmalloc(p->allocator,len);
+		memcpy(message->buf,(char *)msg,len);
+		message->len = len;
+		message->peer_id = p->id;
+
+		thread_mutex_lock(p->sq_mutex);
+		BTPDQ_INSERT_TAIL(&p->send_queue, message, msg_entry);  
+		thread_mutex_unlock(p->sq_mutex);
+
+		rv = fdev_enable(&p->ioev,EV_WRITE);
+		if(rv<0)
+		{
+		    __sync_fetch_and_sub(&p->refcount,1);
+			/*InterlockedDecrement(&p->refcount);*/
+			thread_mutex_unlock(ns->ptbl_mutex);
+			peer_kill(p);
+			thread_mutex_lock(ns->ptbl_mutex);
+			continue;
+		}
+		/*InterlockedDecrement(&p->refcount);*/
+		__sync_fetch_and_sub(&p->refcount,1);
+		continue;
+	}
+	thread_mutex_unlock(ns->ptbl_mutex);
+	return 0;
+}
+
 int ns_sendmsg(net_server_t *ns,uint64_t peer_id,void *msg,uint32_t len)
 {
 	int rv;
@@ -254,7 +301,7 @@ int ns_sendmsg(net_server_t *ns,uint64_t peer_id,void *msg,uint32_t len)
 		return -1;
 	}
 
-        __sync_fetch_and_add(&p->refcount,1);
+    __sync_fetch_and_add(&p->refcount,1);
 	thread_mutex_unlock(ns->ptbl_mutex);
 
 	message = (struct msg_t *)mmalloc(p->allocator,
@@ -297,18 +344,18 @@ int ns_recvmsg(net_server_t *ns,void **msg,uint32_t *len,uint64_t *peer_id,
 	if(!message)
 	    return -1;
 	else
-	{
-	    *msg = message->buf;
-	    *len = message->len;
-	    *peer_id = message->peer_id;
-	    mfree(ns->allocator,message);
-	    if(message->type == MSG_DISCONNECT)
-	    {
-		return 1;
-	    }
-	    else
-		return 0;
-	}
+    {
+        *msg = message->buf;
+        *len = message->len;
+        *peer_id = message->peer_id;
+        mfree(ns->allocator,message);
+        if(message->type == MSG_DISCONNECT)
+        {
+            return 1;
+        }
+        else
+            return 0;
+    }
 }
 
 int ns_tryrecvmsg(net_server_t *ns,void **msg,uint32_t *len,uint64_t *peer_id)
@@ -321,18 +368,18 @@ int ns_tryrecvmsg(net_server_t *ns,void **msg,uint32_t *len,uint64_t *peer_id)
 	if(!message)
 	    return -1;
 	else
-	{
-	    *msg = message->buf;
-	    *len = message->len;
-	    *peer_id = message->peer_id;
-	    mfree(ns->allocator,message);
-	    if(message->type == MSG_DISCONNECT)
-	    {
-		return 1;
-	    }
-	    else
-		return 0;
-	}
+    {
+        *msg = message->buf;
+        *len = message->len;
+        *peer_id = message->peer_id;
+        mfree(ns->allocator,message);
+        if(message->type == MSG_DISCONNECT)
+        {
+            return 1;
+        }
+        else
+            return 0;
+    }
 }
 
 

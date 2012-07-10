@@ -238,7 +238,7 @@ int peer_kill(struct peer *p)
 
 	if(__sync_bool_compare_and_swap(&p->refcount,0,1))
 	{
-		printf("free peer id:%llu\n",p->id);
+		printf("free peer id:%lu\n",p->id);
 		iobuf_free(p->allocator,&p->recvbuf);
 		iobuf_free(p->allocator,&p->sendbuf);
 		//free send queue
