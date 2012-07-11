@@ -6,15 +6,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <stdarg.h>
 #include <time.h>
 #include <errno.h>
 #include "log.h"
 
 struct log_t{
-    int logfile;//fd
+    int  level;  /* log level */
+    int  logfile;     /* log file descriptor */
+    int  nerror; /* # log error */
+
 };
-//static int logfile;
 
 char *cpystrn(char *dst, const char *src, size_t dst_size)
 {
@@ -235,24 +238,25 @@ int log_open(log_t **log,const char *filename)
 {
     int rc;
     *log = NULL;
-    (*log) = (log_t *)malloc(sizeof(log_t));
+    (*log) = (log_t *)calloc(1,sizeof(log_t));
+    log_level_set(*log,LOG_ERR);
     if(!filename){
-	return -1;
+        return -1;
     }
 
     if (*filename == '|') {
-	rc = log_child(filename + 1, &((*log)->logfile));
-	log_error(*log,LOG_MARK,
-		"Start ErrorLog process!");
-	if(rc != 0)
-	    return -1;
+        rc = log_child(filename + 1, &((*log)->logfile));
+        log_error(*log,
+                "Start ErrorLog process!");
+        if(rc != 0)
+            return -1;
     }
     else{
-	(*log)->logfile = open(filename,O_CREAT|O_RDWR|O_APPEND|O_LARGEFILE,0644);
-	if((*log)->logfile != -1)
-	{
-	    return 0;
-	}
+        (*log)->logfile = open(filename,O_CREAT|O_RDWR|O_APPEND|O_LARGEFILE,0644);
+        if((*log)->logfile != -1)
+        {
+            return 0;
+        }
     }
 
     return 0;
@@ -423,7 +427,7 @@ static void log_error_core(int logfile,const char *file, int line,
     }
 }
 
-void log_error(log_t *log,const char *file, 
+void _log(log_t *log,const char *file, 
 		             int line,
                              const char *fmt, ...)
 {
@@ -443,17 +447,142 @@ void log_close(log_t *log)
     }
 }
 
+void
+log_level_up(log_t *log)
+{
+    struct log_t *l = log;
+
+    if (l->level < LOG_PVERB) {
+        l->level++;
+        loga(l,"up log level to %d", l->level);
+    }
+}
+
+void
+log_level_down(log_t *log)
+{
+    struct log_t *l = log;
+
+    if (l->level > LOG_EMERG) {
+        l->level--;
+        loga(l,"down log level to %d", l->level);
+    }
+}
+
+void
+log_level_set(log_t *log,int level)
+{
+    struct log_t *l = log;
+
+    l->level = MAX(LOG_EMERG, MIN(level, LOG_PVERB));
+    loga(l,"set log level to %d", l->level);
+}
+
+int
+log_loggable(log_t *log,int level)
+{
+    struct log_t *l = log;
+
+    if (level > l->level) {
+        return 0;
+    }
+
+    return 1;
+}
+
+void
+_log_stderr(const char *fmt, ...)
+{
+    int len, size;
+    char buf[MAX_LOG_LEN];
+    va_list args;
+    ssize_t n;
+
+    len = 0;                /* length of output buffer */
+    size = MAX_LOG_LEN; /* size of output buffer */
+
+    va_start(args, fmt);
+    len += vsnprintf(buf, size, fmt, args);
+    va_end(args);
+
+    buf[len++] = '\n';
+
+    n = write(STDERR_FILENO, buf, len);
+}
+
+/*
+ * Hexadecimal dump in the canonical hex + ascii display
+ * See -C option in man hexdump
+ */
+void
+_log_hexdump(log_t *log,char *data, int datalen)
+{
+    struct log_t *l = log;
+    char buf[MAX_LOG_LEN];
+    int i, off, len, size, errno_save;
+
+    if (l->logfile < 0) {
+        return;
+    }
+
+    /* log hexdump */
+    errno_save = errno;
+    off = 0;                  /* data offset */
+    len = 0;                  /* length of output buffer */
+    size = MAX_LOG_LEN;   /* size of output buffer */
+
+    while (datalen != 0 && (len < size - 1)) {
+        char *save, *str;
+        unsigned char c;
+        int savelen;
+
+        len += snprintf(buf + len, size - len, "%08x  ", off);
+
+        save = data;
+        savelen = datalen;
+
+        for (i = 0; datalen != 0 && i < 16; data++, datalen--, i++) {
+            c = (unsigned char)(*data);
+            str = (char *)((i == 7) ? "  " : " ");
+            len += snprintf(buf + len, size - len, "%02x%s", c, str);
+        }
+        for ( ; i < 16; i++) {
+            str = (char *)((i == 7) ? "  " : " ");
+            len += snprintf(buf + len, size - len, "  %s", str);
+        }
+
+        data = save;
+        datalen = savelen;
+
+        len += snprintf(buf + len, size - len, "  |");
+
+        for (i = 0; datalen != 0 && i < 16; data++, datalen--, i++) {
+            c = (unsigned char)(isprint(*data) ? *data : '.');
+            len += snprintf(buf + len, size - len, "%c", c);
+        }
+        len += snprintf(buf + len, size - len, "|\n");
+
+        off += 16;
+    }
+
+	write_full(l->logfile, buf, len); 
+    errno = errno_save;
+}
 /*
 #include <stdio.h>
 #include "log.h"
 int main(void)
 {
     log_t *log;
-    open_log(&log,"|/usr/bin/cronolog logs/%Y-%m-%d.%H.log");
- //   while(1)
-    log_error(log,LOG_MARK,"testlog:%d",1);
+    const char *str = "hexdump test!";
+    log_open(&log,"|/usr/local/sbin/cronolog logs/%Y-%m-%d.%H.log");
+    //log_open(&log,"log.txt");
+    while(1)
+    {
+        //log_error(log,"testlog:%d",1);
+        loga_hexdump(log,str,strlen(str),"hexdump");
+    }
     log_close(log);
-  //  sleep(111111);
     return 0;
 }
 */
