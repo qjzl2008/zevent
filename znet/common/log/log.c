@@ -568,6 +568,7 @@ _log_hexdump(log_t *log,char *data, int datalen)
 	write_full(l->logfile, buf, len); 
     errno = errno_save;
 }
+
 /*
 #include <stdio.h>
 #include "log.h"
@@ -575,7 +576,8 @@ int main(void)
 {
     log_t *log;
     const char *str = "hexdump test!";
-    log_open(&log,"|/usr/local/sbin/cronolog logs/%Y-%m-%d.%H.log");
+    //log_open(&log,"|/usr/local/sbin/cronolog logs/%Y-%m-%d.%H.log");
+    log_open(&log,"|/usr/sbin/rotatelogs logs/log.%Y-%m-%d-%H_%M_%S 100M");
     //log_open(&log,"log.txt");
     while(1)
     {
