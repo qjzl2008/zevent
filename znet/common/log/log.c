@@ -264,13 +264,16 @@ int log_open(log_t **log,const char *filename)
 
 static int write_full(int thefile, const void *buf, size_t nbytes)
 {
-    size_t amt = nbytes;
+    ssize_t amt = nbytes;
 
     do {
-	amt = write(thefile, buf, amt);
-	buf = (char *)buf + amt;
-	nbytes -= amt;
-    } while (amt >= 0 && nbytes > 0);
+        amt = write(thefile, buf, amt);
+        if(amt > 0)
+        {
+            buf = (char *)buf + amt;
+            nbytes -= amt;
+        }
+    } while ((amt >= 0) && (nbytes > 0));
 
     return 0;
 }
