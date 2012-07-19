@@ -1,0 +1,18 @@
+{
+    "CONFIG": {
+            "clients-server-address":"127.0.0.1",
+            "clients-server-port":6888,
+            "max-clients":1000,
+            "log": "|/usr/local/sbin/cronolog logs/%Y-%m-%d.log",
+            "log_level":6,
+            "redis": {
+                  "host":"10.0.150.118",
+                  "port":6379
+            },
+            "scws": {
+                  "encode":"utf-8",
+                  "dic":"dict.utf8.xdb"
+            }
+    }
+}
+
