@@ -49,7 +49,7 @@ int ns_broadcastmsg(net_server_t *ns,void *msg,uint32_t len);
  * @param timeout milliseconds
  * rv: 0 recv one data message
  *    -1 no message
- *    -2 one disconnect message.
+ *    1 one disconnect message.
  */
 int ns_recvmsg(net_server_t *ns,void **msg,uint32_t *len,uint64_t *peer_id,
 	uint32_t timeout);
