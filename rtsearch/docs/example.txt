@@ -1,4 +1,11 @@
 ﻿#时间仓促 只写个简单使用例子
+
+安装：
+    svn checkout http://zevent.googlecode.com/svn/ zevent-read-only
+    rtsearch只使用znet,里面可能你会看到很多别的目录，我的垃圾站
+    make
+    
+
 初步完成一个简易实时搜索，c实现，中文分词支持(使用scws）。
 服务器与客户端使用redis协议通信，这样客户端开发可以直接使用redis接口库（set，get，delete）
 操作。插入和返回数据使用json格式。
@@ -20,4 +27,5 @@ while 1:
     query = '{"keywords":"周四海伟大","types":[{"type":"user","start":0,"num":10,"sort":-1},{"type":"tags","start":0,"num":10,"sort":-1}]}'
     rv = r.get(query)
     print rv
+
 
