@@ -1,0 +1,23 @@
+#时间仓促 只写个简单使用例子
+初步完成一个简易实时搜索，c实现，中文分词支持(使用scws）。
+服务器与客户端使用redis协议通信，这样客户端开发可以直接使用redis接口库（set，get，delete）
+操作。插入和返回数据使用json格式。
+
+# -*- coding: utf-8 -*-
+import redis 
+ 
+r = redis.StrictRedis(host='127.0.0.1', port=6888)#这里连接的是实现redis协议的服务，不是redis。
+ 
+while 1:
+    #type：标示数据大类。id:就是id，term：存入的内容，score：排序用的值，data：这个看用户需求存什么东西
+    item = '{"type":"user","id":10,"term":"我是一个伟大的领导人物，不一般啊","score":100,"data":"url://"}'
+    r.set('data',item)
+    item = '{"type":"user","id":11,"term":"我是一个伟大的领导人物","score":99,"data":"url://"}'
+    r.set('data',item)
+ 
+    #r.delete(item)    
+    #keywords:关键语句（后台会自动分词查询）types:搜索哪些类别的数据，start，num用来翻页，sort：-1按插入时的score值倒序，1正序。
+    query = '{"keywords":"周四海伟大","types":[{"type":"user","start":0,"num":10,"sort":-1},{"type":"tags","start":0,"num":10,"sort":-1}]}'
+    rv = r.get(query)
+    print rv
+
