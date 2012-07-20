@@ -17,6 +17,10 @@ int cm_logic_set(struct request *req)
         return -1;
     }
     char *data = req->argv[2];
+    if(!data)
+    {
+        return -1;
+    }
     if(strlen(data) > MAX_RES_LEN)
     {
         return -1;
@@ -121,6 +125,10 @@ int cm_logic_del(struct request *req)
         return -1;
     }
     char *data = req->argv[1];
+    if(!data)
+    {
+        return -1;
+    }
     json_object *jmsg = json_tokener_parse(data);
     if(!jobject_ptr_isvalid(jmsg))
     {
@@ -212,6 +220,8 @@ int cm_logic_get(struct request *req,char **qres)
         return -1;
     }
     char *data = req->argv[1];
+    if(!data)
+        return -1;
     json_object *jmsg = NULL;
     jmsg = json_tokener_parse(data);
     if(!jobject_ptr_isvalid(jmsg))
@@ -251,8 +261,8 @@ int cm_logic_get(struct request *req,char **qres)
         }
         while (cur != NULL)
         {   
-            //printf("len:%d,Word: %.*s/%s (IDF = %4.2f)\n", cur->len,cur->len, keywords+cur->off, 
-                    //cur->attr, cur->idf);
+            printf("len:%d,Word: %.*s/%s (IDF = %4.2f)\n", cur->len,cur->len, keywords+cur->off, 
+                    cur->attr, cur->idf);
 
             if(cur->len > MAX_WORD_LEN)
             {
@@ -415,7 +425,8 @@ int cm_logic_get(struct request *req,char **qres)
                     //free memory
                     for(i = 0; i < num; ++i)
                     {
-                        free(ids[i].data);
+                        if(ids[i].data)
+                            free(ids[i].data);
                     }
                     free(ids);
 

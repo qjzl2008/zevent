@@ -2,7 +2,9 @@
 #include <string.h>
 #include "log.h"
 #include "redis_util.h"
+#include "client_manager.h"
 #include "json_helper.h"
+#include "cm_logic.h"
 
 extern log_t *log_;
 int redis_init(void)
@@ -302,6 +304,15 @@ int getstrings_redis_cmd(reply_data_t **reply_data,int *num,const char *format, 
         log_info(log_,"[redis]Exec OK. cmd:\n[%s].",cmd);
         free(cmd);
         //_return.retcode = 0;
+        if(reply->elements == 0)
+        {
+            log_error(log_,"[redis]Exec OK. cmd:\n[%s],reply->elements:%d,info:%s.",cmd,reply->elements,reply->str);
+            freeReplyObject(reply);
+
+            *num = reply->elements;
+            redis_pool_release(&rcfg,redis_c);
+            return 0;
+        }
 
         *reply_data = (reply_data_t *)malloc(sizeof(reply_data_t *) * (reply->elements));
         int i = 0;
@@ -366,8 +377,18 @@ int getstrings_redis_strcmd(reply_data_t **reply_data,int *num,const char *cmd)
 
         log_info(log_,"[redis]Exec OK. cmd:\n[%s].",cmd);
         //_return.retcode = 0;
+        if(reply->elements == 0)
+        {
+            log_error(log_,"[redis]Exec OK. cmd:\n[%s],reply->elements:%d,info:%s.",cmd,reply->elements,reply->str);
+            freeReplyObject(reply);
+
+            *num = reply->elements;
+            redis_pool_release(&rcfg,redis_c);
+            return 0;
+        }
 
         *reply_data = (reply_data_t *)malloc(sizeof(reply_data_t) * (reply->elements));
+        memset(*reply_data,0,sizeof(reply_data_t) * (reply->elements));
         int i = 0;
         for (i = 0; i < reply->elements; ++i) {
             redisReply* childReply = reply->element[i];

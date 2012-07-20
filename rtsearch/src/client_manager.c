@@ -131,6 +131,16 @@ static int msg_process_func(void *net,uint64_t peerid, void *buf,uint32_t len)
 
             case CMD_GET:{
                              char *res = NULL;
+                             //////////////////////test//////////////////////////
+//                             res = "test search";
+//                             resp=response_new(1,OK_200);
+//                             resp->argv[0]=res;
+//                             response_detch(resp,sent_buf);
+//                             ns_sendmsg(ns,peerid,sent_buf,strlen(sent_buf));
+//                             response_dump(resp);
+//                             response_free(resp);
+//                             break;
+//                         //////////////////////////////////////////////////////
                              rv = cm_logic_get(req,&res);
                              if(rv != 0)
                              {
