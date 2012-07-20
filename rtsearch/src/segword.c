@@ -20,6 +20,11 @@ int segword_init()
         return -1;
     const char *dic = json_object_get_string(jdic);
 
+    json_object *jrules = json_util_get(jfile,"CONFIG.scws.dic");
+    if(!jrules)
+        return -1;
+    const char *rules = json_object_get_string(jdic);
+
     if (!(s = scws_new())) {
         printf("error, can't init the scws_t!\n");
         json_object_put(jfile);
@@ -32,7 +37,7 @@ int segword_init()
         json_object_put(jfile);
         return -1;
     }
-   // scws_set_rule(s, "/usr/local/scws/etc/rules.ini");
+    scws_set_rule(s, rules);
     scws_set_ignore(s,1);
 
     json_object_put(jfile);

@@ -6,12 +6,13 @@
             "log": "|/usr/local/sbin/cronolog logs/%Y-%m-%d.log",
             "log_level":6,
             "redis": {
-                  "host":"10.0.150.118",
+                  "host":"127.0.0.1",
                   "port":6379
             },
             "scws": {
                   "encode":"utf-8",
-                  "dic":"dict.utf8.xdb"
+                  "dic":"dict.utf8.xdb",
+                  "rules":"rules.utf8.ini"
             }
     }
 }
